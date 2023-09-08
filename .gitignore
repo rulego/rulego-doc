@@ -1,3 +1,7 @@
+.idea
+*.iml
+out/
+
 # npm
 package-lock.json
 node_modules
