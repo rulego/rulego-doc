@@ -8,19 +8,25 @@ actionLink: /pages/24112f/
 bannerBg: none
 
 features: # 可选的
-- title: 润物无声
-  details: 只做增强不做改变，引入它不会对现有工程产生影响，如丝般顺滑。
-- title: 效率至上
-  details: 只需简单配置，即可快速进行单表 CRUD 操作，从而节省大量时间。
-- title: 丰富功能
-  details: 代码生成、自动分页、逻辑删除、自动填充等功能一应俱全。
+- title: 🧩组件化
+  details: 一切皆为组件，内置大量组件，你可以灵活配置和重用它们。
+- title: ☘️热刷新
+  details: 不重启应用情况下，替换业务逻辑和数据路由。
+- title: ✨轻量化
+  details: 在低成本设也能高效对数据进行处理，为物联网而生，但远不至于物联网。
+- title: 🎯嵌入式
+  details: 架构合理，提供丰富的扩展接口，可以无缝集成到项目中。
+- title: 📑配置式
+  details: 通过配置规则链，搭积木方式实现你高度变化的业务需求。
+- title: 🔥应用集成
+  details: 可以把RuleGo当做胶水连接各种系统或者协议。
 
 postList: none
 hideRightBar: true
 ---
 
 <p align="center">
-  <a class="become-sponsor" href="/pages/4fedc2">支持这个项目</a>
+  <a class="become-sponsor" href="/pages/ccf224">支持这个项目</a>
 </p>
 
 <style>
@@ -37,53 +43,41 @@ hideRightBar: true
 <br/>
 
 
-### 📚Blog
-这是一个兼具博客文章、知识管理、文档查找的个人网站，主要内容是Web前端技术。如果你喜欢这个博客&主题欢迎到[GitHub](https://github.com/xugaoyi/vuepress-theme-vdoing)点个Star、获取源码，或者交换[友链](/friends/) ( •̀ ω •́ )✧
+### 🚀特性
 
-### 🎨Theme
-本站主题是根据[VuePress](https://vuepress.vuejs.org/zh/)的默认主题修改而成。取名`Vdoing`(维度)，旨在轻松打造一个`结构化`与`碎片化`并存的个人在线知识库&博客，让你的知识海洋像一本本书一样清晰易读。配合多维索引，让每一个知识点都可以快速定位！ 更多[详情](https://github.com/xugaoyi/vuepress-theme-vdoing)。
+* **轻量级：** 无外部中间件依赖，在低成本设备中也能高效对数据进行处理和联动，适用于物联网边缘计算。
+* **高性能：** 得益于`Go`的高性能特性，另外`RuleGo`采用协程池和对象池等技术。对10W条数据进行`JS脚本过滤->JS脚本数据转换->HTTP推送` 处理,平均用时9秒。
+* **嵌入式：** 支持把`RuleGo`嵌入到现有项目，非入侵式利用其特性。
+* **组件化：** 所有业务逻辑都是组件，并能灵活配置和重用它们。
+* **规则链：** 可以灵活地组合和重用不同的组件，实现高度定制化和可扩展性的业务流程。
+* **流程编排：** 支持对规则链进行动态编排，你可以把业务地封装成`RuleGo`组件，然后通过搭积木方式实现你高度变化的业务需求。
+* **扩展简单：** 提供丰富灵活的扩展接口和钩子，如：自定义组件、组件注册管理、规则链DSL解析器、协程池、规则节点消息流入/流出回调、规则链处理结束回调。
+* **动态加载：** 支持通过`Go plugin` 动态加载组件和扩展组件。
+* **内置大量组件：** `消息类型Switch`,`JavaScript Switch`,`JavaScript过滤器`,`JavaScript转换器`,`HTTP推送`，`MQTT推送`，`发送邮件`，`日志记录`
+  等组件。可以自行扩展其他组件。
+* **上下文隔离机制：** 可靠的上下文隔离机制，无需担心高并发情况下的数据串流。
 
-<a href="https://github.com/xugaoyi/vuepress-theme-vdoing" target="_blank"><img src='https://img.shields.io/github/stars/xugaoyi/vuepress-theme-vdoing' alt='GitHub stars' class="no-zoom"></a>
-<a href="https://github.com/xugaoyi/vuepress-theme-vdoing" target="_blank"><img src='https://img.shields.io/github/forks/xugaoyi/vuepress-theme-vdoing' alt='GitHub forks' class="no-zoom"></a>
+### 📚典型使用场景
 
-</br>
+* **边缘计算：** 例如：可以在边缘服务器部署`RuleGo`，对数据进行预处理，筛选、聚合或者计算后再上报到云端。数据的处理规则和分发规则可以通过规则链动态配置和修改，而不需要重启系统。
+* **物联网：** 例如：收集设备数据上报，经过规则链的规则判断，触发一个或者多个动作，例如：发邮件、发告警、和其他设备或者系统联动。
+* **数据分发：** 例如：可以根据不同的消息类型，调用HTTP、MQTT或者gRPC把数据分发到不同系统。
+* **应用集成：** 把`RuleGo`当做胶水连接各种系统或者协议，例如：kafka、消息队列、数据库、chatGPT、第三方应用系统。
+* **异构系统的数据集中处理：** 例如：从不同的数据源（如 MQTT、HTTP 等）接收数据，然后对数据进行过滤、格式转换、然后分发到数据库、业务系统或者仪表板。
+* **高度定制化业务：** 例如：把高度定制化或者经常变化的业务解耦出来，交给`RuleGo`规则链进行管理。业务需求变化而不需要重启主程序。
+* **复杂业务编排：** 例如：把业务封装成自定义组件，通过`RuleGo`编排和驱动这些自定义的组件，并支持动态调整。
+* **微服务编排：** 例如：通过`RuleGo`编排和驱动微服务，或者动态调用第三方服务处理业务，并返回结果。
+* **业务代码和业务逻辑解耦：** 例如：用户积分计算系统、风控系统。
+* **自动化：** 例如：流程自动化系统、营销自动化系统。
+* **灵活配置和高度定制化的事件处理框架：** 例如：对不同的消息类型，进行异步或者同步的处理。
 
+### 代码托管
 
-## 特色功能
-博客部分特色功能介绍
+> **[Gitee](https://gitee.com/rulego/rulego)** | **[Github](https://github.com/rulego/rulego)**
 
-#### 一站式技术搜索
+### 参与贡献
 
-   博客内容中包含部分技术教程，可以利用搜索框快速搜索到相关文档，即使博客中没有的，你还可以选择最下方的 `在XXX中搜索“xxx”` 快速到达你想要找的内容。
+欢迎各路好汉一起来参与完善 RuleGo，我们期待你的 PR！
 
-#### 深色模式与阅读模式
-关爱程序员，保护视力，点击右下角的主题模式按钮试试吧~
-
-#### Demo演示模块
-   为了更直观的展示一些代码的效果，博客添加了demo模块插件，可查看demo、源码，以及跳转到codepen在线编辑。**示例**：
-
-::: demo [vanilla]
-```html
-<html>
-  <div id="vanilla-box"></div>
-</html>
-<script>
-  var box = document.getElementById('vanilla-box')
-  box.innerHTML = 'Hello World! Welcome to EB'
-</script>
-<style>
-#vanilla-box {
-  color: #11a8cd;
-}
-</style>
-```
-:::
-
-
-## :email: 联系
-
-- **WeChat or QQ**: <a href="tencent://message/?uin=894072666&Site=&Menu=yesUrl" class='qq'>894072666</a>
-- **Email**: <a href="mailto:894072666@qq.com">894072666@qq.com</a>
-- **GitHub**: <https://github.com/xugaoyi>
-
-</br> 
+- 贡献代码：代码地址 [RuleGo](https://github.com/rulego/rulego) ，欢迎提交 Issue 或者 Pull Requests
+- 维护文档：文档地址 [RuleGo-Doc](https://github.com/rulego/rulego-doc) ，欢迎参与翻译和修订
