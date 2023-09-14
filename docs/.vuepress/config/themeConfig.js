@@ -12,7 +12,7 @@ module.exports = {
 
   docsRepo: "rulego/rulego-doc",
   docsDir: "docs",
-  docsBranch: "master",
+  docsBranch: "main",
   editLinks: true,
   editLinkText: "帮助我们改善此页面！",
 
