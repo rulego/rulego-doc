@@ -78,7 +78,7 @@ module.exports = [
   [
     "sitemap",
     {
-      hostname: 'https://rulego.ayuntool.com',
+      hostname: 'https://rulego.cc',
     },
   ],
 ];

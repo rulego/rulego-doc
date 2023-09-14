@@ -55,7 +55,7 @@ module.exports = {
   footer: {
     createYear: 2023,
     copyrightInfo: [
-      '<a href="http://rulego/rulego.com" target="_blank" style="font-weight:bold">RuleGo Team</a>',
+      '<a href="https://rulego.cc" target="_blank" style="font-weight:bold">RuleGo Team</a>',
       ' | ',
       'Apache 2.0 License',
       // '<a href="http://beian.miit.gov.cn/" target=_blank></a>',
