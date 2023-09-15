@@ -25,11 +25,13 @@ module.exports = [
     text: "Endpoint",
     link: "/pages/0d77d2/",
     items: [
-      { text: "HTTP Endpoint", link: "/pages/691dd3/" },
-      { text: "MQTT Endpoint", link: "/pages/2b0760/" }
+      { text: "说明", link: "/pages/0d77d2/" },
+      { text: "路由", link: "/pages/45008b/" },
+      { text: "组件", link: "/pages/691dd3/" }
     ]
   },
   { text: "💖支持", link: "/pages/ccf224/" },
-  { text: "👥加入群聊", link: "/pages/257c28/" },
-  { text: "更新日志", link: "" },
+  { text: "👥加入社区", link: "/pages/257c28/" },
+  { text: "更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
+  { text: "Gitee", link: "https://gitee.com/rulego/rulego" },
 ];
