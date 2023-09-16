@@ -6,7 +6,7 @@ module.exports = {
 
   theme: 'vdoing', // 使用依赖包主题
   title: "RuleGo",
-  description: '基于Go语言的轻量级、高性能、嵌入式的编排式规则引擎',
+  description: 'RuleGo是基于Go语言的轻量级、高性能、嵌入式、可编排组件式的规则引擎',
   base: "/",
   head,
   themeConfig,
