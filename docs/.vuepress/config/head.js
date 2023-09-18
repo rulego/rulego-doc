@@ -5,7 +5,7 @@ module.exports = [
     'meta',
     {
       name: 'keywords',
-      content: 'rulego,官方文档,规则引擎,规则链,golang,go语言,编排式,热部署,数据集成,IoT,物联网平台,组件化,流程自动化,自动化引擎,应用集成,事件框架',
+      content: 'rulego官网,官方文档,规则引擎,规则链,golang,go语言,编排式,热部署,数据集成,IoT,物联网平台,组件化,流程自动化,自动化引擎,应用集成,事件框架',
     },
   ],
   ['meta', { name: 'baidu-site-verification', content: 'codeva-CeSVuVg1hy' }], // 百度统计的站长验证（你可以去掉）
