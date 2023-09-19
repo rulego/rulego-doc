@@ -1,7 +1,7 @@
 module.exports = [
-  { text: "首页", link: "/" },
+  { text: "🏠首页", link: "/" },
   {
-    text: "指南",
+    text: "🧭指南",
     link: "/pages/0f6af2/",
     items: [
       { text: "快速入门", link: "/pages/0f6af2/" },
@@ -13,7 +13,7 @@ module.exports = [
     ]
   },
   {
-    text: "组件",
+    text: "🧩组件",
     link: "/pages/88fc3c/",
     items: [
       { text: "标准组件", link: "/pages/88fc3c/" },
@@ -22,7 +22,7 @@ module.exports = [
     ]
   },
   {
-    text: "Endpoint",
+    text: "📬Endpoint",
     link: "/pages/0d77d2/",
     items: [
       { text: "说明", link: "/pages/0d77d2/" },
@@ -32,6 +32,6 @@ module.exports = [
   },
   { text: "💖支持", link: "/pages/ccf224/" },
   { text: "👥加入社区", link: "/pages/257c28/" },
-  { text: "更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
+  { text: "🗒️更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
   { text: "Gitee", link: "https://gitee.com/rulego/rulego" },
 ];
