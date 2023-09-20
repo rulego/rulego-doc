@@ -87,7 +87,7 @@ hideRightBar: true
 <div class="row">
     <span class="link">
         <a href="https://baomidou.com" target="_blank" title="MybatisPlus">
-            <img :src="$withBase('/img/link/mybatis-plus-logo.png')" class="no-zoom">
+            <img :src="$withBase('/img/links/mybatis-plus-logo.png')" class="no-zoom">
         </a>
     </span>
     
