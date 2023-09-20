@@ -82,3 +82,29 @@ hideRightBar: true
 
 - 贡献代码：代码地址 [RuleGo](https://github.com/rulego/rulego) ，欢迎提交 Issue 或者 Pull Requests
 - 维护文档：文档地址 [RuleGo-Doc](https://github.com/rulego/rulego-doc) ，欢迎参与翻译和修订
+
+### 🧲 友情链接
+<div class="row">
+    <span class="link">
+        <a href="https://baomidou.com" target="_blank" title="MybatisPlus">
+            <img :src="$withBase('/img/link/mybatis-plus-logo.png')" class="no-zoom">
+        </a>
+    </span>
+    
+</div>
+
+<style>
+  .link {
+    width: 10em;
+    text-align: left;
+  }
+  .link img {
+    height:1.8em;
+    max-width:180px;
+    margin: 14px;
+  }
+  .row {
+    display: flex;
+    flex-direction: row;
+  }
+</style>
