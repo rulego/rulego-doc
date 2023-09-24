@@ -52,50 +52,50 @@
 // };
 
 // 万维
-module.exports = {
-  sidebarT: `
-    
-  `,
-  pageT: `
-    <div class="wwads-cn wwads-horizontal page-wwads" data-id="135"></div>
-    <style>
-      .page-wwads{
-        width:100%!important;
-        min-height: 0;
-        margin: 0;
-      }
-      .page-wwads .wwads-img img{
-        width:80px!important;
-      }
-      .page-wwads .wwads-poweredby{
-        width: 40px;
-        position: absolute;
-        right: 25px;
-        bottom: 3px;
-      }
-      .wwads-content .wwads-text, .page-wwads .wwads-text{
-        height: 100%;
-        padding-top: 5px;
-        display: block;
-      }
-    </style>
-  `,
-  pageB: `
-    <ins class="adsbygoogle"
-      style="display:inline-block;width:860px;height:90px"
-      data-ad-client=""
-      data-ad-slot="6574899324"></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  `,
-  windowRB: `
-    <ins class="adsbygoogle"
-      style="display:inline-block;width:200px;height:300px"
-      data-ad-client=""
-      data-ad-slot=""></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  `
-};
+// module.exports = {
+//   sidebarT: `
+//
+//   `,
+//   pageT: `
+//     <div class="wwads-cn wwads-horizontal page-wwads" data-id="135"></div>
+//     <style>
+//       .page-wwads{
+//         width:100%!important;
+//         min-height: 0;
+//         margin: 0;
+//       }
+//       .page-wwads .wwads-img img{
+//         width:80px!important;
+//       }
+//       .page-wwads .wwads-poweredby{
+//         width: 40px;
+//         position: absolute;
+//         right: 25px;
+//         bottom: 3px;
+//       }
+//       .wwads-content .wwads-text, .page-wwads .wwads-text{
+//         height: 100%;
+//         padding-top: 5px;
+//         display: block;
+//       }
+//     </style>
+//   `,
+//   pageB: `
+//     <ins class="adsbygoogle"
+//       style="display:inline-block;width:860px;height:90px"
+//       data-ad-client=""
+//       data-ad-slot="6574899324"></ins>
+//     <script>
+//       (adsbygoogle = window.adsbygoogle || []).push({});
+//     </script>
+//   `,
+//   windowRB: `
+//     <ins class="adsbygoogle"
+//       style="display:inline-block;width:200px;height:300px"
+//       data-ad-client=""
+//       data-ad-slot=""></ins>
+//     <script>
+//       (adsbygoogle = window.adsbygoogle || []).push({});
+//     </script>
+//   `
+// };
