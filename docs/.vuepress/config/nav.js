@@ -9,6 +9,7 @@ module.exports = [
       { text: "标准组件", link: "/pages/88fc3c/" },
       { text: "扩展组件", link: "/pages/d7fc43/" },
       { text: "自定义组件", link: "/pages/caed1b/" },
+      { text: "可视化", link: "/pages/cf0193/" },
       { text: "高级主题", link: "/pages/d59341/" }
     ]
   },
