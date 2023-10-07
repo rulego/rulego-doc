@@ -26,6 +26,20 @@ postList: none
 hideRightBar: true
 ---
 
+### 🏆特别用户
+
+::: cardList
+```yaml
+- name: Sagoo IOT
+  desc: 基于Golang开发的企业级开源物联网系统
+  avatar: img/sponsors/shaguo.png
+  link: https://iotdoc.sagoo.cn/
+  bgColor: '#f8c567' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
+  textColor: '#1f2328' # 可选，默认var(--textColor)
+  expired: '2024-10-07'
+```  
+:::
+
 <p align="center">
   <a class="become-sponsor" href="/pages/ccf224">支持这个项目</a>
 </p>

@@ -1,3 +1,4 @@
+const advHtml = require('./adv.js')
 /** 插入自定义html模块 (可用于插入广告模块等)
  * {
  *   homeSidebarB: htmlString, 首页侧边栏底部
@@ -17,6 +18,10 @@
  * ①注：在.md文件front matter配置`article: false`的页面是自定义页，未配置的默认是文章页（首页除外）。
  * ②注：windowLB 和 windowRB：1.展示区块宽高最大是200*200px。2.请给自定义元素定一个不超过200px的固定宽高。3.在屏宽小于960px时无论如何都不会显示。
  */
+
+module.exports = {
+    sidebarT: advHtml(),
+}
 
 // Adsense
 // module.exports = {
