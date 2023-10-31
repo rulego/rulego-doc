@@ -6,7 +6,7 @@ module.exports = {
   nav,
   sidebarDepth: 2,
   logo: "/img/logo.png",
-  repo: "rulego/rulego",
+  // repo: "rulego/rulego",
   searchMaxSuggestions: 10,
   lastUpdated: "上次更新",
 

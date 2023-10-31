@@ -23,13 +23,6 @@ module.exports = [
     ]
   },
   {
-    text: "🍭解决方案",
-    link: "",
-    items: [
-      { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
-    ]
-  },
-  {
     text: "📬Endpoint",
     link: "/pages/0d77d2/",
     items: [
@@ -38,8 +31,23 @@ module.exports = [
       { text: "组件", link: "/pages/691dd3/" }
     ]
   },
+  {
+    text: "🍭解决方案",
+    link: "",
+    items: [
+      { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
+    ]
+  },
   { text: "💖支持", link: "/pages/ccf224/" },
   { text: "👥加入社区", link: "/pages/257c28/" },
-  { text: "🗒️更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
-  { text: "Gitee", link: "https://gitee.com/rulego/rulego" },
+  // { text: "🗒️更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
+  {
+    text: "🎈托管",
+    link: "",
+    items: [
+      { text: "Github", link: "https://github.com/rulego/rulego" },
+      { text: "Gitee", link: "https://gitee.com/rulego/rulego" },
+      { text: "更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
+    ]
+  },
 ];
