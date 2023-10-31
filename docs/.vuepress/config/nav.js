@@ -23,6 +23,13 @@ module.exports = [
     ]
   },
   {
+    text: "🍭解决方案",
+    link: "",
+    items: [
+      { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
+    ]
+  },
+  {
     text: "📬Endpoint",
     link: "/pages/0d77d2/",
     items: [
