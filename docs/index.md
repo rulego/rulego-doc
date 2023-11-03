@@ -42,6 +42,7 @@ hideRightBar: true
 
 <p align="center">
   <a class="become-sponsor" href="/pages/ccf224">支持这个项目</a>
+  <a class="become-sponsor" href="https://gitee.com/rulego/rulego" target="_blank">为RuleGo点星</a>
 </p>
 
 <style>
@@ -52,6 +53,10 @@ hideRightBar: true
     border-radius: 30px;
     box-sizing: border-box;
     border: 1px solid #11a8cd;
+  }
+ .become-sponsor:hover{
+    border: 1px solid #13bee8;
+    color: #13bee8;
   }
 </style>
 
