@@ -41,8 +41,9 @@ hideRightBar: true
 :::
 
 <p align="center">
-  <a class="become-sponsor" href="/pages/ccf224">支持这个项目</a>
-  <a class="become-sponsor" href="https://gitee.com/rulego/rulego" target="_blank">为RuleGo点星</a>
+  <a class="become-sponsor iconfont " href="/pages/ccf224">支持这个项目</a>
+  <a class="become-sponsor iconfont icon-github " href="https://github.com/rulego/rulego" target="_blank">为RuleGo点星</a>
+  <a class="become-sponsor iconfont icon-gitee" href="https://gitee.com/rulego/rulego" target="_blank">为RuleGo点星</a>
 </p>
 
 <style>
