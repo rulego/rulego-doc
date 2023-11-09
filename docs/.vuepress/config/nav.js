@@ -27,6 +27,7 @@ module.exports = [
     link: "/pages/0d77d2/",
     items: [
       { text: "说明", link: "/pages/0d77d2/" },
+      { text: "快速入门", link: "/pages/5a3227/" },
       { text: "路由", link: "/pages/45008b/" },
       { text: "组件", link: "/pages/691dd3/" }
     ]
