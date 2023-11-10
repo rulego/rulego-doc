@@ -24,7 +24,14 @@ features: # 可选的
 
 postList: none
 hideRightBar: true
+notices: # 可选的
+- id: RuleGo-0.16.0
+  title: 📢 RuleGo团队需要您的帮助！
+  content: '<div><p>RuleGo是一个有趣并且有价值的项目，已经在生产环境中被广泛使用。目前项目正筹划下一个阶段目标，希望得到您的支持：</p><ol><li>加入<a href="/pages/257c28/">QQ/微信群</a>给我们提需求✅ </li><li>把RuleGo推荐给您的小伙伴✅ </li><li>请在Gitee为<a href="https://gitee.com/rulego/rulego">RuleGo</a>点星✅ </li><li>请在Github为<a href="https://github.com/rulego/rulego">RuleGo</a>点星 ✅</li></ol><p>您的支持和关注是我们前进的动力❤️</p</div>'
+  isHtmlContent: true
 ---
+
+<Notice :data="$frontmatter.notices"/>
 
 ### 🏆特别用户
 
