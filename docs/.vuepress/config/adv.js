@@ -11,7 +11,7 @@ module.exports = function advHtml() {
    */
   let mustShowArray = [
     `<a href="https://iotdoc.sagoo.cn/" target="_blank">
-     <img class="no-zoom" style="width:100%;" src="https://www.mtruning.club/sponsor/shaguo-banner.png">
+     <img class="no-zoom" style="width:100%;" src="/img/sponsors/shaguo-banner.png">
    </a>`
   ]
 
