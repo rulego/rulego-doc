@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.16.0
-  title: 📢 RuleGo团队需要您的帮助！
-  content: '<div><p>RuleGo是一个有趣并且有价值的项目，已经在生产环境中被广泛使用。目前项目正筹划下一个阶段目标，希望得到您的支持：</p><ol><li>加入<a href="/pages/257c28/">QQ/微信群</a>给我们提需求✅ </li><li>把RuleGo推荐给您的小伙伴✅ </li><li>请在Gitee为<a href="https://gitee.com/rulego/rulego">RuleGo</a>点星✅ </li><li>请在Github为<a href="https://github.com/rulego/rulego">RuleGo</a>点星 ✅</li></ol><p>您的支持和关注是我们前进的动力❤️</p</div>'
+- id: RuleGo-0.17.0
+  title: 📢 RuleGo v0.17.0发布！
+  content: '<div><p>2023/11/27</p><ul><li>feat:增加Websocket Endpoint组件</li><li>feat:增加tcp/udp Endpoint组件</li><li>feat:增加Kafka Endpoint扩展组件库</li><li>feat:增加tcp/udp 节点组件</li><li>feat:Endpoint组件使用统一的创建方式</li><li>feat:增加过滤器组节点组件</li><li>feat:增加子规则链节点组件</li><li>feat:允许子规则链接其它节点</li><li>feat:functions节点组件，支持动态指定函数名</li><li>feat:delay节点组件，增加覆盖模式</li><li>feat:支持加载JavaScript脚本文件</li><li>feat:mqtt client 允许重连被取消</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
