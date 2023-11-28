@@ -71,6 +71,7 @@ module.exports = {
       selectText: '💬 Languages',
       label: 'English',
       editLinkText: 'Edit this page on GitHub',
+      lastUpdated: "Last Updated",
     },
     '/': {
       nav,
