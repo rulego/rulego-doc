@@ -25,5 +25,17 @@ module.exports = {
     '.vuepress/config/nav.js',
     '.vuepress/config/plugins.js',
     '.vuepress/config/themeConfig.js',
-  ]
+  ],
+  locales: {
+    '/en/': {
+      lang: 'en-US',
+      title: 'RuleGo',
+      description: 'A lightweight, fast, stable and configurable component-based rule engine'
+    },
+    '/': {
+      lang: 'zh-CN',
+      title: "RuleGo",
+      description: 'RuleGo is a lightweight, high-performance, embedded, orchestrable component-based rule engine based on Go language.'
+    }
+  }
 }
