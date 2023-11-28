@@ -1,10 +1,9 @@
 const nav = require("./nav.js");
-const nav_en_us = require("./en/nav.js");
+const nav_en = require("./en/nav.js");
 const htmlModules = require("./htmlModules.js");
 
 // Theme Config
 module.exports = {
-  nav,
   sidebarDepth: 2,
   logo: "/img/logo.png",
   // repo: "rulego/rulego",
@@ -33,20 +32,6 @@ module.exports = {
     link: 'https://github.com/rulego', // 可选的
   },
 
-  locales: {
-    '/en/': {
-      nav: nav_en_us,
-      selectText: '💬 Languages',
-      label: 'English',
-      editLinkText: 'Edit this page on GitHub',
-    },
-    '/': {
-      nav,
-      selectText: '💬 Languages',
-      label: '简体中文',
-      editLinkText: '在 GitHub 上编辑此页',
-    }
-  },
   social: {
     icons: [
       {
@@ -79,5 +64,19 @@ module.exports = {
     ].join('')
   },
 
-  htmlModules
+  htmlModules,
+  locales: {
+    '/en/': {
+      nav: nav_en,
+      selectText: '💬 Languages',
+      label: 'English',
+      editLinkText: 'Edit this page on GitHub',
+    },
+    '/': {
+      nav,
+      selectText: '💬 Languages',
+      label: '简体中文',
+      editLinkText: '在 GitHub 上编辑此页',
+    }
+  }
 };

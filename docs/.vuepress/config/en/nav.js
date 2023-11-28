@@ -34,7 +34,7 @@ module.exports = [
     },
     {
         text: "🍭Ecosystem",
-        link: "",
+        link: "https://editor.rulego.cc/",
         items: [
             {text: "Visual Editor", link: "https://editor.rulego.cc/"},
         ]
@@ -42,7 +42,7 @@ module.exports = [
     {text: "💖Sponsor", link: "/en/pages/ccf224/"},
     {
         text: "🎈Repository",
-        link: "",
+        link: "https://github.com/rulego/rulego",
         items: [
             {text: "Github", link: "https://github.com/rulego/rulego"},
             {text: "Gitee", link: "https://gitee.com/rulego/rulego"},
