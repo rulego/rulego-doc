@@ -34,7 +34,7 @@ module.exports = [
   },
   {
     text: "🍭解决方案",
-    link: "https://editor.rulego.cc/",
+    link: "#1",
     items: [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
     ]
@@ -44,7 +44,7 @@ module.exports = [
   // { text: "🗒️更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
   {
     text: "🎈托管",
-    link: "https://github.com/rulego/rulego",
+    link: "#2",
     items: [
       { text: "Github", link: "https://github.com/rulego/rulego" },
       { text: "Gitee", link: "https://gitee.com/rulego/rulego" },

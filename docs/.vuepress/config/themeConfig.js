@@ -4,6 +4,8 @@ const htmlModules = require("./htmlModules.js");
 
 // Theme Config
 module.exports = {
+  nav: nav,
+  base: "/rulego-doc",
   sidebarDepth: 2,
   logo: "/img/logo.png",
   // repo: "rulego/rulego",
@@ -74,7 +76,7 @@ module.exports = {
       lastUpdated: "Last Updated",
     },
     '/': {
-      nav,
+      nav:nav,
       selectText: '💬 Languages',
       label: '简体中文',
       editLinkText: '在 GitHub 上编辑此页',

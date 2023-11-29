@@ -34,15 +34,15 @@ module.exports = [
     },
     {
         text: "🍭Ecosystem",
-        link: "https://editor.rulego.cc/",
+        link: "#1",
         items: [
             {text: "Visual Editor", link: "https://editor.rulego.cc/"},
         ]
     },
-    {text: "💖Sponsor", link: "/en/pages/ccf224/"},
+    // {text: "💖Sponsor", link: "/en/pages/ccf224/"},
     {
         text: "🎈Repository",
-        link: "https://github.com/rulego/rulego",
+        link: "#2",
         items: [
             {text: "Github", link: "https://github.com/rulego/rulego"},
             {text: "Gitee", link: "https://gitee.com/rulego/rulego"},
