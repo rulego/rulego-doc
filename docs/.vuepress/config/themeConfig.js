@@ -70,14 +70,14 @@ module.exports = {
   locales: {
     '/en/': {
       nav: nav_en,
-      selectText: '💬 Languages',
+      selectText: 'Languages',
       label: 'English',
       editLinkText: 'Edit this page on GitHub',
       lastUpdated: "Last Updated",
     },
     '/': {
       nav:nav,
-      selectText: '💬 Languages',
+      selectText: 'Languages',
       label: '简体中文',
       editLinkText: '在 GitHub 上编辑此页',
     }
