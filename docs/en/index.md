@@ -92,6 +92,7 @@ title: index
 * **Built-in a large number of components:** `Message type routing`, `Script routing`, `Script filter`, `Script converter`, `HTTP push`, `MQTT push`, `Send email`, `Log record`, `Database operation`
   and other components. You can also extend custom components by yourself.
 * **Context isolation mechanism:** Reliable context isolation mechanism, no need to worry about data cross-flow in high-concurrency situations.
+* **AOP:** Allows adding extra behavior to the execution of the rule chain, or directly replacing the original rule chain or node logic, without modifying the original logic of the rule chain or node.
 
 ### 🎯Typical use cases
 

@@ -10,6 +10,7 @@ module.exports = [
             {text: "Extension Components", link: "/en/pages/d7fc43/"},
             {text: "Custom Components", link: "/en/pages/caed1b/"},
             {text: "Visualization", link: "/en/pages/cf0193/"},
+            {text: "AOP", link: "/pages/a1ed6c/" },
             {text: "Advanced Topics", link: "/en/pages/d59341/"}
         ]
     },
