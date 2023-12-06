@@ -27,7 +27,7 @@ module.exports = [
         text: "📬Endpoint",
         link: "/en/pages/0d77d2/",
         items: [
-            {text: "Introduction", link: "/en/pages/0d77d2/"},
+            {text: "Overview", link: "/en/pages/0d77d2/"},
             {text: "Quick Start", link: "/en/pages/5a3227/"},
             {text: "Routing", link: "/en/pages/45008b/"},
             {text: "Components", link: "/en/pages/691dd3/"}
