@@ -11,7 +11,8 @@ module.exports = [
             {text: "Custom Components", link: "/en/pages/caed1b/"},
             {text: "Visualization", link: "/en/pages/cf0193/"},
             {text: "AOP", link: "/pages/a1ed6c/" },
-            {text: "Advanced Topics", link: "/en/pages/d59341/"}
+            {text: "Advanced Topics", link: "/en/pages/d59341/"},
+            { text: "性能", link: "/en/pages/f60381/" }
         ]
     },
     {

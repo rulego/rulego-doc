@@ -11,7 +11,8 @@ module.exports = [
       { text: "自定义组件", link: "/pages/caed1b/" },
       { text: "可视化", link: "/pages/cf0193/" },
       { text: "AOP", link: "/pages/a1ed6c/" },
-      { text: "高级主题", link: "/pages/d59341/" }
+      { text: "高级主题", link: "/pages/d59341/" },
+      { text: "性能", link: "/pages/f60381/" }
     ]
   },
   {
