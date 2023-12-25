@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.17.0
-  title: 📢 RuleGo v0.17.0发布！
-  content: '<div><p>2023/11/27</p><ul><li>feat:增加Websocket Endpoint组件</li><li>feat:增加tcp/udp Endpoint组件</li><li>feat:增加Kafka Endpoint扩展组件库</li><li>feat:增加tcp/udp 节点组件</li><li>feat:Endpoint组件使用统一的创建方式</li><li>feat:增加过滤器组节点组件</li><li>feat:增加子规则链节点组件</li><li>feat:允许子规则链接其它节点</li><li>feat:functions节点组件，支持动态指定函数名</li><li>feat:delay节点组件，增加覆盖模式</li><li>feat:支持加载JavaScript脚本文件</li><li>feat:mqtt client 允许重连被取消</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.18.0
+  title: 📢 RuleGo v0.18.0发布！
+  content: '<div><p>2023/12/27</p><ul><li>feat:增加AOP模块。<a href="/pages/a1ed6c/">文档</a></li><li>feat:restApiCall节点组件，增加SSE流式请求模式，支持对接大模型接口</li><li>feat:增加CI自动化测试流程</li><li>feat:增加大量单元测试，覆盖率达到92%</li><li>feat:增加性能测试用例。<a href="/pages/f60381/">链接</a> </li><li>feat:增加子规则链节点组件</li><li>fix:metadata可能会出现并发读写问题</li><li>fix:规则引擎同步处理数据，有几率无法正确调用onCompleted回调函数</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
