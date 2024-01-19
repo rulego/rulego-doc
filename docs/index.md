@@ -2,7 +2,7 @@
 home: true
 heroImage: /img/logo.png
 heroText: RuleGo
-tagline: 🚀基于Go语言的轻量级、高性能、嵌入式、可编排组件式的规则引擎
+tagline: 🚀基于Go语言的轻量级、高性能、嵌入式、组件编排规则引擎
 actionText: 快速开始 →
 actionLink: /pages/0f6af2/
 bannerBg: none
