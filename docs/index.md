@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.18.0
-  title: 📢 RuleGo v0.18.0发布！
-  content: '<div><p>2023/12/27</p><ul><li>feat:增加AOP模块。<a href="/pages/a1ed6c/">文档</a></li><li>feat:restApiCall节点组件，增加SSE流式请求模式，支持对接大模型接口</li><li>feat:增加CI自动化测试流程</li><li>feat:增加大量单元测试，覆盖率达到92%</li><li>feat:增加性能测试用例。<a href="/pages/f60381/">链接</a> </li><li>feat:增加子规则链节点组件</li><li>fix:metadata可能会出现并发读写问题</li><li>fix:规则引擎同步处理数据，有几率无法正确调用onCompleted回调函数</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.19.0
+  title: 📢 RuleGo v0.19.0发布！
+  content: '<div><p>2024/02/18</p><ul><li>feat:增加表达式过滤器节点组件</li><li>feat:增加表达式转换节点组件</li><li>feat:增加groupAction节点组件</li><li>feat:增加迭代器节点组件</li><li>fix:修复子规则结果合并，并发问题</li><li>fix:onEnd某些原因可能会重复调用问题</li><li>fix:metadata可能会出现并发读写问题</li><li>fix:js引擎初始化增加并发保护</li><li>fix:jsTransform遇到NaN值需要流转到TellFailure分支</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
