@@ -39,6 +39,7 @@ module.exports = [
     link: "#1",
     items: [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
+      { text: "应用开发脚手架", link: "https://example.rulego.cc/" }
     ]
   },
   { text: "💖支持", link: "/pages/ccf224/" },

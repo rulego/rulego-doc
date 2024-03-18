@@ -38,7 +38,9 @@ module.exports = [
         text: "🍭Ecosystem",
         link: "#1",
         items: [
-            {text: "Visual Editor", link: "https://editor.rulego.cc/"},
+            {text: "RuleGo Editor", link: "https://editor.rulego.cc/"},
+            { text: "RuleGo Example", link: "https://example.rulego.cc/" }
+
         ]
     },
     // {text: "💖Sponsor", link: "/en/pages/ccf224/"},
