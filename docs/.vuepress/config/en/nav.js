@@ -39,7 +39,7 @@ module.exports = [
         link: "#1",
         items: [
             {text: "RuleGo Editor", link: "https://editor.rulego.cc/"},
-            { text: "RuleGo Example", link: "https://example.rulego.cc/" }
+            { text: "RuleGo Example", link: "http://8.134.32.225:9090/ui/" }
 
         ]
     },

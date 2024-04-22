@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.19.0
-  title: 📢 RuleGo v0.19.0发布！
-  content: '<div><p>2024/02/18</p><ul><li>feat:增加表达式过滤器节点组件</li><li>feat:增加表达式转换节点组件</li><li>feat:增加groupAction节点组件</li><li>feat:增加迭代器节点组件</li><li>fix:修复子规则结果合并，并发问题</li><li>fix:onEnd某些原因可能会重复调用问题</li><li>fix:metadata可能会出现并发读写问题</li><li>fix:js引擎初始化增加并发保护</li><li>fix:jsTransform遇到NaN值需要流转到TellFailure分支</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.20.0
+  title: 📢 RuleGo v0.20.0发布！
+  content: '<div><p>2024/04/23</p><ul><li>feat: 允许不同脚本相同的函数名</li><li>feat:restApiCall 节点允许空body</li><li>feat:可以得到规则链执行快照</li><li>feat:允许在OnMsg上下文添加onDebug回调函数</li><li>重构examples/server 提供开发应用的脚手架，<a href="http://8.134.32.225:9090/ui/" target="_blank">前端地址</a></li><li>feat:规则链DSL文件可以添加vars变量</li><li>feat:子规则链允许通过Failure和其他节点连接</li><li>fix: 修复groupAction节点，可能并发读写问题</li><li>fix: 规则链没有节点，执行报错问题</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
