@@ -21,7 +21,7 @@ features:
     details: Self-developed architecture, strong scalability. It can be seamlessly integrated into the project. No dependency on any third-party components, simple deployment.
   - 
     title: 📑Configurable
-    details: By configuring the rule chain, build blocks to achieve your highly variable business needs.
+    details: By configuring the rule chain and endpoint, build blocks to achieve your highly variable business needs.
   - 
     title: 🔥Application Integration
     details: You can use RuleGo as glue to connect various systems or protocols.
