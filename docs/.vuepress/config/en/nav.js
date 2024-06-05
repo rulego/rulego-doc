@@ -10,7 +10,8 @@ module.exports = [
             {text: "Extension Components", link: "/en/pages/d7fc43/"},
             {text: "Custom Components", link: "/en/pages/caed1b/"},
             {text: "Visualization", link: "/en/pages/cf0193/"},
-            {text: "AOP", link: "/pages/a1ed6c/" },
+            {text: "AOP", link: "/en/pages/a1ed6c/" },
+            { text: "Trigger", link: "/en/pages/784fda/" },
             {text: "Advanced Topics", link: "/en/pages/d59341/"},
             { text: "Performance", link: "/en/pages/f60381/" }
         ]
@@ -31,6 +32,9 @@ module.exports = [
             {text: "Overview", link: "/en/pages/0d77d2/"},
             {text: "Quick Start", link: "/en/pages/5a3227/"},
             {text: "Routing", link: "/en/pages/45008b/"},
+            { text: "DSL", link: "/en/pages/390ad7/" },
+            { text: "API", link: "/en/pages/63bafe/" },
+            { text: "Options", link: "/en/pages/8d94a0/" },
             {text: "Components", link: "/en/pages/691dd3/"}
         ]
     },

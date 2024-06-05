@@ -11,6 +11,7 @@ module.exports = [
       { text: "自定义组件", link: "/pages/caed1b/" },
       { text: "可视化", link: "/pages/cf0193/" },
       { text: "AOP", link: "/pages/a1ed6c/" },
+      { text: "触发器", link: "/pages/784fda/" },
       { text: "高级主题", link: "/pages/d59341/" },
       { text: "性能", link: "/pages/f60381/" }
     ]
@@ -31,6 +32,9 @@ module.exports = [
       { text: "概述", link: "/pages/0d77d2/" },
       { text: "快速入门", link: "/pages/5a3227/" },
       { text: "路由", link: "/pages/45008b/" },
+      { text: "DSL", link: "/pages/390ad7/" },
+      { text: "API", link: "/pages/63bafe/" },
+      { text: "Options", link: "/pages/8d94a0/" },
       { text: "组件", link: "/pages/691dd3/" }
     ]
   },
