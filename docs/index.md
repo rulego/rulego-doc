@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.20.0
-  title: 📢 RuleGo v0.20.0发布！
-  content: '<div><p>2024/04/23</p><ul><li>feat: 允许不同脚本相同的函数名</li><li>feat:restApiCall 节点允许空body</li><li>feat:可以得到规则链执行快照</li><li>feat:允许在OnMsg上下文添加onDebug回调函数</li><li>重构examples/server 提供开发应用的脚手架，<a href="http://8.134.32.225:9090/ui/" target="_blank">前端地址</a></li><li>feat:规则链DSL文件可以添加vars变量</li><li>feat:子规则链允许通过Failure和其他节点连接</li><li>fix: 修复groupAction节点，可能并发读写问题</li><li>fix: 规则链没有节点，执行报错问题</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.21.0
+  title: 📢 RuleGo v0.21.0发布！
+  content: '<div><p>2024/06/11</p><ul><li>feat:Rule Chain DSL允许动态配置接入端(Endpoint)</li><li>feat:接入端允许通过DSL动态配置和启动</li><li>feat:Endpoint通过无阻塞方式启动</li><li>feat:Endpoint router允许传递context</li><li>feat:增加nats 节点组件</li><li>feat:增加Nats Endpoint组件</li><li>feat:消息路由节点默认转到默认链</li><li>fix:子规则链context丢失问题</li><li>fix:examples/server示例优化</li><li>refactor:调整目录结构</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

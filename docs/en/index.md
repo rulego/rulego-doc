@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.17.0
-    title: 📢RuleGo v0.17.0 released!
-    content: '<div><p>2023/11/27</p><ul><li>feat: Add Websocket Endpoint component</li><li>feat: Add tcp/udp Endpoint component</li><li>feat: Add Kafka Endpoint extension component library</li><li>feat: Add tcp/udp node component</li><li>feat: Endpoint components use a unified creation method</li><li>feat: Add filter group node component</li><li>feat: Add sub-rule chain node component</li><li>feat: Allow sub-rule chains to link other nodes</li><li>feat: functions node component, support dynamic specification of function name</li><li>feat: delay node component, increase overwrite mode</li><li>feat: Support loading JavaScript script files</li><li>feat: mqtt client allows reconnection to be cancelled</li></ul><p style=\\text-align: center;\\><a href=\\https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md\\ target=\\_blank\\>View details</a></p></div>'
+    id: RuleGo-0.21.0
+    title: 📢RuleGo v0.21.0 released!
+    content: '<div><p>2024/06/11</p><ul><li>feat:Dynamic endpoint</li><li>feat: Add Nats Endpoint</li><li>feat: Add Nats Client node component</li</ul><p style=\\text-align: center;\\><a href=\\https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md\\ target=\\_blank\\>View details</a></p></div>'
     isHtmlContent: true
 date: 2023-11-28 14:03:31
 permalink: /
