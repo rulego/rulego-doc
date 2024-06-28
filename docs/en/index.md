@@ -82,7 +82,7 @@ title: index
 
 * **Lightweight:** No external middleware dependencies, it can sink to the edge server, implement the Internet of Things edge computing solution, or deploy on the cloud as a rule engine service.
 * **High performance:** Thanks to the high-performance characteristics of `Go`, and the use of technologies such as coroutine pool and object pool.
-* **Embedded:** Support embedding `RuleGo` into existing projects, non-invasive use of its features.
+* **Dual Mode:** Embedded and Standalone Deployment modes. Supports embedding `RuleGo` into existing applications. It can also be deployed independently as middleware, providing rule engine and orchestration services.
 * **Componentized:** All business logic are components, and can be flexibly configured and reused. You can also encapsulate your business into `RuleGo` components, and then build blocks to achieve your highly variable business needs.
 * **Rule chain:** You can flexibly combine and reuse different components to achieve highly customized and extensible business processes.
 * **Process orchestration:** Support dynamic orchestration of rule chain components, without restarting the application, replace or add business logic.
