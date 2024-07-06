@@ -13,7 +13,7 @@ module.exports = [
       { text: "AOP", link: "/pages/a1ed6c/" },
       { text: "触发器", link: "/pages/784fda/" },
       { text: "高级主题", link: "/pages/d59341/" },
-      { text: "性能", link: "/pages/f60381/" }
+      { text: "性能", link: "/pages/f60381/" },
     ]
   },
   {
@@ -43,7 +43,11 @@ module.exports = [
     link: "#1",
     items: [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
-      { text: "应用开发脚手架", link: "http://8.134.32.225:9090/ui/" }
+      { text: "应用开发脚手架", link: "http://8.134.32.225:9090/ui/" },
+      { text: '❓问答', items: [
+          { text: "关于规则引擎执行中断恢复", link: "/pages/4bb2d1/" },
+        ]
+      },
     ]
   },
   { text: "💖支持", link: "/pages/ccf224/" },
