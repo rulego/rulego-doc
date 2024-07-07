@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.21.0
-  title: 📢 RuleGo v0.21.0发布！
-  content: '<div><p>2024/06/11</p><ul><li>feat:Rule Chain DSL允许动态配置接入端(Endpoint)</li><li>feat:接入端允许通过DSL动态配置和启动</li><li>feat:Endpoint通过无阻塞方式启动</li><li>feat:Endpoint router允许传递context</li><li>feat:增加nats 节点组件</li><li>feat:增加Nats Endpoint组件</li><li>feat:消息路由节点默认转到默认链</li><li>fix:子规则链context丢失问题</li><li>fix:examples/server示例优化</li><li>refactor:调整目录结构</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.22.0
+  title: 📢 RuleGo v0.22.0发布！
+  content: '<div><p>2024/07/08</p><ul><li>feat:接入端(endpoint)允许可视化配置。<a href="http://8.134.32.225:9090/ui/" target="_blank">体验地址</a></li><li>feat:增加redis endpoint组件</li><li>feat:增加nats endpoint组件</li><li>feat:增加nats 节点组件</li><li>feat:增加for节点组件</li><li>feat:增加执行本地命令节点组件</li><li>feat:增加template节点组件</li><li>feat:增加metadataTransform节点组件</li><li>feat:增加规则引擎中断恢复相关API</li><li>feat:endpoint允许指定从规则链某节点开始执行</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

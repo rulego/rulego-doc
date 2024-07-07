@@ -29,13 +29,13 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.21.0
-    title: 📢RuleGo v0.21.0 released!
-    content: '<div><p>2024/06/11</p><ul><li>feat:Dynamic endpoint</li><li>feat: Add Nats Endpoint</li><li>feat: Add Nats Client node component</li</ul><p style=\\text-align: center;\\><a href=\\https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md\\ target=\\_blank\\>View details</a></p></div>'
+    id: RuleGo-0.22.0
+    title: 📢 RuleGo v0.22.0 released!
+    content: '<div><p>2024/07/08</p><ul><li>feat: The endpoint allows for visual configuration. </li><li>feat: Added Redis endpoint component</li><li>feat: Added NATS endpoint component</li><li>feat: Added NATS node component</li><li>feat: Added for node component</li><li>feat: Added execute local command node component</li><li>feat: Added template node component</li><li>feat: Added metadataTransform node component</li><li>feat: Added APIs related to the rule engine interruption recovery</li><li>feat: Endpoint allows specifying to start execution from a certain node in the rule chain</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">View details</a></p></div>'
     isHtmlContent: true
-date: 2023-11-28 14:03:31
-permalink: /
 title: index
+date: 2023-12-13 09:17:46
+permalink: /pages/2c4d43/
 ---
 
 <Notice :data="$frontmatter.notices"/>
