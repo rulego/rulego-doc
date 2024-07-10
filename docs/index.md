@@ -40,10 +40,17 @@ notices: # 可选的
 - name: Sagoo IOT
   desc: 基于Golang开发的企业级开源物联网系统
   avatar: img/sponsors/shaguo.png
-  link: https://iotdoc.sagoo.cn/
+  link: https://iotdoc.sagoo.cn/?from=rulego
   bgColor: '#f8c567' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
   textColor: '#1f2328' # 可选，默认var(--textColor)
   expired: '2024-10-07'
+- name: Hummingbird
+  desc: 基于Golang开发的轻量级物联网平台
+  avatar: img/sponsors/hummingbird.jpg
+  link: https://doc.hummingbird.winc-link.com/?from=rulego
+  bgColor: '#2196F3' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
+  textColor: '#1f2328' # 可选，默认var(--textColor)
+  expired: '2025-07-11'
 ```  
 :::
 
@@ -124,6 +131,11 @@ RuleGo在2024年获得"Gitee最有价值开源项目"奖项（GVP）。
     <span class="link">
         <a href="https://baomidou.com" target="_blank" title="MybatisPlus">
             <img :src="$withBase('/img/links/mybatis-plus-logo.png')" class="no-zoom">
+        </a>
+    </span>
+    <span class="link">
+        <a href="https://liteflow.cc" target="_blank" title="liteflow">
+            <img :src="$withBase('/img/links/liteflow-logo.png')" class="no-zoom">
         </a>
     </span>
     

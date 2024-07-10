@@ -47,7 +47,7 @@ permalink: /pages/2c4d43/
 - name: Sagoo IOT
   desc: An enterprise-level open source Internet of Things system based on Golang development
   avatar: /img/sponsors/shaguo.png
-  link: https://iotdoc.sagoo.cn/
+  link: https://iotdoc.sagoo.cn/?from=rulego
   bgColor: '#f8c567' # Optional, default var(--bodyBg). When the color value has a #, please add single quotes
   textColor: '#1f2328' # Optional, default var(--textColor)
   expired: '2024-10-07'

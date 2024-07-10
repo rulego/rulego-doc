@@ -10,7 +10,7 @@ module.exports = function advHtml() {
    * 必然显示的广告列表
    */
   let mustShowArray = [
-    `<a href="https://iotdoc.sagoo.cn/" target="_blank">
+    `<a href="https://iotdoc.sagoo.cn/?from=rulego" target="_blank">
      <img class="no-zoom" style="width:100%;" src="/img/sponsors/shaguo-banner.png">
    </a>`
   ]
