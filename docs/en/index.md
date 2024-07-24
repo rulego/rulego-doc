@@ -2,7 +2,7 @@
 home: true
 heroImage: /img/logo.png
 heroText: RuleGo
-tagline: 🚀A lightweight, high-performance, embedded, component-orchestrated rule engine based on Go language
+tagline: 🚀A lightweight, high-performance, embedded, next-generation component-orchestrated rule engine based on Go language
 actionText: Quick Start →
 actionLink: /en/pages/0f6af2/
 bannerBg: none

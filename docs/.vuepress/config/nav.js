@@ -59,6 +59,7 @@ module.exports = [
     items: [
       { text: "Github", link: "https://github.com/rulego/rulego" },
       { text: "Gitee", link: "https://gitee.com/rulego/rulego" },
+      { text: "GitCode", link: "https://gitcode.com/rulego/rulego" },
       { text: "更新日志", link: "https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" },
     ]
   },

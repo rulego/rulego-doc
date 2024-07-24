@@ -6,7 +6,7 @@ module.exports = {
 
   theme: 'vdoing', // 使用依赖包主题
   title: "RuleGo",
-  description: 'RuleGo是一个基于Go语言、轻量级、高性能、嵌入式、组件编排规则引擎',
+  description: 'RuleGo是一个基于Go语言、轻量级、高性能、嵌入式、新一代组件编排规则引擎',
   base: "/",
   head,
   themeConfig,
@@ -30,12 +30,12 @@ module.exports = {
     '/en/': {
       lang: 'en-US',
       title: 'RuleGo',
-      description: 'A lightweight, fast, stable and configurable component-based rule engine'
+      description: 'RuleGo is a lightweight, high-performance, embedded, next-generation component orchestration rule engine framework for Go.'
     },
     '/': {
       lang: 'zh-CN',
       title: "RuleGo",
-      description: 'RuleGo is a lightweight, high-performance, embedded, orchestrable component-based rule engine based on Go language.'
+      description: 'RuleGo 是基于Go语言的轻量级、高性能、嵌入式、新一代组件编排规则引擎。'
     }
   }
 }
