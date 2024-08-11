@@ -117,7 +117,7 @@ RuleGo在2024年获得"Gitee最有价值开源项目"奖项（GVP）。
 
 ### 🎈代码托管
 
-> **[Gitee](https://gitee.com/rulego/rulego)** | **[Github](https://github.com/rulego/rulego)**
+> **[Gitee](https://gitee.com/rulego/rulego)** | **[Github](https://github.com/rulego/rulego)** | **[GitCode](https://gitcode.com/rulego/rulego)**
 
 ### 🧸参与贡献
 
