@@ -115,6 +115,10 @@ RuleGo在2024年获得"Gitee最有价值开源项目"奖项（GVP）。
 
 ![img](/img/gvp.png)
 
+RuleGo在2024年获得"G-Star项目毕业认证"奖项（G-Star）。
+
+![img](/img/gstar.jpg)
+
 ### 🎈代码托管
 
 > **[Gitee](https://gitee.com/rulego/rulego)** | **[Github](https://github.com/rulego/rulego)** | **[GitCode](https://gitcode.com/rulego/rulego)**
