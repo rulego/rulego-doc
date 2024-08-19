@@ -111,11 +111,11 @@ notices: # 可选的
 
 ### 🏆️荣誉
 
-RuleGo在2024年获得"Gitee最有价值开源项目"奖项（GVP）。
+RuleGo在2024年获得“Gitee最有价值开源项目”奖项（GVP）。
 
 ![img](/img/gvp.png)
 
-RuleGo在2024年获得"G-Star项目毕业认证"奖项（G-Star）。
+RuleGo在2024年获得“G-Star项目毕业认证”奖项（G-Star）。
 
 ![img](/img/gstar.jpg)
 
