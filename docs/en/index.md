@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.23.0
-    title: 📢 RuleGo v0.23.0 released!
-    content: '<div><p>2024/08/11</p><ul> <li>Enhance rulego-server to provide log pagination and dynamically retrieve built-in functions</li><li>Add gitClone and server metric monitoring extension components</li><li>Add endpoint with Redis stream method</li><li>Enhance the Redis component</li><li>Unify the method for obtaining component variable values</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">View details</a></p></div>'
+    id: RuleGo-0.24.0
+    title: 📢 RuleGo v0.24.0 released!
+    content: '<div><p>2024/09/09</p><ul> <li>Add mechanism for reusing node connection resources</li><li>Network connection components support shared connection pools</li><li>Add nodes that reference other nodes</li><li>Add RabbitMQ endpoint and node components</li><li>Add OpenGemini read and OpenGemini write components</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">View details</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46

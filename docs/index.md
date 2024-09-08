@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.23.0
-  title: 📢 RuleGo v0.23.0发布！
-  content: '<div><p>2024/08/11</p><ul> <li>增强rulego-server，提供日志分页，动态获取内置functions</li><li>增加gitClone和服务器指标监控扩展组件</li><li>增加redis stream方式的endpoint</li><li>增强redis组件</li><li>统一组件变量取值</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.24.0
+  title: 📢 RuleGo v0.24.0发布！
+  content: '<div><p>2024/09/09</p><ul> <li>增加节点连接资源复用机制</li><li>网络连接类组件支持共享连接池</li><li>增加引用节点的节点</li><li>exec node允许通过stderr获取数据</li><li>增加rabbitmq endpoint和节点组件</li><li>增加opengemini读和opengemini写组件</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
