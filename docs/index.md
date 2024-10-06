@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.24.0
-  title: 📢 RuleGo v0.24.0发布！
-  content: '<div><p>2024/09/09</p><ul> <li>增加节点连接资源复用机制</li><li>网络连接类组件支持共享连接池</li><li>增加引用节点的节点</li><li>exec node允许通过stderr获取数据</li><li>增加rabbitmq endpoint和节点组件</li><li>增加opengemini读和opengemini写组件</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.25.0
+  title: 📢 RuleGo v0.25.0发布！
+  content: '<div><p>2024/10/09</p><ul> <li>feat:增加并行网关节点组件</li><li>feat:增加汇聚节点组件</li><li>feat:for节点组件增加合并遍历结果选项</li><li>feat:增加gRPC客户端节点组件</li><li>feat:增加git操作相关节点组件</li><li>feat:ruleContext允许获得Out Message和error</li><li>feat:增加js内置函数注册器</li><li>fix:http endpoint无法使用节点池</li><li>perf:优化保存运行日志</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

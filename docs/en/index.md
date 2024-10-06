@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.24.0
-    title: 📢 RuleGo v0.24.0 released!
-    content: '<div><p>2024/09/09</p><ul> <li>Add mechanism for reusing node connection resources</li><li>Network connection components support shared connection pools</li><li>Add nodes that reference other nodes</li><li>Add RabbitMQ endpoint and node components</li><li>Add OpenGemini read and OpenGemini write components</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">View details</a></p></div>'
+    id: RuleGo-0.25.0
+    title: 📢 RuleGo v0.25.0 released!
+    content: '<div><p>2024/10/09</p><ul> <li>feat: Add parallel gateway node component</li><li>feat: Add join node component</li><li>feat: Add gRPC client node component</li><li>feat: Add Git operation-related node components</li><li>feat: ruleContext allows obtaining Out Message and error</li><li>feat: Add JS built-in function registrar</li><li>fix: HTTP endpoint cannot use node pool</li><li>perf: Optimize saving of runtime logs</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">View details</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
