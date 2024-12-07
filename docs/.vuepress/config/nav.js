@@ -10,6 +10,7 @@ module.exports = [
       { text: "扩展组件", link: "/pages/d7fc43/" },
       { text: "自定义组件", link: "/pages/caed1b/" },
       { text: "可视化", link: "/pages/cf0193/" },
+      { text: "RuleGo-Server", link: "/pages/rulego-server/" },
       { text: "AOP", link: "/pages/a1ed6c/" },
       { text: "触发器", link: "/pages/784fda/" },
       { text: "高级主题", link: "/pages/d59341/" },

@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.26.0
-  title: 📢 RuleGo v0.26.0发布！
-  content: '<div><p>2024/11/07</p><ul> <li>feat:增加注释节点</li><li>feat:增加条件分支节点</li><li>feat:增加规则引擎指标统计模块</li><li>feat:增加MongoDB节点组件</li><li>feat:增加redis 发布节点组件</li><li>feat:增加并发限制aspect</li><li>feat:net组件允许使用节点池方式</li><li>fix:flow node 并发读写问题</li><li>fix:http endpoint context canceled</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.27.0
+  title: 📢 RuleGo v0.27.0发布！
+  content: '<div><p>2024/12/09</p><ul> <li>feat:规则链DSL增加Disabled字段</li><li>feat(endpoint/rest):允许设置跨域</li><li>feat(restApiCallNode):允许配置不校验证书</li><li>feat(flow):子规则链允许设置成继承模式</li><li>opt(netNode):优化重连机制</li><li>refactor(server):重构rulego-server api</li><li>ci(server):提供RuleGo-Editor编辑器离线部署包</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

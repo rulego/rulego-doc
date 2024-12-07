@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.26.0
-    title: 📢 RuleGo v0.26.0 released!
-    content: '<div><p>2024/11/07</p><ul> <li>feat: Add comment node</li><li>feat: Add conditional branch node</li><li>feat: Add rule engine metric </li><li>feat: Add MongoDB node </li><li>feat: Add Redis publish node </li><li>feat: Add concurrency restriction aspect</li><li>feat: Net component allows the use of node pooling</li><li>fix: Flow node concurrent writes error</li><li>fix: HTTP endpoint context canceled</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+    id: RuleGo-0.27.0
+    title: 📢 RuleGo v0.27.0 released!
+    content: '<div><p>2024/12/09</p><ul> <li>feat: Add Disabled field to the rule chain DSL</li><li>feat(endpoint/rest): Allow setting cross-origin</li><li>feat(restApiCallNode): Allow configuring to not verify certificates </li><li>feat(flow): Sub-rule chains are allowed to be set to inherit mode</li><li>refactor(server): Refactor rulego-server API </li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
