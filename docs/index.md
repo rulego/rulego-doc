@@ -15,7 +15,7 @@ features: # 可选的
 - title: ✨轻量化
   details: 资源占用极低。为物联网而生，但远不止于物联网。
 - title: 🎯双模式
-  details: 嵌入式和独立部署。自研架构，扩展性强。可以无缝集成到项目中，没有第三方依赖，部署简单。
+  details: 嵌入式和独立部署。自研架构，扩展性强。没有第三方依赖，部署和集成简单。
 - title: 📑配置式
   details: 通过配置规则链和输入源，搭积木方式实现你高度变化的业务需求。
 - title: 🔥应用集成
@@ -33,29 +33,8 @@ notices: # 可选的
 
 <Notice :data="$frontmatter.notices"/>
 
-### 🏆特别用户
-
-::: cardList
-```yaml
-- name: Sagoo IOT
-  desc: 基于Golang开发的企业级开源物联网系统
-  avatar: img/sponsors/shaguo.png
-  link: https://iotdoc.sagoo.cn/?from=rulego
-  bgColor: '#f8c567' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
-  textColor: '#1f2328' # 可选，默认var(--textColor)
-  expired: '2024-10-07'
-- name: Hummingbird
-  desc: 基于Golang开发的轻量级物联网平台
-  avatar: img/sponsors/hummingbird.jpg
-  link: https://doc.hummingbird.winc-link.com/?from=rulego
-  bgColor: '#2196F3' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
-  textColor: '#1f2328' # 可选，默认var(--textColor)
-  expired: '2025-07-11'
-```  
-:::
-
 <p align="center">
-  <a class="become-sponsor iconfont " href="/pages/ccf224">支持这个项目</a>
+  <a class="become-sponsor iconfont " href="https://app.rulego.cc/" target="_blank">可视化编辑器</a>
   <a class="become-sponsor iconfont icon-github " href="https://github.com/rulego/rulego" target="_blank">为RuleGo点星</a>
   <a class="become-sponsor iconfont icon-gitee" href="https://gitee.com/rulego/rulego" target="_blank">为RuleGo点星</a>
 </p>
@@ -77,6 +56,26 @@ notices: # 可选的
 
 <br/>
 
+### 🏆特别用户
+
+::: cardList
+```yaml
+- name: Sagoo IOT
+  desc: 基于Golang开发的企业级开源物联网系统
+  avatar: img/sponsors/shaguo.png
+  link: https://iotdoc.sagoo.cn/?from=rulego
+  bgColor: '#f8c567' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
+  textColor: '#1f2328' # 可选，默认var(--textColor)
+  expired: '2024-10-07'
+- name: Hummingbird
+  desc: 基于Golang开发的轻量级物联网平台
+  avatar: img/sponsors/hummingbird.jpg
+  link: https://doc.hummingbird.winc-link.com/?from=rulego
+  bgColor: '#2196F3' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
+  textColor: '#1f2328' # 可选，默认var(--textColor)
+  expired: '2025-07-11'
+```  
+:::
 
 ### 🚀特性
 

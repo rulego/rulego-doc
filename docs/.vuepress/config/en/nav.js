@@ -38,16 +38,16 @@ module.exports = [
             {text: "Components", link: "/en/pages/691dd3/"}
         ]
     },
+    { text: "🔥Editor", link: "https://app.rulego.cc/en" },
     {
         text: "🍭Ecosystem",
         link: "#1",
         items: [
             {text: "RuleGo Editor", link: "https://editor.rulego.cc/"},
-            { text: "RuleGo Example", link: "http://8.134.32.225:9090/ui/" }
+            { text: "RuleGo Server", link: "https://github.com/rulego/rulego/tree/main/examples/server" }
 
         ]
     },
-    // {text: "💖Sponsor", link: "/en/pages/ccf224/"},
     {
         text: "🎈Repository",
         link: "#2",
