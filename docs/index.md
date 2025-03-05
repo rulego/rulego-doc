@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.28.0
-  title: 📢 RuleGo v0.28.0发布！
-  content: '<div><p>2025/01/09</p><ul> <li>feat:增加opcua endpoint组件</li><li>feat:增加opcua读节点组件</li><li>feat:增加opcua写节点组件</li><li>feat:增加gRPC 流endpoint组件</li><li>feat:增加Mysql CDC endpoint组件</li><li>feat:增加OpenTelemetry组件</li><li>feat:endpoint/ws 支持配置跨域</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.29.0
+  title: 📢 RuleGo v0.29.0发布！
+  content: '<div><p>2025/03/06</p><ul> <li>feat(components):增加wukongIM节点组件</li><li>feat(components):增加beanstalkd输入端组件</li><li>feat(components):增加modbus读写节点组件</li><li>feat(components):完善大模型节点组件</li><li>feat(components):增加获取git日志节点组件</li><li>feat:增加规则链校验拦截器</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

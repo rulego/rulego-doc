@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.28.0
-    title: 📢 RuleGo v0.28.0 released!
-    content: '<div><p>2025/01/09</p><ul> <li>feat: Add OPC UA endpoint component</li> <li>feat: Add OPC UA read node component</li> <li>feat: Add OPC UA write node component</li> <li>feat: Add gRPC stream endpoint component</li> <li>feat: Add MySQL CDC endpoint component</li> <li>feat: Add OpenTelemetry component</li> <li>feat: Support CORS configuration for endpoint/ws</li> </ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+    id: RuleGo-0.29.0
+    title: 📢 RuleGo v0.29.0 released!
+    content: '<div><p>2025/03/06</p><ul>  </ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
