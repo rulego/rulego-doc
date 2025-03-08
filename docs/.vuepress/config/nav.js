@@ -47,7 +47,7 @@ module.exports = [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
       { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/examples/server" },
       { text: '❓问答', items: [
-          { text: "关于规则引擎执行中断恢复", link: "/pages/4bb2d1/" },
+          { text: "FAQ", link: "/pages/faq/" },
         ]
       },
     ]
