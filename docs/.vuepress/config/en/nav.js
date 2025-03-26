@@ -23,6 +23,7 @@ module.exports = [
             {text: "Standard Components", link: "/en/pages/88fc3c/"},
             {text: "Extension Components", link: "/en/pages/d7fc43/"},
             {text: "Custom Components", link: "/en/pages/caed1b/"},
+            { text: "Components Marketplace", link: "/en/pages/marketplace/" },
         ]
     },
     {
