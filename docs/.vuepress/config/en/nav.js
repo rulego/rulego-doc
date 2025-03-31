@@ -11,7 +11,7 @@ module.exports = [
             {text: "Custom Components", link: "/en/pages/caed1b/"},
             {text: "Visualization", link: "/en/pages/cf0193/"},
             { text: "RuleGo-Server", link: "/en/pages/rulego-server/" },
-            { text: "RuleGo-Server-MCP", link: "/en/pages/rulego-server-mcp/" },
+            { text: "RuleGo-MCP-Server", link: "/en/pages/rulego-server-mcp/" },
             {text: "AOP", link: "/en/pages/a1ed6c/" },
             { text: "Trigger", link: "/en/pages/784fda/" },
             {text: "Advanced Topics", link: "/en/pages/d59341/"},
