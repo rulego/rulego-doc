@@ -74,6 +74,13 @@ notices: # 可选的
   bgColor: '#2196F3' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
   textColor: '#1f2328' # 可选，默认var(--textColor)
   expired: '2025-07-11'
+- name: 联犀
+  desc: 基于 Go 语言开发的商业级 SaaS 云原生微服务物联网平台
+  avatar: https://doc.unitedrhino.com/logo/logo.png
+  link: https://doc.unitedrhino.com/
+  bgColor: '#A6A1F3' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
+  textColor: '#1f2328' # 可选，默认var(--textColor)
+  expired: '2026-04-05'
 ```  
 :::
 
