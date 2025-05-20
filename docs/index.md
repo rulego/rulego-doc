@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.30.0
-  title: 📢 RuleGo v0.30.0发布！
-  content: '<div><p>2025/04/03</p><ul> <li>feat:增加动态组件，支持通过规则链DSL定义组件</li><li>feat:组件注册器增加支持多租户</li><li>feat(server):增加组件市场、组件安装、组件卸载API</li><li>feat(server):增加MCP服务器</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.31.0
+  title: 📢 RuleGo v0.31.0发布！
+  content: '<div><p>2025/05/21</p><ul> <li>feat:增加cacheSet/cacheGet/cacheDelete组件节点</li><li>feat:增加缓存模块机制</li><li>feat:restApiCall节点允许自定义请求Body</li><li>feat:统一js和lua 自定义函数注册方法</li><li>fix:修复一些已知问题</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

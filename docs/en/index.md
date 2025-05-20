@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.29.0
-    title: 📢 RuleGo v0.29.0 released!
-    content: '<div><p>2025/03/06</p><ul>  </ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+    id: RuleGo-0.31.0
+    title: 📢 RuleGo v0.31.0 released!
+    content: '<div><p>2025/05/21</p><ul><li>feat: add cacheSet/cacheGet/cacheDelete component nodes</li><li>feat: add cache module mechanism</li><li>feat: restApiCall node allows customizing request Body</li><li>feat: unify js and lua custom function registration methods</li><li>fix: fix some known issues</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
