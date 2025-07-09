@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.31.0
-  title: 📢 RuleGo v0.31.0发布！
-  content: '<div><p>2025/05/21</p><ul> <li>feat:增加cacheSet/cacheGet/cacheDelete组件节点</li><li>feat:增加缓存模块机制</li><li>feat:restApiCall节点允许自定义请求Body</li><li>feat:统一js和lua 自定义函数注册方法</li><li>fix:修复一些已知问题</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.32.0
+  title: 📢 RuleGo v0.32.0发布！
+  content: '<div><p>2025/07/11</p><ul> <li>feat:消息传递的写时复制(Copy-on-Write)机制</li><li>feat:规则引擎增加优雅关闭</li><li>feat:增加引擎数据竞争检测机制</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
