@@ -41,6 +41,7 @@ module.exports = [
       { text: "组件", link: "/pages/691dd3/" }
     ]
   },
+  { text: "🌊StreamSQL", link: "/pages/streamsql/01/" },
   { text: "🔥编辑器", link: "https://app.rulego.cc" },
   {
     text: "🍭解决方案",
