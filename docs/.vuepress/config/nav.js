@@ -41,14 +41,14 @@ module.exports = [
       { text: "组件", link: "/pages/691dd3/" }
     ]
   },
-  { text: "🌊StreamSQL", link: "/pages/streamsql/01/" },
   { text: "🔥编辑器", link: "https://app.rulego.cc" },
   {
-    text: "🍭解决方案",
+    text: "🍭生态",
     link: "#1",
     items: [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
       { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/examples/server" },
+      { text: "🌊StreamSQL", link: "/pages/streamsql-overview/" },
       { text: '❓问答', items: [
           { text: "FAQ", link: "/pages/faq/" },
         ]

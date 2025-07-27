@@ -81,4 +81,5 @@ module.exports = [
       hostname: 'https://rulego.cc',
     },
   ],
+  'vuepress-plugin-mermaidjs',
 ];
