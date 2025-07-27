@@ -25,6 +25,7 @@ module.exports = [
       { text: "标准组件", link: "/pages/88fc3c/" },
       { text: "扩展组件", link: "/pages/d7fc43/" },
       { text: "自定义组件", link: "/pages/caed1b/" },
+      { text: "流式计算", link: "/pages/streamsql-overview/" },
       { text: "组件市场", link: "/pages/marketplace/" },
     ]
   },
