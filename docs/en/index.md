@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices: 
   - 
-    id: RuleGo-0.32.0
-    title: 📢 RuleGo v0.32.0 released!
-    content: '<div><p>2025/07/11</p><ul><li>feat: Copy-on-Write mechanism for message passing</li><li>feat: Graceful shutdown for rule engine</li><li>feat: Add engine data race detection mechanism</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+    id: RuleGo-0.33.0
+    title: 📢 RuleGo v0.33.0 released!
+    content: '<div><p>2025/09/03</p><ul><li>feat: enhanced component configuration expression evaluation system, supports cross-node value retrieval</li><li>feat: added end node component</li><li>perf: improved MQTT client reconnection mechanism</li><li>perf: optimized JS engine timeout handling</li><li>fix: fixed JS script read/write errors in certain scenarios</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46

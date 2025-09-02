@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.32.0
-  title: 📢 RuleGo v0.32.0发布！
-  content: '<div><p>2025/07/11</p><ul> <li>feat:消息传递的写时复制(Copy-on-Write)机制</li><li>feat:规则引擎增加优雅关闭</li><li>feat:增加引擎数据竞争检测机制</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.33.0
+  title: 📢 RuleGo v0.33.0发布！
+  content: '<div><p>2025/09/03</p><ul> <li>feat:完善组件配置表达式取值系统，支持跨节点取值</li><li>feat:增加 end 节点组件</li><li>perf: 完善mqtt客户端重连机制</li><li>perf: 优化js引擎超时处理</li><li>fix: 修复js脚本部分场景会读写错误</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
