@@ -66,7 +66,7 @@ notices: # 可选的
   link: https://iotdoc.sagoo.cn/?from=rulego
   bgColor: '#f8c567' # 可选，默认var(--bodyBg)。颜色值有#号时请添加单引号
   textColor: '#1f2328' # 可选，默认var(--textColor)
-  expired: '2024-10-07'
+  expired: '2026-11-07'
 - name: Hummingbird
   desc: 基于Golang开发的轻量级物联网平台
   avatar: img/sponsors/hummingbird.jpg
