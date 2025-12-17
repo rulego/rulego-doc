@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.34.0
-  title: 📢 RuleGo v0.34.0发布！
-  content: '<div><p>2025/11/03</p><ul> <li><a href="https://gitee.com/activity/2025opensource?ident=IM6TAN" target="_blank">我正在参加 Gitee 2025 最受欢迎的开源软件投票活动，快来给我投票吧！🔥 </a></><li>feat:延迟组件时间支持毫秒</li><li>feat:引用组件支持引用子链</li><li>feat: 数据库客户端组件支持执行DDL和数据库方言</li><li>fix: 修复mqtt endpoint组件会初始化2个客户端</li><li>fix: 修复不支持多层嵌套跨节点取值</li><li>fix:join组件某些情况下阻塞</li></ul><p style="text-align: center;"><a href="https://gitee.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.35.0
+  title: 📢 RuleGo v0.35.0发布！
+  content: '<div><p>2025/12/18</p><ul> <li><a href="https://gitee.com/activity/2025opensource?ident=IM6TAN" target="_blank">我正在参加 Gitee 2025 最受欢迎的开源软件投票活动，快来给我投票吧！🔥 </a></><li>feat:join组件支持把错误传递到下一个节点</li><li>feat:增加break组件</li><li>feat: for节点组件支持中断</li><li>fix: 引擎onEnd回调某些情况无法触发</li><li>perf: 优化引擎执行超时上下文性能</li></ul><p style="text-align: center;"><a href="https://gitee.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
