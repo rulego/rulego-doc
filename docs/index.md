@@ -4,7 +4,7 @@ heroImage: /img/logo.png
 heroText: RuleGo
 tagline: 🚀基于Go语言的轻量级、高性能、嵌入式、新一代组件编排规则引擎
 actionText: 快速开始 →
-actionLink: /pages/0f6af2/
+actionLink: /pages/introduction/
 bannerBg: none
 
 features: # 可选的
