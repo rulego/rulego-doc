@@ -35,7 +35,7 @@ notices:
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
-permalink: /pages/2c4d43/
+permalink: /pages/home/
 ---
 
 <Notice :data="$frontmatter.notices"/>

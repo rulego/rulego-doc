@@ -2,45 +2,45 @@ module.exports = [
     {text: "🏠Home", link: "/en/"},
     {
         text: "🧭Document",
-        link: "/en/pages/0f6af2/",
-        items: [
-            {text: "Quick Start", link: "/en/pages/0f6af2/"},
-            {text: "Rule Chain", link: "/en/pages/6f46fc/"},
-            {text: "Standard Components", link: "/en/pages/88fc3c/"},
-            {text: "Extension Components", link: "/en/pages/d7fc43/"},
-            {text: "Custom Components", link: "/en/pages/caed1b/"},
-            {text: "Visualization", link: "/en/pages/cf0193/"},
-            { text: "RuleGo-Server", link: "/en/pages/rulego-server/" },
-            { text: "RuleGo-MCP-Server", link: "/en/pages/rulego-server-mcp/" },
-            {text: "AOP", link: "/en/pages/a1ed6c/" },
-            { text: "Trigger", link: "/en/pages/784fda/" },
-            {text: "Advanced Topics", link: "/en/pages/d59341/"},
-            { text: "Performance", link: "/en/pages/f60381/" }
-        ]
-    },
-    {
-        text: "🧩Components",
-        link: "/en/pages/88fc3c/",
-        items: [
-            {text: "Standard Components", link: "/en/pages/88fc3c/"},
-            {text: "Extension Components", link: "/en/pages/d7fc43/"},
-            {text: "Custom Components", link: "/en/pages/caed1b/"},
-            { text: "Components Marketplace", link: "/en/pages/marketplace/" },
-        ]
-    },
-    {
-        text: "📬Endpoint",
-        link: "/en/pages/0d77d2/",
-        items: [
-            {text: "Overview", link: "/en/pages/0d77d2/"},
-            {text: "Quick Start", link: "/en/pages/5a3227/"},
-            {text: "Routing", link: "/en/pages/45008b/"},
-            { text: "DSL", link: "/en/pages/390ad7/" },
-            { text: "API", link: "/en/pages/63bafe/" },
-            { text: "Options", link: "/en/pages/8d94a0/" },
-            {text: "Components", link: "/en/pages/691dd3/"}
-        ]
-    },
+        link: "/en/pages/introduction/",
+    items: [
+      {text: "Quick Start", link: "/en/pages/introduction/"},
+      {text: "Rule Chain", link: "/en/pages/rule-chain/"},
+      {text: "Standard Components", link: "/en/pages/standard-components/"},
+      {text: "Extension Components", link: "/en/pages/extension-overview/"},
+      {text: "Custom Components", link: "/en/pages/custom-components-overview/"},
+      {text: "Visualization", link: "/en/pages/visualization-overview/"},
+      { text: "RuleGo-Server", link: "/en/pages/rulego-server/" },
+      { text: "RuleGo-MCP-Server", link: "/en/pages/rulego-server-mcp/" },
+      {text: "AOP", link: "/en/pages/aop-overview/" },
+      { text: "Trigger", link: "/en/pages/trigger-overview/" },
+      {text: "Advanced Topics", link: "/en/pages/config/"},
+      { text: "Performance", link: "/en/pages/performance/" }
+    ]
+  },
+  {
+    text: "🧩Components",
+    link: "/en/pages/standard-components/",
+    items: [
+      {text: "Standard Components", link: "/en/pages/standard-components/"},
+      {text: "Extension Components", link: "/en/pages/extension-overview/"},
+      {text: "Custom Components", link: "/en/pages/custom-components-overview/"},
+      { text: "Components Marketplace", link: "/en/pages/marketplace/" },
+    ]
+  },
+  {
+    text: "📬Endpoint",
+    link: "/en/pages/endpoint-overview/",
+    items: [
+      {text: "Overview", link: "/en/pages/endpoint-overview/"},
+      {text: "Quick Start", link: "/en/pages/endpoint-quickstart/"},
+      {text: "Routing", link: "/en/pages/endpoint-router/"},
+      { text: "DSL", link: "/en/pages/endpoint-dsl/" },
+      { text: "API", link: "/en/pages/endpoint-api/" },
+      { text: "Options", link: "/en/pages/endpoint-options/" },
+      {text: "Components", link: "/en/pages/endpoint-extension/"}
+    ]
+  },
     { text: "🔥Editor", link: "https://app.rulego.cc/en" },
     {
         text: "🍭Ecosystem",
