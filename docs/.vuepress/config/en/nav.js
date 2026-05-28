@@ -11,7 +11,6 @@ module.exports = [
       {text: "Custom Components", link: "/en/pages/custom-components-overview/"},
       {text: "Visualization", link: "/en/pages/visualization-overview/"},
       { text: "RuleGo-Server", link: "/en/pages/rulego-server/" },
-      { text: "RuleGo-MCP-Server", link: "/en/pages/rulego-server-mcp/" },
       {text: "AOP", link: "/en/pages/aop-overview/" },
       { text: "Trigger", link: "/en/pages/trigger-overview/" },
       {text: "Advanced Topics", link: "/en/pages/config/"},

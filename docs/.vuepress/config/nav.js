@@ -11,7 +11,6 @@ module.exports = [
       { text: "自定义组件", link: "/pages/custom-components-overview/" },
       { text: "可视化", link: "/pages/visualization-overview/" },
       { text: "RuleGo-Server", link: "/pages/rulego-server/" },
-      { text: "RuleGo-MCP-Server", link: "/pages/rulego-server-mcp/" },
       { text: "AOP", link: "/pages/aop-overview/" },
       { text: "触发器", link: "/pages/trigger-overview/" },
       { text: "高级主题", link: "/pages/config/" },
@@ -50,6 +49,7 @@ module.exports = [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
       { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/examples/server" },
       { text: "🌊StreamSQL", link: "/pages/streamsql-overview/" },
+      { text: "🤖智能体框架", link: "/pages/ai-agent-overview/" },
       { text: '❓问答', items: [
           { text: "FAQ", link: "/pages/faq/" },
         ]
