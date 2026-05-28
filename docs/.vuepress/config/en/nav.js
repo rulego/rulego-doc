@@ -46,7 +46,7 @@ module.exports = [
         link: "#1",
         items: [
             {text: "RuleGo Editor", link: "https://editor.rulego.cc/"},
-            { text: "RuleGo Server", link: "https://github.com/rulego/rulego/tree/main/examples/server" },
+            { text: "RuleGo Server", link: "https://github.com/rulego/rulego/tree/main/server" },
             { text: "StreamSQL", link: "/en/pages/streamsql-overview/" }
         ]
     },

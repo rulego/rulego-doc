@@ -47,7 +47,7 @@ module.exports = [
     link: "#1",
     items: [
       { text: "可视化编辑器", link: "https://editor.rulego.cc/" },
-      { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/examples/server" },
+      { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/server" },
       { text: "🌊StreamSQL", link: "/pages/streamsql-overview/" },
       { text: "🤖智能体框架", link: "/pages/ai-agent-overview/" },
       { text: '❓问答', items: [
