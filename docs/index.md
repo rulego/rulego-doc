@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.35.0
-  title: 📢 RuleGo v0.35.0发布！
-  content: '<div><p>2025/12/18</p><ul> <li><a href="https://gitee.com/activity/2025opensource?ident=IM6TAN" target="_blank">我正在参加 Gitee 2025 最受欢迎的开源软件投票活动，快来给我投票吧！🔥 </a></><li>feat:join组件支持把错误传递到下一个节点</li><li>feat:增加break组件</li><li>feat: for节点组件支持中断</li><li>fix: 引擎onEnd回调某些情况无法触发</li><li>perf: 优化引擎执行超时上下文性能</li></ul><p style="text-align: center;"><a href="https://gitee.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.36.0
+  title: 📢 RuleGo v0.36.0发布！
+  content: '<div><p>2026/06/01</p><ul> <li>🤖 AI Agent框架：转型为全功能AI Agent框架，支持ReAct Agent循环、内置工具（bash/read/write/edit/browseruse/mcp/skill）、MCP双向协议、意图识别和Skill技能系统</li><li>🏗️ Server独立模块：从examples/server提升为架构级独立模块，作为RuleGo自动化工作流平台独立部署</li><li>feat(engine): 增加Stream关系类型，支持同步执行流</li><li>feat(endpoint): 增加SSE流式推送支持</li><li>feat(logger): 重构Logger接口，支持日志级别</li><li>feat(iot): 增加串口通信组件；优化Modbus重连机制</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 

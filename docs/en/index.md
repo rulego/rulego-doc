@@ -27,11 +27,11 @@ features:
     details: You can use RuleGo as glue to connect various systems or protocols.
 postList: none
 hideRightBar: true
-notices: 
-  - 
-    id: RuleGo-0.35.0
-    title: 📢 RuleGo v0.35.0 released!
-    content: '<div><p>2025/12/18</p><ul><li>feat: join component supports passing errors to the next node</li><li>feat: add break component</li><li>feat: for node component supports interruption</li><li>fix: engine onEnd callback fails to trigger in some cases</li><li>perf: optimize performance of engine execution timeout context</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+notices:
+  -
+    id: RuleGo-0.36.0
+    title: 📢 RuleGo v0.36.0 released!
+    content: '<div><p>2026/06/01</p><ul><li>🤖 AI Agent Framework: Full-featured AI agent framework with ReAct Agent loop, built-in tools (bash/read/write/edit/browseruse/mcp/skill), MCP bidirectional protocol, intent recognition and skill system</li><li>🏗️ Standalone Server Module: Promoted from examples/server to an architecture-level independent module for standalone deployment as a RuleGo automation workflow platform</li><li>feat(engine): Add Stream relation type for synchronous execution flow</li><li>feat(endpoint): Add SSE streaming support</li><li>feat(logger): Refactor Logger interface with log level support</li><li>feat(iot): Add serial port communication component; optimize Modbus reconnection mechanism</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">Details</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46
