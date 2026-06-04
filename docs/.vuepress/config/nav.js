@@ -50,6 +50,7 @@ module.exports = [
       { text: "RuleGo-Server", link: "https://gitee.com/rulego/rulego/tree/main/server" },
       { text: "🌊StreamSQL", link: "/pages/streamsql-overview/" },
       { text: "🤖智能体框架", link: "/pages/ai-agent-overview/" },
+      { text: "🦀TPCLAW 智能体平台", link: "https://tpclaw.teambuf.com/" },
       { text: '❓问答', items: [
           { text: "FAQ", link: "/pages/faq/" },
         ]
