@@ -67,4 +67,5 @@ POST with a templated body:
 ## Related
 
 - Config read: [x/nacosConfigGet](/en/pages/x-nacos-config-get/)
+- Config write: [x/nacosConfigSet](/en/pages/x-nacos-config-set/)
 - Config listen: [endpoint/nacos](/en/pages/endpoint-nacos/)

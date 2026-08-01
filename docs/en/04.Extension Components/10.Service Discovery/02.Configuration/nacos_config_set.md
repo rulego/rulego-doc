@@ -79,5 +79,6 @@ Write a fixed config:
 
 ## Related
 
+- Service call: [x/nacosServiceCall](/en/pages/x-nacos-service-call/)
 - Config read: [x/nacosConfigGet](/en/pages/x-nacos-config-get/)
 - Config listen: [endpoint/nacos](/en/pages/endpoint-nacos/)
