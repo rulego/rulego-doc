@@ -29,9 +29,9 @@ postList: none
 hideRightBar: true
 notices:
   -
-    id: RuleGo-0.36.0
-    title: 📢 RuleGo v0.36.0 released!
-    content: '<div><p>2026/06/01</p><ul><li>🤖 AI Agent Framework: Full-featured AI agent framework with ReAct Agent loop, built-in tools (bash/read/write/edit/browseruse/mcp/skill), MCP bidirectional protocol, intent recognition and skill system</li><li>🏗️ Standalone Server Module: Promoted from examples/server to an architecture-level independent module for standalone deployment as a RuleGo automation workflow platform</li><li>feat(engine): Add Stream relation type for synchronous execution flow</li><li>feat(endpoint): Add SSE streaming support</li><li>feat(logger): Refactor Logger interface with log level support</li><li>feat(iot): Add serial port communication component; optimize Modbus reconnection mechanism</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">Details</a></p></div>'
+    id: RuleGo-0.37.0
+    title: 📢 RuleGo v0.37.0 released!
+    content: '<div><p>2026/08/02</p><ul><li>🏭 IoT End-to-End Pipeline: Added 8 industrial acquisition protocol families including S7, EtherNet/IP, SNMP, MC, FINS, DL/T645, HJ212 and IEC104 (10 protocol families in total); added 5 TSDB storage drivers including openGemini, InfluxDB, TDengine, TimescaleDB and Prometheus Remote Write; universal nodes switch protocol/DB via a single driver field</li><li>⚙️ Soft PLC: New control nodes x/control/timer (TON/TOF delays) and x/control/watchdog (heartbeat watchdog)</li><li>🧭 Nacos Service Discovery: New component library rulego-components-discovery with service call, config read/write, config change subscription and service registration</li><li>🌊 Stream Processing: streamsql supports CEP (MATCH_RECOGNIZE) pattern recognition and stream-table JOIN enrichment</li><li>🔗 Engine: Same-chain connection pool (reuse connections via ref://node ID), endpoint session-addressed push, component alias mechanism</li><li>🎨 Editor: Command palette, context menu, shortcuts, chain diagnostics, component doc browser, point table Excel import</li><li>🤖 AI Agent Framework: AG-UI streaming mode, streaming passthrough of thinking process, doom-loop protection, new grep/glob tools</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">Details</a></p></div>'
     isHtmlContent: true
 title: index
 date: 2023-12-13 09:17:46

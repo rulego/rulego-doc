@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.36.0
-  title: 📢 RuleGo v0.36.0发布！
-  content: '<div><p>2026/06/01</p><ul> <li>🤖 AI Agent框架：转型为全功能AI Agent框架，支持ReAct Agent循环、内置工具（bash/read/write/edit/browseruse/mcp/skill）、MCP双向协议、意图识别和Skill技能系统</li><li>🏗️ Server独立模块：从examples/server提升为架构级独立模块，作为RuleGo自动化工作流平台独立部署</li><li>feat(engine): 增加Stream关系类型，支持同步执行流</li><li>feat(endpoint): 增加SSE流式推送支持</li><li>feat(logger): 重构Logger接口，支持日志级别</li><li>feat(iot): 增加串口通信组件；优化Modbus重连机制</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-0.37.0
+  title: 📢 RuleGo v0.37.0发布！
+  content: '<div><p>2026/08/02</p><ul> <li>🏭 IoT端到端数据管道：新增S7、EtherNet/IP、SNMP、MC、FINS、DL/T645、HJ212、IEC104等8个工业协议采集族（共10个协议族）；新增openGemini、InfluxDB、TDengine、TimescaleDB、Prometheus Remote Write等5个时序库存储驱动；通用节点仅需driver字段即可切换协议/数据库</li><li>⚙️ 软PLC控制：新增x/control/timer（TON/TOF延时）和x/control/watchdog（心跳看门狗）控制节点</li><li>🧭 Nacos服务发现：新增组件库rulego-components-discovery，支持服务调用、配置读写、配置变更订阅和服务注册</li><li>🌊 流计算：streamsql支持CEP（MATCH_RECOGNIZE）模式识别和流-表JOIN富化</li><li>🔗 引擎：同链连接池（ref://节点ID复用连接）、endpoint会话寻址推送、组件别名机制</li><li>🎨 编辑器：命令面板、右键菜单、快捷键、链路诊断、组件文档浏览器、点位表Excel导入</li><li>🤖 AI Agent框架：AG-UI流式模式、思考过程流式透传、doom-loop循环防护、新增grep/glob工具</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
