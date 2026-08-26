@@ -1,0 +1,119 @@
+---
+title: Control Timer
+permalink: /pages/x-control-timer/
+---
+`x/control/timer` component: a soft-PLC timer supporting TON (on-delay) / TOF (off-delay), cancellable and re-triggerable. Protocol-agnostic, it is typically wired in series with `x/iotRead` / `x/iotWrite` for delayed-actuation logic. Each incoming message is evaluated once, and the resulting Boolean is written to a configurable metadata key.
+
+> Additional extension library required: [rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## Configuration
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| mode | string | Yes | Timer mode: `TON` (on-delay, output turns true after the input has stayed true for the preset time) / `TOF` (off-delay, output turns false after the input has stayed false for the preset time) |
+| pt | string | Yes | Preset time (timing duration): when the input stays satisfied for this duration the timer commits — TON sets the output true, TOF sets it false — and emits one extra message downstream carrying the new output; if the input reverses during timing, it is cancelled. e.g. `3s`, `500ms`; supports `${metadata.xx}` |
+| in | string | No | Boolean input template, e.g. `${metadata.start}`; when empty, the raw `msg.Data` value is evaluated for truthiness |
+| out | string | No | Metadata key the output Boolean is written to; defaults to `q` |
+
+## Output
+
+- The resulting Boolean is written to `metadata[out]` (default `metadata.q`); the message is passed through to downstream nodes.
+- TON: a false→true transition starts timing; the output becomes true after `pt` of sustained input. If the input returns to false early, timing is cancelled and the output resets.
+- TOF: a true→false transition starts timing; the output becomes false after `pt` of sustained input. If the input returns to true early, timing is cancelled.
+
+## Messages and Rule Chain Behavior
+
+- **One successful timing yields 2 messages downstream:** the trigger-edge one (e.g. TON rising edge, `q=false`, meaning "timing, output still false") plus the commit one (`q=true`, emitted by the internal alarm via a fresh ctx, meaning "timing elapsed, output set").
+- **Cancellation does not block the rule chain:** cancelling only voids the internal alarm (it returns silently once its generation is stale); it does not affect business message forwarding or the chain's completion — `OnEnd`/`OnAllNodeCompleted` still fire for the business messages.
+
+## Relation Type
+
+- ***Success:*** Execution succeeds; the message is sent to the `Success` chain.
+- ***Failure:*** Execution fails; the message is sent to the `Failure` chain.
+
+## Example
+
+```json
+{
+  "ruleChain": {
+    "id": "timer_demo",
+    "name": "Motor delayed start",
+    "root": true,
+    "debugMode": false
+  },
+  "metadata": {
+    "firstNodeIndex": 0,
+    "nodes": [
+      {
+        "type": "x/control/timer",
+        "name": "3-second delay start",
+        "debugMode": false,
+        "configuration": {
+          "mode": "TON",
+          "pt": "3s",
+          "in": "${metadata.start}",
+          "out": "q"
+        }
+      }
+    ],
+    "connections": []
+  }
+}
+```
+
+## Full Scenario: Motor Delayed Start (Cancellable)
+
+**Process:** After the start button is pressed, the motor starts only after a 3-second delay (allowing time for lubrication/pre-heating); releasing the button or hitting emergency stop within those 3 seconds cancels the start.
+
+**Why `timer` instead of the built-in `delay`:** `delay` would deliver the "pressed" message after 3s **regardless** — even if the button is released midway, the motor would still start (hazardous). `timer` **cancels** timing on the opposite input edge, so releasing stops it immediately.
+
+```json
+{
+  "ruleChain": {"id": "motor-delay-start", "name": "Motor delayed start", "root": true},
+  "metadata": {
+    "endpoints": [
+      {
+        "id": "scan", "type": "endpoint/schedule", "name": "Periodic scan",
+        "routers": [
+          {"from": {"path": "*/1 * * * * *"}, "to": {"path": "motor-delay-start:read"}}
+        ]
+      }
+    ],
+    "nodes": [
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "start", "addr": "DB1.DBX0.0", "type": "BOOL"}]
+      }},
+      {"id": "flat", "type": "jsTransform", "configuration": {
+        "jsScript": "var d=JSON.parse(msg.data||'[]');var o={};d.forEach(function(p){if(!p.error)o[p.name]=p.value;});metadata.start=o['start'];msg.data=JSON.stringify(o);return {msg:msg,metadata:metadata,msgType:msgType};"
+      }},
+      {"id": "t", "type": "x/control/timer", "configuration": {
+        "mode": "TON", "pt": "3s", "in": "${metadata.start}", "out": "q"
+      }},
+      {"id": "write", "type": "x/iotWrite", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "motor", "addr": "Q0.0", "type": "BOOL", "value": "${metadata.q}"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "read", "toId": "flat", "type": "Success"},
+      {"fromId": "flat", "toId": "t", "type": "Success"},
+      {"fromId": "t", "toId": "write", "type": "Success"}
+    ]
+  }
+}
+```
+
+> The `flat` node flattens `x/iotRead`'s point array `[{name,value}]` and writes the start signal to `metadata.start`; the timer result goes to `metadata.q`, and the write node drives `Q0.0` via `${metadata.q}`.
+
+**Timing behavior:**
+
+| Moment | Input start | Timer action | Output q → Q0.0 |
+|--------|-------------|--------------|-----------------|
+| t=0 press | false→true | rising edge, arm 3s alarm (gen++) | false (not started) |
+| t=0~3s held | true | no new edge, keep timing | false |
+| t=3s still held | true | alarm fires, commit | **true → motor starts** |
+| if released at t=2s | true→false | falling edge, gen++ voids the alarm | false → **never starts (cancelled)** |
+| press again after cancel | false→true | new rising edge, re-arm 3s | false (re-timing) |
+
+More combination examples: [IoT Scenarios · Soft-PLC Logic Control](/en/pages/iot-scenarios/)

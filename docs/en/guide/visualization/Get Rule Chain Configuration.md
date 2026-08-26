@@ -1,0 +1,21 @@
+---
+title: Get Rule Chain Configuration
+permalink: /pages/get-rule-chain-config/
+---
+Get the specified instantiated rule chain configuration. Used for rule chain visual configuration echo.
+```go
+func (e *RuleEngine) DSL() []byte 
+```
+
+- **Return:** Rule chain instantiation configuration content (JSON structure).
+
+Example:
+```go
+// Get the rule chain instance that has been created by the rule chain ID
+ruleEngine,_:rulego.Get(chainId)
+// Get the rule chain instance configuration
+def = ruleEngine.DSL()
+fmt.Println(string(def))
+```
+
+> The rule chain configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/rule-chain-overview/). Used for rule chain modification.

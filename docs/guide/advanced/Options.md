@@ -1,0 +1,123 @@
+---
+title: Options
+permalink: /pages/options/
+---
+### RuleContextOption
+规则引擎实例执行的配置项。用法：`ruleEngine.OnMsg(msg,...RuleContextOption)`，示例:
+```go
+ruleEngine.OnMsg(msg, types.WithOnEnd(func(ctx types.RuleContext, msg types.RuleMsg, err error) {
+// do something
+}), types.WWithOnRuleChainCompleted(func(ctx RuleContext, snapshot RuleChainRunSnapshot){
+// do something
+}))
+```
+有以下选项：
+#### WithOnEnd 
+规则链分支执行结束回调。注意：如果规则链有多个结束点，回调函数则会执行多次。
+```go
+types.WithOnEnd(func(ctx types.RuleContext,msg types.RuleMsg, err error) {
+	
+}
+```
+
+#### WithContext 
+上下文。
+  - 用于不同组件实例数据或者信号量共享
+  - 用于超时取消
+```go
+types.WithContext(c context.Context)
+```
+
+- WithOnAllNodeCompleted
+ 规则链所有分支执行完回调函数。
+  - 只回调一次
+```go
+types.WithOnAllNodeCompleted(func(){
+	
+})
+```
+
+#### WithOnRuleChainCompleted
+规则链执行完回调函数，并收集每个节点的运行日志。
+```go
+types.WithOnRuleChainCompleted(func(ctx RuleContext, snapshot RuleChainRunSnapshot){
+	
+})
+```
+
+- **RuleChainRunSnapshot：**
+
+| 字段             | 类型               | 说明                         | 默认值 |
+|----------------|------------------|----------------------------|-----|
+| RuleChain      | RuleChain        | 规则链快照：[参考](/pages/rule-chain/) | 无   |
+| id             | string           | 消息ID                       | 无   |
+| startTs        | int64            | 规则链开始执行时间                  | 无   |
+| endTs          | int64            | 规则链结束执行时间                  | 无   |
+| logs           | []RuleNodeRunLog | 每个节点执行日志                   | 无   |
+| additionalInfo | object           | 扩展信息                       | 无   |
+
+- **RuleNodeRunLog：**
+
+| 字段           | 类型       | 说明                         | 默认值 |
+|--------------|----------|----------------------------|-----|
+| nodeId       | string   | 节点ID                       | 无   |
+| inMsg        | RuleMsg  | 输入消息：[参考](/pages/rule-chain-message/)  | 无   |
+| outMsg       | RuleMsg  | 输出消息 ：[参考](/pages/rule-chain-message/) | 无   |
+| relationType | string   | 和下一个节点连接类型                 | 无   |
+| err          | string   | 错误信息                       | 无   |
+| logItems     | []string | 执行过程中其他日志                  | 无   |
+| startTs      | int64    | 规则链开始执行时间                  | 无   |
+| endTs        | int64    | 规则链结束执行时间                  | 无   |
+
+#### WithOnNodeCompleted
+节点执行完回调函数，并收集节点的运行日志。
+```go
+types.WithOnNodeCompleted(func(ctx RuleContext, nodeRunLog RuleNodeRunLog){
+	
+})
+```
+
+#### WithOnNodeDebug
+节点调试日志回调函数。 和`config.OnDebug`一样，实时异步调用，必须节点或者规则链配置开启`debugMode`才会触发
+```go
+types.WithOnNodeDebug(func(ruleChainId string, flowType string, nodeId string, msg RuleMsg, relationType string, err error)){
+	
+})
+```
+:::tip
+`WithOnNodeCompleted` 回调函数里面的自定义逻辑是异步触发的，无法保证执行顺序，可能在`WithOnAllNodeCompleted`和`WithOnRuleChainCompleted`之后执行。
+:::
+
+#### WithStartNode
+<Badge text="v0.22.0+"/>设置规则链第一个或者多个开始执行节点。如果不设置，默认从规则链的Root节点开始执行。
+```go
+types.WithStartNode(nodeIds ...string) 
+```
+
+#### WithTellNext
+<Badge text="v0.22.0+"/>设置通过指定节点Id，查找下一个或者多个执行节点。用于恢复规则链执行链路。
+```go
+types.WithTellNext(fromNodeId string, relationTypes ...string) 
+```
+
+#### WithRestoreNodes
+<Badge text="v0.35.0+"/>设置恢复执行的节点列表。相比`WithStartNode`和`WithTellNext`，该方法提供更灵活的恢复方式，支持为每个恢复节点设置独立的消息和关系。
+
+```go
+// 使用默认消息恢复节点
+ruleEngine.OnMsg(msg, types.WithRestoreNodes(
+    types.ExecuteNode("nodeId1"),
+    types.ExecuteNode("nodeId2"),
+))
+
+// 使用自定义消息恢复节点
+ruleEngine.OnMsg(defaultMsg, types.WithRestoreNodes(
+    types.ExecuteNodeWithMsg("nodeId1", msg1),
+    types.ExecuteNodeWithMsg("nodeId2", msg2),
+))
+
+// 执行nodeId1的Success关系的子节点
+ruleEngine.OnMsg(msg, types.WithRestoreNodes(
+    types.ExecuteNext("nodeId1", "Success"),
+))
+```

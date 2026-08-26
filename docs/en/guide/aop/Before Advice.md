@@ -1,0 +1,21 @@
+---
+title: Before Advice
+permalink: /pages/before-advice/
+---
+Node before advice (Before Advice): executes before the node OnMsg method.
+
+Before, After, Around Advice execution order: Around->Before->Around
+
+## Interface
+
+```go
+// Order returns the execution order, the smaller the value, the higher the priority
+Order() int
+// New creates a new instance
+New() Aspect
+// PointCut declares a cut-in point, used to determine whether to execute the advice
+//For example: specify some component types or relationType to execute the aspect logic;return ctx.Self().Type()=="mqttClient"
+PointCut(ctx RuleContext, msg RuleMsg, relationType string) bool
+// Before is the advice that executes before the node OnMsg method. The returned Msg will be used as the input for the next advice and the node OnMsg method.
+Before(ctx RuleContext, msg RuleMsg, relationType string) RuleMsg
+```

@@ -1,0 +1,51 @@
+---
+title: 表达式过滤器
+permalink: /pages/expr-filter/
+---
+`exprFilter`组件：表达式过滤器。使用 [expr](https://expr-lang.org/docs/language-definition) 表达式引擎对消息进行过滤。该组件可以通过简单的表达式语法实现复杂的过滤逻辑。
+
+## 配置
+
+| 字段   | 类型     | 说明                    | 默认值 |
+|------|--------|-----------------------|-----|
+| expr | string | 表达式，表达式的返回结果必须是bool类型 | 无   |
+
+表达式中可以使用以下内置变量:
+- `${id}` - 访问消息ID
+- `${ts}` - 访问消息时间戳(毫秒)
+- `${data}` - 访问消息原始内容
+- `${msg}` - 访问消息体。如果消息的dataType是JSON类型，可以通过 `${msg.field}`方式访问字段，例如:`${msg.temperature} > 50`
+- `${metadata}` - 访问消息元数据，例如 `${metadata.customerName}`
+- `${msgType}` - 访问消息类型
+- `${dataType}` - 访问数据类型
+
+表达式例子：
+- ${msg.temperature} > 50
+- ${msg.temperature} > 50 && ${metadata.customerName} == 'rulego'
+- upper(${metadata.customerName}[:4]) == 'GO'
+- replace(toJSON(${msg}),'name','productName')
+>更多expr表达式语法参考： [expr](https://expr-lang.org/docs/language-definition)
+>更多变量使用方法参考：[组件配置变量](/pages/component-configuration-variables/)
+
+## Relation Type
+
+- ***True:*** 把消息发送到`True`链
+- ***False:*** 把消息发送到`False`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+## 执行结果
+
+该组件不会改变`msg`、`metadata`和`msgType`内容。
+
+## 配置示例
+
+```json
+  {
+    "id": "s1",
+    "type": "exprFilter",
+    "name": "表达式过滤器",
+    "configuration": {
+      "expr": "${msg.temperature} > 50"
+    }
+  }
+```

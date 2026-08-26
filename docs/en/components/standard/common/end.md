@@ -1,0 +1,182 @@
+---
+title: End Node
+permalink: /pages/end/
+---
+`end` <Badge text="v0.33.0+"/> component: End node. Used to trigger the end callback of the rule chain. If the rule chain has an end node component set, it will replace the default branch ending behavior. Only when the end node component is reached will the end callback be triggered.
+
+::: danger Notes
+1. Do not use this node unless necessary. If it is used, you must ensure that the rule chain will eventually invoke it; otherwise the rule chain will be unable to terminate. In other words, once an [End] node is added to the rule chain, all ending branches must be connected to it (unless those branches are executed concurrently).
+2. [Config.OnEndWithFailure=true](/en/pages/config/#onendwithfailure) , which can avoid the problem that the rule chain cannot end because the exception or Failure branch is not connected to the End node.
+:::
+
+## Function Description
+
+1. **Receives messages and triggers DoOnEnd callback** - When a message reaches the end node, it immediately triggers the rule chain's end callback
+2. **Uses the relation type passed from the previous node** - Maintains the relation type flow of messages
+3. **Does not continue passing messages to next nodes** - As the terminal point of the rule chain, it does not pass messages downstream
+
+## Use Cases
+
+- **Explicit end point of rule chains** - Clearly identifies the end position in complex rule chains
+- **Trigger specific end processing logic** - Triggers end callbacks under specific conditions
+- **Replace default branch ending behavior** - Controls when OnEnd callbacks are triggered
+
+## Important Note
+
+**If you need the rule chain to have only one return, add this node to branches. The rule chain will only trigger the OnEnd callback at this node, otherwise every ending branch will call the OnEnd callback.**
+
+This means:
+- Without end node: OnEnd callback is triggered when each branch ends
+- With end node: OnEnd callback is only triggered when reaching the end node, other branch endings won't trigger it
+
+## Configuration
+
+The end component requires no configuration parameters.
+
+## Relation Type
+
+The end component does not generate new relation types. It uses the relation type passed from the previous node to trigger the DoOnEnd callback.
+
+## Configuration Example
+
+```json
+{
+  "ruleChain": {
+    "id": "rule01",
+    "name": "Test Rule Chain",
+    "root": true,
+    "debugMode": false
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "jsFilter",
+        "name": "Filter",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msg.temperature > 50;"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "Log",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return 'temperature:' + msg.temperature;"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "end",
+        "name": "End Node",
+        "debugMode": true
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "True"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
+```
+
+## Application Examples
+
+### Scenario 1: Single End Point
+
+```go
+// Create rule engine
+ruleEngine, err := rulego.New("rule01", []byte(ruleChainFile))
+if err != nil {
+    panic(err)
+}
+
+// Set end callback
+ruleEngine.OnEnd(func(ctx types.RuleContext, msg types.RuleMsg, err error, relationType string) {
+    fmt.Printf("Rule chain ended: relationType=%s, data=%s\n", relationType, msg.Data)
+})
+
+// Send message
+msg := types.NewMsg(0, "TELEMETRY", types.JSON, `{"temperature":60}`)
+ruleEngine.OnMsg(msg)
+```
+
+### Scenario 2: Multiple Branches with Single End Point
+
+```json
+{
+  "metadata": {
+    "nodes": [
+      {
+        "id": "filter",
+        "type": "jsFilter",
+        "configuration": {
+          "jsScript": "return msg.temperature > 50;"
+        }
+      },
+      {
+        "id": "highTemp",
+        "type": "log",
+        "configuration": {
+          "jsScript": "return 'High temperature alert:' + msg.temperature;"
+        }
+      },
+      {
+        "id": "normalTemp",
+        "type": "log",
+        "configuration": {
+          "jsScript": "return 'Normal temperature:' + msg.temperature;"
+        }
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "name": "Unified End Point"
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "filter",
+        "toId": "highTemp",
+        "type": "True"
+      },
+      {
+        "fromId": "filter",
+        "toId": "normalTemp",
+        "type": "False"
+      },
+      {
+        "fromId": "highTemp",
+        "toId": "end",
+        "type": "Success"
+      },
+      {
+        "fromId": "normalTemp",
+        "toId": "end",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```
+
+In this example, regardless of which branch the message takes, it will eventually reach the end node, ensuring the OnEnd callback is triggered only once.
+
+## Notes
+
+1. **The end node requires no configuration parameters**
+2. **The end node does not pass messages downstream**
+3. **Using the end node allows precise control over OnEnd callback timing**
+4. **Do not use this node unless necessary. If it is used, you must ensure that the rule chain will eventually invoke it**
+5. **Config.OnEndWithFailure** defaults to true. It indicates that if no connected node is found and the relation type is Failure, the OnEnd callback will also be triggered, regardless of whether there is an End node.

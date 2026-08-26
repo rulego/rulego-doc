@@ -1,0 +1,167 @@
+---
+title: 汇聚
+permalink: /pages/join/
+---
+`join`组件：汇聚合并节点。用于汇聚并合并多个异步并行执行节点的结果。常见场景包括:从多个数据源(如不同数据库)获取数据后合并、并行调用多个API后合并结果等。
+
+## 工作原理
+
+1. 接收到消息后,等待所有前置异步节点执行完成
+2. 合并所有节点的执行结果(metadata和data)
+3. 根据执行情况决定路由方向:
+   - 所有节点执行成功,通过Success链路由
+   - 存在失败节点或超时,通过Failure链路由
+
+## 配置
+
+| 字段      | 类型  | 必填 | 说明                         | 默认值 |
+|---------|-----|-----|----------------------------|-----|
+| timeout | int | 否   | 执行超时时间(秒)，默认30秒，<=0按30秒处理 | 30   |
+| mergeToMap | bool | 否   | 是否把结果合并到map。false: 结果为[]WrapperMsg列表; true: 结果合并为Map(JSON合并字段，其他以nodeId为key) | false |
+
+## Relation Type
+
+- ***Success:*** 所有节点执行成功时，合并后的消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 执行超时
+  - 存在节点执行失败
+  - 合并结果失败
+
+## 执行结果
+
+组件会合并所有节点的执行结果:
+
+- **metadata:** 合并所有节点的metadata，相同key时后执行的节点会覆盖先执行节点的值
+- **data:** 根据`mergeToMap`配置决定合并方式：
+  - `mergeToMap=false` (默认): 将所有节点处理后的消息封装成`WrapperMsg`数组。
+  - `mergeToMap=true`: 将所有节点处理后的消息data合并到一个Map中。
+    - 如果节点输出是JSON格式，则将其字段合并到结果Map中。
+    - 如果节点输出非JSON格式，则以节点ID为key，消息内容为value合并到结果Map中。
+
+**mergeToMap=true 合并结果示例:**
+
+假设有三个节点:
+- 节点A (id=nodeA) 输出: `{"temperature": 25}`
+- 节点B (id=nodeB) 输出: `{"humidity": 60}`
+- 节点C (id=nodeC) 输出: `running` (非JSON)
+
+合并后的 data 结果:
+```json
+{
+  "temperature": 25,
+  "humidity": 60,
+  "nodeC": "running"
+}
+```
+
+**WrapperMsg结构(仅`mergeToMap=false`时有效):**
+
+| 字段     | 类型                                          | 说明         | 默认值 |
+|--------|---------------------------------------------|------------|-----|
+| msg    | [types.RuleMsg](/pages/rule-chain-message/) 不合并metadata | 节点处理后的消息   | 无   |
+| err    | string                                      | 错误信息       | ""  |
+| nodeId | string                                      | 最后处理该消息的节点 | ""  |
+
+## 配置示例
+
+```json
+{
+  "ruleChain": {
+    "id": "frcYgBtVbDaV",
+    "name": "测试合并节点",
+    "debugMode": true,
+    "root": true,
+    "additionalInfo": {
+      "createTime": "2024/09/24 16:56:52",
+      "description": "",
+      "layoutX": "280",
+      "layoutY": "280",
+      "updateTime": "2024/09/24 21:50:38",
+      "username": "admin"
+    }
+  },
+  "metadata": {
+    "endpoints": [],
+    "nodes": [
+      {
+        "id": "node_a",
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 490,
+          "layoutY": 280
+        },
+        "type": "jsTransform",
+        "name": "A",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "msg.a=\"aa\"\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "node_b",
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 730,
+          "layoutY": 210
+        },
+        "type": "jsTransform",
+        "name": "B",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "msg.b=\"bb\"\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "node_c",
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 730,
+          "layoutY": 340
+        },
+        "type": "jsTransform",
+        "name": "C",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "msg.c=\"cc\"\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "node_d",
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1010,
+          "layoutY": 260
+        },
+        "type": "join",
+        "name": "D",
+        "debugMode": false,
+        "configuration": {
+          "timeout": 1
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "node_a",
+        "toId": "node_b",
+        "type": "Success"
+      },
+      {
+        "fromId": "node_a",
+        "toId": "node_c",
+        "type": "Success"
+      },
+      {
+        "fromId": "node_b",
+        "toId": "node_d",
+        "type": "Success"
+      },
+      {
+        "fromId": "node_c",
+        "toId": "node_d",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

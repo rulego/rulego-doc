@@ -1,0 +1,90 @@
+---
+title: msgTypeSwitch
+permalink: /pages/msg-type-switch/
+---
+`msgTypeSwitch` component: message routing. Routes the incoming message type (msgType) to one or more output chains.
+
+## Configuration
+
+None
+
+## Relation Type
+
+Connect to the next or multiple nodes by `msgType`, if there is no matching node, the `Default` matching node will be used.
+
+## Execution result
+
+This component will not change the content of `msg`, `metadata` and `msgType`.
+
+## Configuration example
+
+```json
+{
+  "id": "s1",
+  "type": "msgTypeSwitch",
+  "name": "Filter"
+}
+```
+
+## Application example
+
+Route to different nodes for processing by `msgType`.
+```json
+{
+  "ruleChain": {
+    "id":"rule01",
+    "name": "Test rule chain-msgTypeSwitch",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "msgTypeSwitch",
+        "name": "Filter"
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "Log 1",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s2';"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "Log 2",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s3';"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "log",
+        "name": "Log 3",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s4';"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "TEST_MSG_TYPE1"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s3",
+        "type": "TEST_MSG_TYPE1"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s4",
+        "type": "TEST_MSG_TYPE2"
+      }
+    ]
+  }
+}
+```

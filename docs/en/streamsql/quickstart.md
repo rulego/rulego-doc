@@ -1,0 +1,399 @@
+---
+title: Quick Start
+permalink: /pages/streamsql-quickstart/
+---
+# Quick Start
+
+This guide will take you through StreamSQL's basic features in 5 minutes, from installation to running your first stream processing program.
+
+## Environment Requirements
+
+* Go 1.18 or higher
+
+* Basic Go language development experience
+
+* Understanding of basic SQL syntax (optional, but helpful for understanding)
+
+## Installation
+
+### 1. Create New Project
+
+```bash
+mkdir my-streamsql-app
+cd my-streamsql-app
+go mod init my-streamsql-app
+```
+
+### 2. Add Dependencies
+
+```bash
+go get github.com/rulego/streamsql
+```
+
+### 3. Verify Installation
+
+Create a simple test file to verify installation:
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/rulego/streamsql"
+)
+
+func main() {
+    ssql := streamsql.New()
+    fmt.Println("StreamSQL installed successfully!")
+    ssql.Stop()
+}
+```
+
+## Core Concepts Overview
+
+Before starting to write code, understand a few core concepts:
+
+* **Stream**: Continuous data sequence, similar to a table in a database
+
+* **Window**: Mechanism to divide unbounded streams into bounded datasets
+
+* **Aggregation**: Statistical calculations on data within windows
+
+* **Sink**: Callback function to process query results
+
+## First StreamSQL Program
+
+### 1. Basic Example - Simple Data Filtering
+
+This example shows how to filter real-time data streams:
+
+Create `main.go` file:
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    "github.com/rulego/streamsql"
+)
+
+func main() {
+    // 1. Create StreamSQL instance
+    ssql := streamsql.New()
+    defer ssql.Stop()
+    
+    // 2. Define SQL query - filter data with temperature greater than 25 degrees
+    sql := "SELECT deviceId, temperature FROM stream WHERE temperature > 25"
+    
+    // 3. Execute SQL query
+    err := ssql.Execute(sql)
+    if err != nil {
+        panic(err)
+    }
+    
+    // 4. Add result processing function
+    ssql.AddSink(func(results []map[string]interface{}) {
+        fmt.Printf("High temperature alert: %v\n", results)
+    })
+    
+    // 5. Send test data
+    testData := []map[string]interface{}{
+        {"deviceId": "sensor001", "temperature": 23.5}, // Won't trigger alert
+        {"deviceId": "sensor002", "temperature": 28.3}, // Will trigger alert
+        {"deviceId": "sensor003", "temperature": 31.2}, // Will trigger alert
+    }
+    
+    for _, data := range testData {
+        ssql.Emit(data)
+        time.Sleep(100 * time.Millisecond)
+    }
+    
+    // Wait for processing to complete
+    time.Sleep(1 * time.Second)
+}
+```
+
+Run the program:
+
+```bash
+go run main.go
+```
+
+Expected output:
+
+```
+High temperature alert: [map[deviceId:sensor002 temperature:28.3]]
+High temperature alert: [map[deviceId:sensor003 temperature:31.2]]
+```
+
+**Code Analysis:**
+
+1. `streamsql.New()` - Create StreamSQL instance
+2. `Execute(sql)` - Parse and execute SQL query
+3. `AddSink()` - Register result processing function
+4. `Emit()` - Add data to the stream
+5. `WHERE temperature > 25` - Filter condition, only process data with temperature greater than 25 degrees
+
+**Important Note:** For aggregate queries (using window functions), you need to wait for the window time to arrive or manually call `ssql.TriggerWindow()` to trigger window calculations.
+
+::: tip EmitSync for Non-Aggregation Queries
+The filter above is a non-aggregation query. Besides `Emit` + `AddSink`, you can use `EmitSync` to get a single result **synchronously**, skipping the callback and `time.Sleep`:
+
+```go
+result, err := ssql.EmitSync(map[string]any{"deviceId": "sensor002", "temperature": 28.3})
+// result == {deviceId:sensor002 temperature:28.3}; when WHERE is not matched, result == nil (not an error)
+```
+
+- Non-aggregation (filtering / transformation / analytic functions) → `EmitSync`; aggregation / windows → `Emit` + `AddSink`. See [Core Concepts · Two Execution Paths](/en/pages/streamsql-concepts/#two-execution-paths-and-api) for both APIs.
+- For change detection (CDC), `lag`, cumulative statistics, etc., see [Analytic Functions](/en/pages/streamsql-analytical-functions/).
+:::
+
+### 2. Aggregation Analysis Example - Calculate Average Temperature
+
+```go
+package main
+
+import (
+    "fmt"
+    "math/rand"
+    "time"
+    "github.com/rulego/streamsql"
+)
+
+func main() {
+    ssql := streamsql.New()
+    defer ssql.Stop()
+    
+    // Calculate average temperature for each device every 5 seconds
+    sql := `SELECT deviceId, 
+                   AVG(temperature) as avg_temp,
+                   COUNT(*) as sample_count,
+                   window_start() as window_start,
+                   window_end() as window_end
+            FROM stream 
+            GROUP BY deviceId, TumblingWindow('5s')`
+    
+    err := ssql.Execute(sql)
+    if err != nil {
+        panic(err)
+    }
+    
+    // Process aggregation results
+    ssql.AddSink(func(results []map[string]interface{}) {
+        fmt.Printf("Aggregation results: %v\n", results)
+    })
+    
+    // Simulate sensor data stream
+    devices := []string{"sensor001", "sensor002", "sensor003"}
+    for i := 0; i < 8; i++ {
+        for _, device := range devices {
+            data := map[string]interface{}{
+                "deviceId":    device,
+                "temperature": 20.0 + rand.Float64()*15, // Random temperature 20-35 degrees
+                "timestamp":   time.Now(),
+            }
+            ssql.Emit(data)
+        }
+        time.Sleep(300 * time.Millisecond)
+    }
+    
+    // Wait for window to trigger
+    time.Sleep(5 * time.Second)
+    time.Sleep(500 * time.Millisecond)
+}
+```
+
+## Advanced Examples
+
+### 3. Sliding Window Analysis
+
+```go
+package main
+
+import (
+    "fmt"
+    "math/rand"
+    "time"
+    "github.com/rulego/streamsql"
+)
+
+func main() {
+    ssql := streamsql.New()
+    defer ssql.Stop()
+    
+    // 30-second sliding window, sliding every 10 seconds
+    sql := `SELECT deviceId,
+                   AVG(temperature) as avg_temp,
+                   MAX(temperature) as max_temp,
+                   MIN(temperature) as min_temp
+            FROM stream 
+            WHERE temperature > 0
+            GROUP BY deviceId, SlidingWindow('30s', '10s')`
+    
+    err := ssql.Execute(sql)
+    if err != nil {
+        panic(err)
+    }
+    
+    ssql.AddSink(func(results []map[string]interface{}) {
+        fmt.Printf("Sliding window analysis: %v\n", results)
+    })
+    
+    // Continuously send data
+    for i := 0; i < 10; i++ {
+        data := map[string]interface{}{
+            "deviceId":    "sensor001",
+            "temperature": 20.0 + rand.Float64()*10,
+            "timestamp":   time.Now(),
+        }
+        ssql.Emit(data)
+        time.Sleep(800 * time.Millisecond)
+    }
+    
+    time.Sleep(1 * time.Second)
+}
+```
+
+### 4. Nested Field Access Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    "github.com/rulego/streamsql"
+)
+
+func main() {
+    ssql := streamsql.New()
+    defer ssql.Stop()
+    
+    // SQL query to access nested fields
+    sql := `SELECT device.info.name as device_name,
+                   device.location.building as building,
+                   sensor.temperature as temp,
+                   UPPER(device.info.type) as device_type
+            FROM stream 
+            WHERE sensor.temperature > 25 AND device.info.status = 'active'`
+    
+    err := ssql.Execute(sql)
+    if err != nil {
+        panic(err)
+    }
+    
+    ssql.AddSink(func(results []map[string]interface{}) {
+        fmt.Printf("Nested field results: %v\n", results)
+    })
+    
+    // Send nested structure data
+    complexData := map[string]interface{}{
+        "device": map[string]interface{}{
+            "info": map[string]interface{}{
+                "name":   "Temperature Sensor 001",
+                "type":   "temperature",
+                "status": "active",
+            },
+            "location": map[string]interface{}{
+                "building": "Building A",
+                "floor":    "3F",
+            },
+        },
+        "sensor": map[string]interface{}{
+            "temperature": 28.5,
+            "humidity":    65.0,
+        },
+    }
+    
+    ssql.Emit(complexData)
+    time.Sleep(500 * time.Millisecond)
+}
+```
+
+::: tip Advanced Usage
+Custom functions (UDF), performance modes (high throughput / low latency), and other advanced usage are covered in [Advanced Examples](/en/pages/streamsql-advanced-examples/).
+:::
+
+## Performance Tips
+
+* **Choose appropriate window size**: Too small windows increase computational overhead, too large windows increase memory usage
+
+* **Use filtering conditions reasonably**: Filter data early in WHERE clauses to improve performance
+
+* **Avoid complex nested queries**: StreamSQL is optimized for simple and efficient queries
+
+* **Monitor memory usage**: Monitor memory usage in high-frequency data scenarios
+
+
+## Common Questions
+
+### Q: No output results for data?
+
+**A:** Check the following:
+
+1. Ensure `AddSink()` is called to add result processing function
+2. If using window functions, ensure window is triggered (time elapsed or manually triggered)
+3. Check if WHERE conditions filter out all data
+
+### Q: When do window functions trigger?
+
+**A:**
+
+* **Tumbling window**: Automatically triggers when window end time is reached
+
+* **Sliding window**: Triggers once per sliding interval
+
+* **Counting window**: Triggers when the count reaches the specified number
+
+* **Session window**: Triggers after the session timeout
+
+### Q: How to handle abnormal data?
+
+**A:** Use the `WHERE` clause to filter abnormal data:
+
+```sql
+SELECT * FROM stream
+WHERE temperature IS NOT NULL
+  AND temperature BETWEEN -50 AND 100
+```
+
+## RuleGo Integration Example
+
+### Complete data processing pipeline
+
+```go
+// Receive MQTT data via RuleGo, integrate StreamSQL in a rule chain, then output
+ruleChain := `{"ruleChain":{"nodes":[{"id":"s1","type":"streamSqlNode","configuration":{"sql":"SELECT device_id, AVG(temperature) as avg_temp FROM stream GROUP BY device_id, TumblingWindow('5m')"}},{"id":"s2","type":"restApiCallNode","configuration":{"restEndpointUrlPattern":"http://alert-service/api/alerts","requestMethod":"POST"}}],"connections":[{"fromId":"s1","toId":"s2","type":"Success"}]}}`
+engine := rulego.New([]byte(ruleChain))
+msg := rulego.NewMsg(0, "deviceData", types.JSON, nil, `{"device_id": "dev1", "temperature": 25.5}`)
+engine.OnMsg(msg)
+```
+
+### Advantages
+
+- **Data ingestion**: RuleGo MQTT/HTTP/WebSocket components
+- **Stream processing**: StreamSQL for real-time analytics
+- **Output**: databases, APIs, message queues via RuleGo output components
+- **Rule management**: dynamic config and hot-update
+- **Monitoring**: RuleGo monitoring and alerting
+
+## Complete Example Code
+
+All example code is in the project `examples/` directory:
+
+- [`examples/simple-custom-functions/`](https://github.com/rulego/streamsql/tree/main/examples/simple-custom-functions) - basic usage
+- [`examples/custom-functions-demo/`](https://github.com/rulego/streamsql/tree/main/examples/custom-functions-demo) - full feature demo
+- [`examples/function-integration-demo/`](https://github.com/rulego/streamsql/tree/main/examples/function-integration-demo) - integration use case
+- [`examples/advanced-functions/`](https://github.com/rulego/streamsql/tree/main/examples/advanced-functions) - advanced features
+- [`examples/comprehensive-test/`](https://github.com/rulego/streamsql/tree/main/examples/comprehensive-test) - **comprehensive test demo for this tutorial**
+
+### Quick installation verification
+
+```bash
+cd examples/comprehensive-test
+go run main.go
+```
+
+It covers all features in this doc and is the best starting point for verifying your installation.
+

@@ -1,0 +1,1211 @@
+---
+title: API Reference
+permalink: /pages/streamsql-api/
+---
+# API Reference
+
+This chapter provides the complete API reference documentation for StreamSQL, including core interfaces, configuration options, function libraries, and other detailed information.
+
+## Core API
+
+### Streamsql Main Class
+
+#### Constructor
+
+```go
+func New(options ...Option) *Streamsql
+```
+
+Creates a new StreamSQL instance.
+
+**Parameters:**
+- `options` - Optional configuration items
+
+**Return Value:**
+- `*Streamsql` - StreamSQL instance
+
+**Example:**
+```go
+// Default configuration
+ssql := streamsql.New()
+
+// High performance configuration
+ssql := streamsql.New(streamsql.WithHighPerformance())
+
+// Custom configuration
+ssql := streamsql.New(
+    streamsql.WithLogLevel(logger.DEBUG),
+    streamsql.WithDiscardLog(),
+)
+```
+
+#### Execute
+
+```go
+func (s *Streamsql) Execute(sql string) error
+```
+
+Executes SQL query and starts stream processing.
+
+**Parameters:**
+- `sql` - SQL query statement
+
+**Return Value:**
+- `error` - Execution error, nil on success
+
+**Example:**
+```go
+sql := "SELECT deviceId, AVG(temperature) FROM stream GROUP BY deviceId, TumblingWindow('5m')"
+err := ssql.Execute(sql)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+#### Emit
+
+```go
+func (s *Streamsql) Emit(data map[string]interface{})
+```
+
+Adds data to the stream asynchronously.
+
+**Parameters:**
+- `data` - Data record, must be of type `map[string]interface{}`
+
+**Example:**
+```go
+data := map[string]interface{}{
+    "deviceId": "sensor001",
+    "temperature": 25.5,
+    "timestamp": time.Now(),
+}
+ssql.Emit(data)
+```
+
+#### EmitSync
+
+```go
+func (s *Streamsql) EmitSync(data map[string]interface{}) (map[string]interface{}, error)
+```
+
+Processes data synchronously and returns results immediately, only supports non-aggregation queries.
+
+**Parameters:**
+- `data` - Data record, must be of type `map[string]interface{}`
+
+**Return Value:**
+- `map[string]interface{}` - Processing result, returns nil if filter conditions don't match
+- `error` - Processing error
+
+**Example:**
+```go
+data := map[string]interface{}{
+    "deviceId": "sensor001",
+    "temperature": 25.5,
+    "timestamp": time.Now(),
+}
+result, err := ssql.EmitSync(data)
+if err != nil {
+    log.Printf("Processing error: %v", err)
+} else if result != nil {
+    fmt.Printf("Processing result: %v", result)
+}
+```
+
+#### IsAggregationQuery
+
+```go
+func (s *Streamsql) IsAggregationQuery() bool
+```
+
+Checks whether the current query is an aggregation query.
+
+**Return Value:**
+- `bool` - Whether it's an aggregation query
+
+**Example:**
+```go
+if ssql.IsAggregationQuery() {
+    fmt.Println("Current query contains aggregation operations")
+} else {
+    fmt.Println("Current query is a simple query")
+}
+```
+
+#### Stream
+
+```go
+func (s *Streamsql) Stream() *stream.Stream
+```
+
+Gets the underlying stream processing instance.
+
+**Return Value:**
+- `*stream.Stream` - Stream processing instance
+
+**Example:**
+```go
+// Prefer the Streamsql convenience methods
+ssql.AddSink(func(results []map[string]interface{}) {
+    fmt.Printf("Result: %v\n", results)
+})
+```
+
+#### GetStats
+
+```go
+func (s *Streamsql) GetStats() map[string]int64
+```
+
+Gets stream processing statistics.
+
+**Return Value:**
+- `map[string]int64` - Statistics map
+
+**Example:**
+```go
+stats := ssql.GetStats()
+fmt.Printf("Processed data count: %d\n", stats["processed_count"])
+```
+
+#### Stop
+
+```go
+func (s *Streamsql) Stop()
+```
+
+Stops stream processing and cleans up resources.
+
+**Example:**
+```go
+defer ssql.Stop()
+```
+
+#### AddSink
+
+```go
+func (s *Streamsql) AddSink(sink func([]map[string]interface{}))
+```
+
+Adds result processing callback function.
+
+**Parameters:**
+- `sink` - Result processing callback function, receives result data of type `[]map[string]interface{}`
+
+**Example:**
+```go
+ssql.AddSink(func(results []map[string]interface{}) {
+    fmt.Printf("Processing results: %v\n", results)
+})
+```
+
+#### PrintTable
+
+```go
+func (s *Streamsql) PrintTable()
+```
+
+Convenience method that automatically adds a sink which prints results to the console in table format (column headers first, then data rows, similar to database output).
+
+**Example:**
+```go
+ssql.PrintTable()
+
+// Output format:
+// +--------+----------+
+// | device | max_temp |
+// +--------+----------+
+// | aa     | 30.0     |
+// | bb     | 22.0     |
+// +--------+----------+
+```
+
+#### AddSyncSink
+
+```go
+func (s *Streamsql) AddSyncSink(sink func([]map[string]interface{}))
+```
+
+Adds a **synchronous** result processing callback. Unlike `AddSink`, the synchronous sink executes **sequentially** in the result processing goroutine, suitable for scenarios sensitive to execution order (multiple sinks are invoked serially across calls).
+
+**Parameters:**
+- `sink` - Result processing callback function, receives result data of type `[]map[string]interface{}`
+
+**Example:**
+```go
+ssql.AddSyncSink(func(results []map[string]interface{}) {
+    // Order-sensitive processing: write to DB first, then notify
+    saveToDatabase(results)
+})
+```
+
+#### TriggerWindow
+
+```go
+func (s *Streamsql) TriggerWindow()
+```
+
+Manually triggers the **current window** to emit results immediately, without waiting for the natural trigger (time elapsed / count reached).
+
+Main use cases:
+- **Testing**: deterministic immediate window output, avoiding `time.Sleep` waiting for natural triggers
+- **Explicit flush hook**: business logic that needs to force-flush the current window at a specific moment (e.g., before shutdown, triggered by an external event)
+
+**Important notes:**
+- Only effective for time-based windows (TumblingWindow / SlidingWindow / SessionWindow)
+- `CountingWindow` triggers by count; `Trigger()` is a no-op (by design)
+- Non-aggregation (pass-through) queries have no window; the call is a safe no-op, no panic
+- Data must enter the window first (the window initializes after the first Emit)
+
+**Example:**
+```go
+ssql := streamsql.New()
+defer ssql.Stop()
+ssql.Execute("SELECT deviceId, COUNT(*) AS cnt FROM stream GROUP BY deviceId, TumblingWindow('5s')")
+
+ssql.AddSink(func(rows []map[string]interface{}) {
+    fmt.Printf("Result: %v\n", rows)
+})
+
+ssql.Emit(map[string]interface{}{"deviceId": "d1"})
+time.Sleep(200 * time.Millisecond) // let data enter the window
+ssql.TriggerWindow()               // emit immediately, don't wait 5s
+```
+
+#### GetStats / GetDetailedStats
+
+```go
+func (s *Streamsql) GetStats() map[string]int64
+func (s *Streamsql) GetDetailedStats() map[string]interface{}
+```
+
+Gets stream processing statistics / detailed performance statistics (including buffer usage, drop counts, etc.).
+
+**Example:**
+```go
+stats := ssql.GetStats()
+fmt.Printf("Processed data count: %d\n", stats["processed_count"])
+
+detailed := ssql.GetDetailedStats()
+fmt.Printf("Detailed stats: %v\n", detailed)
+```
+
+#### ToChannel
+
+```go
+func (s *Streamsql) ToChannel() <-chan []map[string]interface{}
+```
+
+Returns result channel for asynchronously getting processing results.
+
+**Return Value:**
+- `<-chan []map[string]interface{}` - Read-only result channel, returns nil if SQL hasn't been executed
+
+**Example:**
+```go
+// Get result channel
+resultChan := ssql.ToChannel()
+if resultChan != nil {
+    go func() {
+        for results := range resultChan {
+            fmt.Printf("Async results: %v\n", results)
+        }
+    }()
+}
+```
+
+## Configuration Options
+
+### Performance Configuration
+
+#### WithHighPerformance
+
+```go
+func WithHighPerformance() Option
+```
+
+Uses high-performance configuration, suitable for scenarios requiring maximum throughput.
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithHighPerformance())
+```
+
+#### WithLowLatency
+
+```go
+func WithLowLatency() Option
+```
+
+Uses low-latency configuration, suitable for real-time interactive applications.
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithLowLatency())
+```
+
+#### WithCustomPerformance
+
+```go
+func WithCustomPerformance(config types.PerformanceConfig) Option
+```
+
+Uses custom performance configuration.
+
+**Parameters:**
+- `config` - Custom performance configuration
+
+**Example:**
+```go
+config := types.DefaultPerformanceConfig()
+config.BufferConfig.DataChannelSize = 2000
+ssql := streamsql.New(streamsql.WithCustomPerformance(config))
+```
+
+### Log Configuration
+
+#### WithLogLevel
+
+```go
+func WithLogLevel(level logger.Level) Option
+```
+
+Sets log level.
+
+**Parameters:**
+- `level` - Log level (DEBUG, INFO, WARN, ERROR, OFF)
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithLogLevel(logger.DEBUG))
+```
+
+#### WithDiscardLog
+
+```go
+func WithDiscardLog() Option
+```
+
+Disables log output (recommended for production environment).
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithDiscardLog())
+```
+
+### Buffer Configuration
+
+#### WithBufferSizes
+
+```go
+func WithBufferSizes(dataChannelSize, resultChannelSize, windowOutputSize int) Option
+```
+
+Sets custom buffer sizes (switches to `custom` performance mode; other parameters take default values).
+
+**Parameters:**
+- `dataChannelSize` - Data input channel size
+- `resultChannelSize` - Result output channel size
+- `windowOutputSize` - Window output buffer size
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithBufferSizes(2000, 1000, 500))
+```
+
+### Overflow Strategy Configuration
+
+#### WithOverflowStrategy
+
+```go
+func WithOverflowStrategy(strategy string, blockTimeout time.Duration) Option
+```
+
+Sets the buffer overflow strategy.
+
+**Parameters:**
+- `strategy` - Overflow strategy:
+  - `"drop"` - Drop strategy (default). When the buffer is full, drops the oldest data to make room, keeping the newest data
+  - `"block"` - Block strategy. When the buffer is full, blocks the writer until there is room or timeout
+  - `"expand"` - Expand strategy (high-performance preset only). When the buffer is full, grows the buffer according to the growth factor
+- `blockTimeout` - Block timeout duration (only effective for the `block` strategy)
+
+**Example:**
+```go
+// Drop strategy (default), for high-throughput scenarios that tolerate minor data loss
+ssql := streamsql.New(streamsql.WithOverflowStrategy("drop", 5*time.Second))
+
+// Block strategy, for scenarios that cannot lose data but tolerate backpressure
+ssql := streamsql.New(streamsql.WithOverflowStrategy("block", 5*time.Second))
+```
+
+### Worker Pool Configuration
+
+#### WithWorkerConfig
+
+```go
+func WithWorkerConfig(sinkPoolSize, sinkWorkerCount, maxRetryRoutines int) Option
+```
+
+Sets worker pool configuration.
+
+**Parameters:**
+- `sinkPoolSize` - Result processing pool size
+- `sinkWorkerCount` - Worker thread count
+- `maxRetryRoutines` - Maximum retry goroutines
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithWorkerConfig(100, 10, 5))
+```
+
+### Monitoring Configuration
+
+#### WithMonitoring
+
+```go
+func WithMonitoring(updateInterval time.Duration, enableDetailedStats bool) Option
+```
+
+Enables detailed monitoring.
+
+**Parameters:**
+- `updateInterval` - Statistics update interval
+- `enableDetailedStats` - Whether to enable detailed statistics
+
+**Example:**
+```go
+ssql := streamsql.New(streamsql.WithMonitoring(10*time.Second, true))
+```
+
+## Stream-Table JOIN API
+
+StreamSQL supports stream-table JOIN for enriching stream data with static or cached metadata. The table data source is declared in SQL via the `JOIN` clause and registered on the Go side via the following methods. **Must be called after `Execute`.**
+
+::: warning Limitation
+Current version (v0.5): JOIN is for enrichment only and runs on the non-window path. **JOIN combined with aggregation/window is rejected** (`Execute` returns `"JOIN with aggregation/window is not supported"`). To use windowed aggregation, remove the JOIN.
+:::
+
+### RegisterTable
+
+```go
+func (s *Streamsql) RegisterTable(name string, rows []map[string]interface{}, keyFields ...string) (*stream.MemoryTableSource, error)
+```
+
+Registers an in-memory metadata table for stream-table JOIN.
+
+- `name` — Table name, must match the table name referenced in the SQL `JOIN ... ON` clause
+- `rows` — Initial data rows
+- `keyFields` — Index key fields. **When omitted, auto-derived from the table-side fields of the JOIN ON clause** (single or composite key), so callers don't need to redeclare it; explicit values override
+
+**Example:**
+```go
+// SQL: SELECT ... FROM stream JOIN meta ON deviceId = m.deviceId
+ssql.Execute(`SELECT deviceId, m.location, temperature
+              FROM stream JOIN meta ON deviceId = m.deviceId`)
+
+// Auto-derive key from ON (recommended)
+meta, _ := ssql.RegisterTable("meta", rows)
+
+// Or explicitly specify a composite key
+meta, _ := ssql.RegisterTable("meta", rows, "deviceId", "tenant")
+```
+
+### RegisterTableSource
+
+```go
+func (s *Streamsql) RegisterTableSource(src stream.TableSource) error
+```
+
+Registers a custom table source (file / database / Redis / HTTP, etc.). The implementer is responsible for data loading, refresh, and cleanup; `Lookup` must be concurrency-safe.
+
+### UpsertTable
+
+```go
+func (s *Streamsql) UpsertTable(name string, row map[string]interface{}) error
+```
+
+Adds or replaces a row in a registered in-memory table. Note: the table is queried snapshot-style, so this only affects rows emitted after the call.
+
+### Stream()
+
+```go
+func (s *Streamsql) Stream() *stream.Stream
+```
+
+Returns the underlying stream processing instance, used to access lower-level capabilities (window, result channel, lifecycle). Prefer the `Streamsql` convenience methods (`AddSink`/`AddSyncSink`/`ToChannel`, etc.) over operating on the underlying instance directly.
+
+## Window API
+
+Windows are declared via window functions in the SQL `GROUP BY` clause and automatically created by StreamSQL based on the `WITH` clause; **manual instantiation is usually unnecessary**. The underlying interfaces are listed below for advanced usage and extension reference.
+
+### Window Type Constants
+
+```go
+const (
+    TypeTumbling = "tumbling"
+    TypeSliding  = "sliding"
+    TypeCounting = "counting"
+    TypeSession  = "session"
+)
+```
+
+### Window Constructor Factory
+
+```go
+func CreateWindow(config types.WindowConfig) (Window, error)
+```
+
+Creates the corresponding window instance based on `WindowConfig`. `WindowConfig` carries the window type, parameters, timestamp field (`TsProp`), `GroupByKeys`, `CountStateTTL`, `PerformanceConfig`, etc.
+
+### Window Interface
+
+```go
+type Window interface {
+    Add(item interface{})                  // Adds a data item to the window
+    Reset()                                // Resets window state
+    Start()                                // Starts the window processing goroutine
+    Stop()                                 // Stops the window and cleans up resources
+    OutputChan() <-chan []types.Row        // Gets the window output channel
+    SetCallback(callback func([]types.Row))// Sets a synchronous callback (results also written to OutputChan)
+    Trigger()                              // Manually triggers the current window (underlying call of TriggerWindow)
+    GetStats() map[string]int64            // Gets window stats (sentCount/droppedCount/bufferSize, etc.)
+}
+```
+
+**Method descriptions:**
+
+- `Add(item)` — Adds data to the window; internally extracts the timestamp and routes to the corresponding group buffer
+- `Start()` / `Stop()` — Start/stop the window background goroutine; after `Stop`, `Add` is ignored
+- `OutputChan()` — Output channel for window aggregation results, read by the stream processing main loop
+- `Trigger()` — Manually triggers the current window to emit immediately. **Note:** supported by time windows (Tumbling/Sliding/Session); `CountingWindow` triggers by count and this method is a no-op
+- `GetStats()` — Returns stats such as `sentCount`, `droppedCount`, `bufferSize`, `bufferUsed`
+
+::: tip About Trigger
+`Streamsql.TriggerWindow()` is a safe wrapper around `Window.Trigger()`: it is a safe no-op (no panic) when SQL hasn't been executed, for non-window queries, or when the window is nil.
+:::
+
+## Function System API
+
+### Function Registration
+
+#### RegisterCustomFunction
+
+```go
+func RegisterCustomFunction(
+    name string,
+    funcType FunctionType,
+    category string,
+    description string,
+    minArgs int,
+    maxArgs int,
+    handler FunctionHandler,
+) error
+```
+
+Registers a custom function.
+
+**Parameters:**
+- `name` - Function name
+- `funcType` - Function type
+- `category` - Function category
+- `description` - Function description
+- `minArgs` - Minimum argument count
+- `maxArgs` - Maximum argument count
+- `handler` - Function handler
+
+**Return Value:**
+- `error` - Registration error
+
+**Example:**
+```go
+err := functions.RegisterCustomFunction(
+    "my_function",
+    functions.TypeMath,
+    "Mathematical Calculation",
+    "Custom mathematical function",
+    2, 2,
+    func(ctx *functions.FunctionContext, args []interface{}) (interface{}, error) {
+        // Function implementation
+        return result, nil
+    },
+)
+```
+
+#### Register
+
+```go
+func Register(function Function) error
+```
+
+Registers function instance.
+
+**Parameters:**
+- `function` - Function instance
+
+**Return Value:**
+- `error` - Registration error
+
+#### Unregister
+
+```go
+func Unregister(name string)
+```
+
+Unregisters function.
+
+**Parameters:**
+- `name` - Function name
+
+**Example:**
+```go
+functions.Unregister("my_function")
+```
+
+#### Get
+
+```go
+func Get(name string) (Function, bool)
+```
+
+Gets function instance.
+
+**Parameters:**
+- `name` - Function name
+
+**Return Value:**
+- `Function` - Function instance
+- `bool` - Whether it exists
+
+#### GetByType
+
+```go
+func GetByType(funcType FunctionType) []Function
+```
+
+Gets function list by type.
+
+**Parameters:**
+- `funcType` - Function type
+
+**Return Value:**
+- `[]Function` - Function instance list
+
+#### ListAll
+
+```go
+func ListAll() map[string]Function
+```
+
+Lists all registered functions.
+
+**Return Value:**
+- `map[string]Function` - Map from function name to function instance
+
+#### Execute
+
+```go
+func Execute(name string, args []interface{}) (interface{}, error)
+```
+
+Executes function by specified name.
+
+**Parameters:**
+- `name` - Function name
+- `args` - Function arguments
+
+**Return Value:**
+- `interface{}` - Execution result
+- `error` - Execution error
+
+### Function Types
+
+```go
+type FunctionType string
+
+const (
+    TypeMath        FunctionType = "math"
+    TypeString      FunctionType = "string"
+    TypeConversion  FunctionType = "conversion"
+    TypeDateTime    FunctionType = "datetime"
+    TypeAggregation FunctionType = "aggregation"
+    TypeAnalytical  FunctionType = "analytical"
+    TypeWindow      FunctionType = "window"
+    TypeCustom      FunctionType = "custom"
+)
+```
+
+### Function Handler
+
+```go
+type FunctionHandler func(ctx *FunctionContext, args []interface{}) (interface{}, error)
+```
+
+#### FunctionContext
+
+```go
+type FunctionContext struct {
+    Data       map[string]interface{} // Current data row
+    WindowInfo *WindowInfo            // Window info (aggregation/window functions)
+    Extra      map[string]interface{} // Additional context
+}
+```
+
+**Field Descriptions:**
+- `Data` - Currently processed data row
+- `WindowInfo` - Window information (only valid for window/aggregate functions)
+- `Extra` - Additional context information
+
+#### WindowInfo
+
+```go
+type WindowInfo struct {
+    WindowStart int64 // Window start timestamp
+    WindowEnd   int64 // Window end timestamp
+    RowCount    int   // Number of rows in the window
+}
+```
+
+### Type Conversion Utilities (utils/cast)
+
+Common type conversions used in custom functions live in the `github.com/rulego/streamsql/utils/cast` package:
+
+| Function | Description |
+|----------|-------------|
+| `cast.ToFloat64E(v)` / `cast.ToFloat64(v)` | Convert to float64 (with/without error return) |
+| `cast.ToIntE(v)` / `cast.ToInt(v)` | Convert to int |
+| `cast.ToInt64E(v)` / `cast.ToInt64(v)` | Convert to int64 |
+| `cast.ToStringE(v)` / `cast.ToString(v)` | Convert to string |
+| `cast.ToBoolE(v)` / `cast.ToBool(v)` | Convert to bool |
+| `cast.ToDurationE(v)` | Parse duration string (`"5s"`, etc.) |
+| `cast.ConvertIntToTime(ts, unit)` | Convert integer timestamp to `time.Time` by unit |
+
+## Aggregator API
+
+### Aggregate Types
+
+```go
+type AggregateType string
+
+const (
+    Sum             AggregateType = "sum"
+    Count           AggregateType = "count"
+    Avg             AggregateType = "avg"
+    Max             AggregateType = "max"
+    Min             AggregateType = "min"
+    Median          AggregateType = "median"
+    Percentile      AggregateType = "percentile"
+    StdDev          AggregateType = "stddev"
+    StdDevS         AggregateType = "stddevs"
+    Var             AggregateType = "var"
+    VarS            AggregateType = "vars"
+    Collect         AggregateType = "collect"
+    FirstValue      AggregateType = "first_value"
+    LastValue       AggregateType = "last_value"
+    MergeAgg        AggregateType = "merge_agg"
+    Deduplicate     AggregateType = "deduplicate"
+    WindowStart     AggregateType = "window_start"
+    WindowEnd       AggregateType = "window_end"
+    Latest          AggregateType = "latest"
+    Lag             AggregateType = "lag"
+    ChangedCol      AggregateType = "changed_col"
+    HadChanged      AggregateType = "had_changed"
+    Expression      AggregateType = "expression"
+    PostAggregation AggregateType = "post_aggregation"
+)
+```
+
+`AggregateType` is an alias defined in the functions package (`github.com/rulego/streamsql/functions`) and re-exported by the aggregator package. Users rarely touch these constants directly — SQL function names like `SUM`/`AVG`/`COUNT` are mapped automatically by the parser.
+
+### Aggregator Interface
+
+```go
+type Aggregator interface {
+    Add(data interface{}) error
+    Put(key string, val interface{}) error
+    GetResults() ([]map[string]interface{}, error)
+    Reset()
+    RegisterExpression(field, expression string, fields []string, evaluator func(data interface{}) (interface{}, error))
+}
+```
+
+Aggregators are created internally by StreamSQL based on `Config.SelectFields`, one instance per group. `Add` accumulates data; `GetResults` returns the aggregated result rows for that group.
+
+## Expression API
+
+Expression capability is provided by the `github.com/rulego/streamsql/expr` package and used internally by the SQL parser; users typically do not call it directly.
+
+### Expression
+
+`Expression` is a **struct** (not an interface), created by `NewExpression`:
+
+```go
+func NewExpression(exprStr string) (*Expression, error)
+```
+
+**Parameters:**
+- `exprStr` - Expression string (e.g. `temperature * 1.8 + 32`)
+
+**Return Value:**
+- `*Expression` - Expression instance (prefers the custom parser internally, falls back to expr-lang on failure)
+- `error` - Returned on syntax errors
+
+## Log API
+
+### Logger Interface
+
+```go
+type Logger interface {
+    Debug(format string, args ...interface{})
+    Info(format string, args ...interface{})
+    Warn(format string, args ...interface{})
+    Error(format string, args ...interface{})
+    SetLevel(level Level)
+}
+```
+
+### Log Level
+
+```go
+type Level int
+
+const (
+    DEBUG Level = iota  // Detailed debug information
+    INFO                // General information (default)
+    WARN                // Warnings
+    ERROR               // Errors
+    OFF                 // Disable logging
+)
+```
+
+### Creating Loggers
+
+#### NewLogger
+
+```go
+func NewLogger(level Level, output io.Writer) Logger
+```
+
+Creates a new logger (printf-style). Note the parameter order: `level` first, then `output`.
+
+#### NewLoggerWithFormat
+
+```go
+func NewLoggerWithFormat(level Level, output io.Writer, format Format) Logger
+```
+
+Creates a logger with the specified output format. `format` is `TextFormat` (logfmt style, default) or `JSONFormat` (one JSON object per line).
+
+#### NewDiscardLogger
+
+```go
+func NewDiscardLogger() Logger
+```
+
+Creates a logger that discards all output (for production with logging disabled, or for `WithDiscardLog()`).
+
+### Global Default Logger
+
+```go
+func SetDefault(logger Logger)  // Set the global default logger
+func GetDefault() Logger         // Get the global default logger
+```
+
+## Type Definitions
+
+### Config
+
+```go
+type Config struct {
+    WindowConfig       WindowConfig                         // Window configuration
+    GroupFields        []string                             // GROUP BY fields
+    SelectFields       map[string]aggregator.AggregateType  // Aggregate fields (alias→type)
+    FieldAlias         map[string]string                    // output field→input field map
+    SimpleFields       []string                             // Non-aggregate SELECT fields
+    FieldExpressions   map[string]FieldExpression           // Field expressions
+    PostAggExpressions []PostAggregationExpression          // Post-aggregation expressions
+    FieldOrder         []string                             // Original SELECT order (for table output)
+    Where              string                               // WHERE condition
+    Having             string                               // HAVING condition
+    NeedWindow         bool                                 // Whether a window is needed
+    Distinct           bool                                 // DISTINCT deduplication
+    Limit              int                                  // Result row cap
+    Projections        []Projection                         // SELECT projections
+    OrderBy            []OrderByField                       // ORDER BY sort keys (per batch)
+    JoinConfigs        []JoinConfig                         // stream-table JOIN config
+    SourceAlias        string                               // FROM alias (e.g. FROM stream AS s)
+    PerformanceConfig  PerformanceConfig                    // Performance configuration
+}
+```
+
+`Config` is produced by the SQL parser (`rsql.Parse`) and serves as the internal execution-plan carrier — **users do not normally construct it**; it is consumed indirectly via `Execute(sql)`.
+
+### WindowConfig
+
+```go
+type WindowConfig struct {
+    Type               string             // "tumbling" / "sliding" / "counting" / "session"
+    Params             []interface{}      // Window function parameters (e.g., ['5m'] or [100])
+    TsProp             string             // Event time field name (empty = processing time)
+    TimeUnit           time.Duration      // Parse unit for integer timestamps (default ms)
+    TimeCharacteristic TimeCharacteristic // ProcessingTime (default) or EventTime
+    MaxOutOfOrderness  time.Duration      // Max out-of-orderness (event time, default 0)
+    WatermarkInterval  time.Duration      // Watermark advance interval (default 200ms)
+    AllowedLateness    time.Duration      // Allowed lateness after window trigger (default 0, close immediately)
+    IdleTimeout        time.Duration      // Idle source timeout (default 0, disabled)
+    CountStateTTL      time.Duration      // CountingWindow state TTL (default 0, disabled)
+    GroupByKeys        []string           // Group-by field list (multi-field supported)
+    PerformanceConfig  PerformanceConfig  // Performance configuration
+    Callback           func([]Row)        // Direct callback (bypasses the output channel)
+}
+```
+
+WITH-clause field mapping: `TsProp` ← `TIMESTAMP`, `TimeUnit` ← `TIMEUNIT`, `MaxOutOfOrderness` ← `MAXOUTOFORDERNESS`, `AllowedLateness` ← `ALLOWEDLATENESS`, `IdleTimeout` ← `IDLETIMEOUT`, `CountStateTTL` ← `STATETTL`.
+
+### FieldExpression
+
+```go
+type FieldExpression struct {
+    Field      string
+    Expression string
+    Fields     []string
+}
+```
+
+### Projection
+
+```go
+type Projection struct {
+    OutputName string
+    SourceType ProjectionSourceType
+    InputName  string
+}
+
+type ProjectionSourceType int
+
+const (
+    SourceGroupKey ProjectionSourceType = iota
+    SourceAggregateResult
+    SourceWindowProperty
+)
+```
+
+### PerformanceConfig
+
+```go
+type PerformanceConfig struct {
+    BufferConfig     BufferConfig
+    OverflowConfig   OverflowConfig
+    WorkerConfig     WorkerConfig
+    MonitoringConfig MonitoringConfig
+}
+```
+
+### BufferConfig
+
+```go
+type BufferConfig struct {
+    DataChannelSize     int
+    ResultChannelSize   int
+    WindowOutputSize    int
+    EnableDynamicResize bool
+    MaxBufferSize       int
+    UsageThreshold      float64
+}
+```
+
+### OverflowConfig
+
+```go
+type OverflowConfig struct {
+    Strategy        string          // "drop" (default), "block", "expand"
+    BlockTimeout    time.Duration   // Block timeout for the "block" strategy
+    AllowDataLoss   bool            // Whether data loss is allowed (true for drop)
+    ExpansionConfig ExpansionConfig // Expansion parameters for the "expand" strategy
+}
+```
+
+`Strategy` values: `"drop"` (drop oldest), `"block"` (block writer), `"expand"` (grow buffer).
+
+### ExpansionConfig
+
+```go
+type ExpansionConfig struct {
+    GrowthFactor     float64       // Buffer growth factor (default 1.5)
+    MinIncrement     int           // Minimum growth increment (default 1000)
+    TriggerThreshold float64       // Usage threshold to trigger expansion (default 0.9)
+    ExpansionTimeout time.Duration // Expansion timeout (default 5s)
+}
+```
+
+### WorkerConfig
+
+```go
+type WorkerConfig struct {
+    SinkPoolSize     int
+    SinkWorkerCount  int
+    MaxRetryRoutines int
+}
+```
+
+### MonitoringConfig
+
+```go
+type MonitoringConfig struct {
+    EnableMonitoring    bool
+    StatsUpdateInterval time.Duration
+    EnableDetailedStats bool
+    WarningThresholds   WarningThresholds
+}
+```
+
+### WarningThresholds
+
+```go
+type WarningThresholds struct {
+    DropRateWarning     float64
+    DropRateCritical    float64
+    BufferUsageWarning  float64
+    BufferUsageCritical float64
+}
+```
+
+## Configuration Preset Functions
+
+### DefaultPerformanceConfig
+
+```go
+func DefaultPerformanceConfig() PerformanceConfig
+```
+
+Returns the default performance configuration, balancing performance and resource usage. Key defaults: data channel 1000, result channel 100, window output 50, overflow strategy `drop`, sink workers 2.
+
+### HighPerformanceConfig
+
+```go
+func HighPerformanceConfig() PerformanceConfig
+```
+
+Returns the high-performance configuration preset, optimized for throughput: large data channel (5000), `expand` overflow strategy, sink workers 4, and monitoring enabled. Corresponds to the `WithHighPerformance()` option.
+
+### LowLatencyConfig
+
+```go
+func LowLatencyConfig() PerformanceConfig
+```
+
+Returns the low-latency configuration preset, optimized for response latency: small data channel (100), `block` overflow strategy, 1-second stats interval. Corresponds to the `WithLowLatency()` option.
+
+## Error Handling
+
+StreamSQL returns errors via the standard `error` type (wrapped with `fmt.Errorf` for context); it does not export sentinel error variables. Common error sources:
+
+| Call | Error scenario |
+|------|------|
+| `Execute` | SQL parse failure; a second `Execute` on the same instance (returns `Execute() has already been called`); JOIN combined with aggregation/window (returns `JOIN with aggregation/window is not supported`); invalid window params (e.g. CountingWindow threshold ≤ 0, CountingWindow with EventTime) |
+| `EmitSync` | Called on an aggregation query (returns `synchronous mode only supports non-aggregation queries`); stream not initialized |
+| `RegisterTable` / `RegisterTableSource` / `UpsertTable` | Called before `Execute` (returns `Execute must be called before ...`); table name not declared in a JOIN |
+
+**Example:**
+```go
+err := ssql.Execute(sql)
+if err != nil {
+    log.Printf("execution failed: %v", err)
+    return
+}
+```
+
+## Usage Example
+
+### Complete Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "math/rand"
+    "time"
+
+    "github.com/rulego/streamsql"
+    "github.com/rulego/streamsql/functions"
+    "github.com/rulego/streamsql/logger"
+    "github.com/rulego/streamsql/utils/cast"
+)
+
+func main() {
+    // 1. Create StreamSQL instance
+    ssql := streamsql.New(
+        streamsql.WithLogLevel(logger.INFO),
+    )
+    defer ssql.Stop()
+
+    // 2. Register custom function
+    err := functions.RegisterCustomFunction(
+        "celsius_to_fahrenheit",
+        functions.TypeConversion,
+        "Temperature Conversion",
+        "Convert Celsius to Fahrenheit",
+        1, 1,
+        func(ctx *functions.FunctionContext, args []interface{}) (interface{}, error) {
+            celsius, err := cast.ToFloat64E(args[0])
+            if err != nil {
+                return nil, err
+            }
+            fahrenheit := celsius*9/5 + 32
+            return fahrenheit, nil
+        },
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // 3. Execute SQL query
+    sql := `SELECT deviceId,
+                   AVG(temperature) as avg_celsius,
+                   AVG(celsius_to_fahrenheit(temperature)) as avg_fahrenheit,
+                   COUNT(*) as sample_count,
+                   window_start() as window_start
+            FROM stream
+            WHERE temperature > 0
+            GROUP BY deviceId, TumblingWindow('1m')`
+
+    err = ssql.Execute(sql)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // 4. Add result processor (receives []map[string]interface{})
+    ssql.AddSink(func(results []map[string]interface{}) {
+        fmt.Printf("Aggregation results: %v\n", results)
+    })
+
+    // 5. Send data
+    devices := []string{"sensor001", "sensor002", "sensor003"}
+    go func() {
+        for i := 0; i < 100; i++ {
+            for _, device := range devices {
+                data := map[string]interface{}{
+                    "deviceId":    device,
+                    "temperature": 20.0 + rand.Float64()*15,
+                    "timestamp":   time.Now(),
+                }
+                ssql.Emit(data)
+            }
+            time.Sleep(5 * time.Second)
+        }
+    }()
+
+    // 6. Wait for results
+    time.Sleep(5 * time.Minute)
+}
+```
+
+## 📚 Related Documentation
+
+- [SQL Reference](/en/pages/streamsql-sql/) - View complete SQL syntax reference
+- [Function Reference](/en/pages/streamsql-functions/) - View all built-in functions
+- [Performance Optimization](/en/pages/performance/) - Learn about performance optimization techniques
+- [Custom Functions](/en/pages/streamsql-functions/) - Learn how to develop custom functions

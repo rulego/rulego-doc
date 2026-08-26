@@ -1,0 +1,92 @@
+---
+title: 消息路由
+permalink: /pages/msg-type-switch/
+---
+`msgTypeSwitch`组件：消息路由组件。根据传入的消息类型（msgType）将消息动态路由到一个或多个输出链。该组件可以根据消息类型实现消息的分流和条件路由。
+
+## 配置
+
+该组件无需配置参数。通过连接关系配置路由规则。
+
+## Relation Type
+
+- ***msgType:*** 通过消息类型（msgType）与下一个节点连接，支持一个msgType连接到多个节点
+- ***Default:*** 当消息类型与所有已配置的msgType都不匹配时，消息将沿`Default`链路径继续传递
+- ***Failure:*** 组件执行出错时，消息将沿`Failure`链路径继续传递
+
+## 执行结果
+
+该组件是纯路由组件，不会修改传入的`msg`、`metadata`和`msgType`内容。仅根据msgType决定消息的路由方向。
+
+## 配置示例
+
+```json
+{
+  "id": "s1",
+  "type": "msgTypeSwitch",
+  "name": "过滤"
+}
+```
+
+## 应用示例
+
+通过`msgType`路由到不同的节点进行处理。
+```json
+{
+  "ruleChain": {
+    "id":"rule01",
+    "name": "测试规则链-msgTypeSwitch",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "msgTypeSwitch",
+        "name": "过滤"
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "记录日志1",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s2';"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "记录日志2",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s3';"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "log",
+        "name": "记录日志3",
+        "configuration": {
+          "jsScript": "return 'handle msgType='+ msgType+':s4';"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "TEST_MSG_TYPE1"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s3",
+        "type": "TEST_MSG_TYPE1"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s4",
+        "type": "TEST_MSG_TYPE2"
+      }
+    ]
+  }
+}
+```

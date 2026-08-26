@@ -1,0 +1,67 @@
+---
+title: Kafka Endpoint
+permalink: /pages/endpoint-kafka/
+---
+***Kafka Endpoint*** is used to create and start Kafka subscription service, which can subscribe to different topic data, and then route it to different rule chains for processing.
+
+::: tip
+This component is an extension component, and you need to import an additional extension library: [rulego-components](https://github.com/rulego/rulego-components)
+:::
+
+## Type
+
+endpoint/kafka
+
+## Startup configuration
+
+| Field                            | Type     | Required | Description                                      | Default           |
+|----------------------------------|----------|----------|--------------------------------------------------|-------------------|
+| server                           | string   | Yes      | Kafka server address list, multiple addresses separated by commas | "127.0.0.1:9092" |
+| groupId <Badge text="v0.23.0+"/> | string   | No       | Consumer Group ID                                | "rulego"          |
+| sasl                             | object   | No       | SASL authentication configuration                | See table below   |
+| tls                              | object   | No       | TLS configuration                                | See table below   |
+
+### SASL Authentication Configuration
+
+| Field     | Type   | Required | Description                                              | Default |
+|-----------|--------|----------|----------------------------------------------------------|---------|
+| enable    | bool   | No       | Whether to enable SASL authentication                   | false   |
+| mechanism | string | No       | Authentication mechanism, supports PLAIN, SCRAM-SHA-256, SCRAM-SHA-512 | "PLAIN" |
+| username  | string | No       | Username                                                 | -       |
+| password  | string | No       | Password                                                 | -       |
+
+### TLS Configuration
+
+| Field              | Type | Required | Description                    | Default |
+|--------------------|------|----------|--------------------------------|---------|
+| enable             | bool | No       | Whether to enable TLS          | false   |
+| insecureSkipVerify | bool | No       | Whether to skip certificate verification | false   |
+
+## Response
+
+Before `exchange.Out.SetBody` responds, you need to specify the `responseTopic` parameter through `exchange.Out.Headers()` or `exchange.Out.Msg.Metadata`, and the component will respond to the specified topic data:
+
+```go
+exchange.Out.GetMsg().Metadata.PutValue("responseTopic", "device.msg.response")
+// or
+exchange.Out.Headers().Add("responseTopic", "device.msg.response")
+exchange.Out.SetBody([]byte("ok"))
+```
+
+Response parameter configuration:
+
+| Field         | Type   | Required | Description    | Default |
+|---------------|--------|----------|----------------|---------|
+| responseTopic | string | Yes      | response Topic | -       |
+| partition     | int    | No       | Partition      | 0       |
+| key           | string | No       | Partition Key  | -       |
+
+## Examples
+
+The following are example codes using endpoint:
+- [RestEndpoint](https://github.com/rulego/rulego/tree/main/examples/http_endpoint/http_endpoint.go)
+- [WebsocketEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/websocket/websocket_test.go)
+- [MqttEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/mqtt/mqtt_test.go)
+- [ScheduleEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/schedule/schedule_test.go)
+- [NetEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/net/net_test.go)
+- [KafkaEndpoint](https://github.com/rulego/rulego-components/blob/main/endpoint/kafka/kafka_test.go) (Extended component library)

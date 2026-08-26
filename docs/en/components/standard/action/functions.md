@@ -1,0 +1,65 @@
+---
+title: functions
+permalink: /pages/functions/
+---
+`functions` component: execute custom processing functions. Used for lightweight custom node implementation, allowing your Golang custom functions to become components in seconds. Supports getting the function name value from metadata dynamically using ${metadataKey}.
+
+Before using this component, you must register custom processing functions using the following method, and the default framework does not provide any processing functions.
+
+```go
+action.Functions.Register(functionName string, f func(ctx types.RuleContext, msg types.RuleMsg))
+```
+
+If the function processing is successful, you must use the following method to notify the rule engine that it has been successfully processed:
+```go
+//TellSuccess notifies the rule engine that the current message processing is successful and sends the message to the next node through the `Success` relationship
+ctx.TellSuccess(msg RuleMsg)
+//TellNext sends the message to the next node using the specified relationTypes
+ctx.TellNext(msg RuleMsg, relationTypes ...string)
+```
+
+If the function processing fails, the implementation must call the tellFailure method:
+```go
+//TellFailure notifies the rule engine that the current message processing failed and sends the message to the next node through the `Failure` relationship
+ctx.TellFailure(msg RuleMsg, err error)
+```
+- **ctx**: context
+- **msg**: the message passed in by the previous node
+
+## Configuration
+
+| Field                           | Type   | Description                                                                                                                                                                                                      | Default value |
+|---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| functionName                    | string | The name of the function to call, can using [Component Configuration Variables](/en/pages/component-configuration-variables/)                                                                                                               | None          |
+| param  <Badge text="v0.35.0+"/> | string | Function input parameter. Supports dynamic resolution using placeholder variables, e.g., `${msg.value}`, `{"name":"${msg.name}","type":"admin"}`. If empty, the current message payload is used as the parameter | None          |
+
+
+## Relation Type
+
+Function custom
+
+## Execution result
+
+Function custom
+
+## Configuration example
+
+```json
+{
+  "id": "s1",
+  "type": "functions",
+  "name": "Call function 1",
+  "configuration": {
+    "functionName": "handleMsg",
+    "param": "{\"name\":\"${msg.name}\"}"
+  }
+}
+```
+
+## Application example
+
+Example reference: [Example](https://github.com/rulego/rulego/blob/main/examples/functions_node/functions_node.go)
+
+## Difference between config.Udf and functions custom functions
+- [config.Udf](/en/pages/config/#udf) : custom functions called by js script at runtime, functions have no fixed parameters and return values.
+- [functions](/pages/functions/) : custom functions called by the `functions` node through the configuration function name, functions must be of this type: `func(ctx types.RuleContext, msg types.RuleMsg)`.

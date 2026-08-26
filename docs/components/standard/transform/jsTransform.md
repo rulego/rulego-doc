@@ -1,0 +1,207 @@
+---
+title: 脚本转换器
+permalink: /pages/js-transform/
+---
+`jsTransform`组件：脚本转换器。用于使用JavaScript脚本对消息进行转换和处理，可以灵活地修改msg、metadata和msgType的内容，实现数据转换、格式转换、数据增强等功能。
+
+> JavaScript脚本支持ECMAScript 5.1(+)语法规范和部分ES6规范，包括async/await/Promise/let等特性。支持调用Go自定义函数扩展功能，详见[udf](/pages/config/#udf)。
+
+## 配置
+
+| 字段       | 类型     | 说明             | 默认值 |
+|----------|--------|----------------|-----|
+| jsScript | string | JavaScript转换脚本 | 无   |
+
+- `jsScript`：JavaScript转换脚本，用于处理消息。该字段作为以下函数的函数体:
+
+  ```javascript
+  function Transform(msg, metadata, msgType, dataType) {
+      ${jsScript}
+  }
+  ```
+  
+  参数说明:
+  - msg: 消息内容
+    - 当[dataType=JSON](/pages/rule-chain-message/)时为`jsonObject`类型,可通过`msg.field`方式访问字段
+    - 当dataType=BINARY时为`Uint8Array`类型,可直接操作字节数组，如`msg[0]`访问第一个字节
+    - 其他dataType时为`string`类型
+  - metadata: 消息元数据,`jsonObject`类型
+  - msgType: 消息类型,`string`类型
+  - dataType: 消息数据类型（JSON、TEXT、BINARY等），需要使用`String(dataType)`转换为字符串使用
+  
+  返回值:
+  - 必须返回包含转换后msg、metadata、msgType的对象:
+    ```javascript
+    return {
+        'msg': msg,           // 转换后的消息内容
+        'metadata': metadata, // 转换后的元数据
+        'msgType': msgType,   // 转换后的消息类型
+        'dataType': dataType  // 可选：转换后的数据类型
+    };
+    ```
+  - 支持的数据类型转换:
+    - 可通过返回值中的`dataType`字段修改消息的数据类型
+    - `msg`字段支持返回字节数组（JavaScript数组）自动转换为二进制数据
+
+::: danger 注意
+1. 脚本执行有超时限制,通过[config.ScriptMaxExecutionTime](/pages/config/#ScriptMaxExecutionTime)配置
+:::
+
+## Relation Type
+
+- ***Success:*** 脚本执行成功,转换后的消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 脚本语法错误
+  - 脚本执行异常
+  - 脚本执行超时
+  - 返回值格式错误
+
+## 执行结果
+
+组件通过执行JavaScript脚本对消息进行转换:
+- 可以修改msg内容
+- 可以修改/添加metadata
+- 可以修改msgType
+- 可以修改dataType
+- 转换后的完整消息传递给下一个节点
+
+
+## 配置示例
+
+### 基本数据转换示例
+```json
+  {
+    "id": "s1",
+    "type": "jsTransform",
+    "name": "转换",
+    "configuration": {
+      "jsScript": "metadata['name']='test01';\n metadata['index']=11;\n msg['addField']='addValue1'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+    }
+  }
+```
+
+### 二进制数据处理示例
+```json
+  {
+    "id": "s2",
+    "type": "jsTransform",
+    "name": "二进制转换",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY') { var newBytes = new Uint8Array(msg.length + 4); newBytes[0] = 0xFF; newBytes[1] = 0xFE; newBytes[2] = 0xFD; newBytes[3] = 0xFC; for (var i = 0; i < msg.length; i++) { newBytes[i + 4] = msg[i]; } metadata['processed'] = 'true'; return {'msg': newBytes, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### 数据类型转换示例
+```json
+  {
+    "id": "s3",
+    "type": "jsTransform", 
+    "name": "类型转换",
+    "configuration": {
+      "jsScript": "var bytes = [72, 101, 108, 108, 111]; metadata['converted'] = 'text_to_binary'; return {'msg': bytes, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'};"
+    }
+  }
+```
+
+### JSON数据增强示例
+```json
+  {
+    "id": "s4",
+    "type": "jsTransform",
+    "name": "JSON数据增强",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'JSON') { msg.timestamp = new Date().toISOString(); msg.processedBy = 'RuleGo'; if (msg.temperature !== undefined) { msg.temperatureF = msg.temperature * 9/5 + 32; msg.status = msg.temperature > 25 ? 'hot' : 'normal'; } metadata['enhanced'] = 'true'; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### 二进制协议解析示例
+```json
+  {
+    "id": "s5",
+    "type": "jsTransform",
+    "name": "协议解析",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY' && msg.length >= 8) { var deviceId = (msg[0] << 8) | msg[1]; var functionCode = (msg[2] << 8) | msg[3]; var dataLength = (msg[4] << 8) | msg[5]; var payload = Array.from(msg.slice(6)); var result = { deviceId: deviceId, functionCode: functionCode, dataLength: dataLength, payload: payload, parsedAt: new Date().toISOString() }; metadata['protocol'] = 'custom'; metadata['parsed'] = 'true'; return {'msg': result, 'metadata': metadata, 'msgType': 'PARSED_DATA', 'dataType': 'JSON'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### 文本日志解析示例
+```json
+  {
+    "id": "s6",
+    "type": "jsTransform",
+    "name": "日志解析",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'TEXT') { var logPattern = /^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) \\[(\\w+)\\] (.+)$/; var match = msg.match(logPattern); if (match) { var parsed = { timestamp: match[1], level: match[2], message: match[3], source: 'application' }; metadata['logParsed'] = 'true'; return {'msg': parsed, 'metadata': metadata, 'msgType': 'LOG_ENTRY', 'dataType': 'JSON'}; } } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### 二进制数据加密示例
+```json
+  {
+    "id": "s7",
+    "type": "jsTransform",
+    "name": "数据加密",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY') { var encrypted = new Uint8Array(msg.length + 4); encrypted[0] = 0xAA; encrypted[1] = 0xBB; encrypted[2] = 0xCC; encrypted[3] = 0xDD; for (var i = 0; i < msg.length; i++) { encrypted[i + 4] = msg[i] ^ 0x55; } metadata['encrypted'] = 'true'; metadata['algorithm'] = 'xor'; return {'msg': encrypted, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### 多数据类型转换示例
+```json
+  {
+    "id": "s8",
+    "type": "jsTransform",
+    "name": "智能转换",
+    "configuration": {
+      "jsScript": "var dt = String(dataType); metadata.originalType = dt; if (dt === 'JSON') { msg.converted = true; msg.convertedAt = new Date().toISOString(); return {'msg': msg, 'metadata': metadata, 'msgType': 'ENHANCED_JSON'}; } else if (dt === 'TEXT') { try { var parsed = JSON.parse(msg); metadata.textToJson = 'success'; return {'msg': parsed, 'metadata': metadata, 'msgType': 'CONVERTED_JSON', 'dataType': 'JSON'}; } catch(e) { metadata.conversionError = e.message; } } else if (dt === 'BINARY') { var hex = Array.from(msg).map(b => b.toString(16).padStart(2, '0')).join(''); metadata.hexString = hex; metadata.binaryLength = msg.length; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+## 应用示例
+把消息进行转换后再执行后续逻辑。
+
+```json
+{
+  "ruleChain": {
+    "id":"rule01",
+    "name": "测试规则链",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+       {
+        "id": "s1",
+        "type": "jsTransform",
+        "name": "转换",
+        "configuration": {
+          "jsScript": "metadata['name']='test02';\n metadata['index']=22;\n msg['addField']='addValue2'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "restApiCall",
+        "name": "推送数据",
+        "configuration": {
+          "restEndpointUrlPattern": "http://192.168.136.26:9099/api/msg",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

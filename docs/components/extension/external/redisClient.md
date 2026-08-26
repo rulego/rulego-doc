@@ -1,0 +1,182 @@
+---
+title: redis客户端
+permalink: /pages/redis-client/
+---
+`x/redisClient`组件：redis客户端。可以执行redis命令。
+
+## 配置
+
+该组件允许通关过`server`字段复用共享的redis连接客户端。参考[组件连接复用](/pages/component-connection-reuse/) 。
+
+| 字段                                  | 类型     | 说明                                               | 默认值 |
+|-------------------------------------|--------|--------------------------------------------------|-----|
+| server                              | string | redis服务器地址，格式：host:port                          | 无   |
+| password                            | string | Redis密码                                          | 无   |
+| poolSize                            | int    | 连接池大小                                            | 0   |
+| db                                  | int    | Redis数据库索引                                       | 0   |
+| cmd                                 | string | Redis命令，支持带参数格式（如"SET key value"）和${}变量替换 | 无   |
+| paramsExpr <Badge text="已弃用"/> | string | 动态参数表达式（已弃用，建议使用params字段）                        | 无   |
+| params                              | array  | 命令参数，支持${}变量替换和[组件配置变量](/pages/component-configuration-variables/)          | 无   |
+
+
+## 配置说明
+
+### cmd字段
+`cmd`字段支持两种格式：
+1. **单独命令**：如"SET"、"GET"、"HSET"等，参数通过`params`字段提供
+2. **带参数命令**：如"SET key value"、"HSET myhash field1 value1"等，命令和参数一起提供
+
+### params字段
+`params`字段支持：
+- **静态参数**：直接提供参数值，如`["key1", "value1"]`
+- **动态参数**：使用`${}`语法进行变量替换，如`["${metadata.key}", "${data}"]`
+- **组件配置变量**：支持所有[组件配置变量](/pages/component-configuration-variables/)语法
+
+
+## Relation Type
+
+- ***Success:*** 执行成功，把消息发送到`Success`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+
+## 执行结果
+
+执行结果替换到msg.Data，流转到下一个节点。
+  
+## 配置示例
+
+### 示例1：使用单独命令和params参数
+```json
+{
+  "id": "s5",
+  "type": "x/redisClient",
+  "name": "保存到redis",
+  "debugMode": true,
+  "configuration": {
+    "server": "192.168.1.1:6379",
+    "cmd": "SET",
+    "params": ["${metadata.key}", "${msg.value}"],
+    "poolSize": 10
+  }
+}
+```
+
+### 示例2：使用带参数的命令格式
+```json
+{
+  "id": "s6",
+  "type": "x/redisClient",
+  "name": "设置哈希字段",
+  "debugMode": true,
+  "configuration": {
+    "server": "192.168.1.1:6379",
+    "cmd": "HSET ${msg.hashKey} ${msg.field}",
+    "params": ["${data}"],
+    "poolSize": 10
+  }
+}
+```
+
+### 示例3：完整命令（不使用params）
+```json
+{
+  "id": "s7",
+  "type": "x/redisClient",
+  "name": "完整SET命令",
+  "debugMode": true,
+  "configuration": {
+    "server": "192.168.1.1:6379",
+    "cmd": "SET ${metadata.key} ${metadata.value}",
+    "poolSize": 10
+  }
+}
+```
+
+## 应用示例
+
+应用示例参考：[redisClient](https://github.com/rulego/rulego-components/blob/main/examples/redis/call_redis_client.go)
+
+```json
+{
+  "ruleChain": {
+    "id":"chain_msg_type_switch",
+    "name": "测试规则链-msgTypeSwitch",
+    "root": false,
+    "debugMode": false
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "msgTypeSwitch",
+        "name": "过滤",
+        "debugMode": true
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "记录日志1",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msgType+':s2--'+JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "记录日志2",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msgType+':s3--'+JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s5",
+        "type": "x/redisClient",
+        "name": "保存到redis",
+        "debugMode": true,
+        "configuration": {
+          "cmd": "SET",
+          "params": ["${msg.key1}", "${msg.value1}"],
+          "poolSize": 10,
+          "Server": "192.168.1.1:6379"
+        }
+      },
+	{
+        "id": "s6",
+        "type": "x/redisClient",
+        "name": "保存到redis",
+        "debugMode": true,
+        "configuration": {
+          "cmd": "SET",
+          "params": ["${msg.key2}", "${msg.value2}"],
+          "poolSize": 10,
+          "Server": "192.168.1.1:6379"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "TEST_MSG_TYPE1"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s3",
+        "type": "TEST_MSG_TYPE2"
+      },
+      {
+        "fromId": "s3",
+        "toId": "s5",
+        "type": "Success"
+      },
+  		{
+        "fromId": "s2",
+        "toId": "s6",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

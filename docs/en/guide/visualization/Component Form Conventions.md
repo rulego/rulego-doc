@@ -1,0 +1,76 @@
+---
+title: Component Form Conventions
+permalink: /pages/component-form-conventions/
+---
+The framework will scan the registered components and generate component form configurations according to the following conventions, which are used for rendering component configuration forms in the visual editor.
+
+1. Generate a component name (lowercase first letter) based on the component structure name
+2. Generate form items based on the structure defined by the `Config` field of the component structure. (The first letter of the field is lowercase or customized through `json tag`)
+3. Generate default values for form items based on the `Config` field of the component instance returned by the `New()` method
+4. Generate categories based on component package names. The component categories are: transform action、filter、external、flow、ci、ai、aiot
+5. The endpoint component type is prefixed with `endpoint/`
+
+:::tip
+Components can implement the following optional interface to override the definitions 
+from the [Component Configuration Form Conventions](/en/pages/component-form-conventions/) :
+```go
+type ComponentDefGetter interface {
+  Def() ComponentForm
+}
+```
+:::
+
+### Example
+Component definition:
+```go
+// JsTransformNodeConfiguration node configuration, generates form items for exportable fields
+type JsTransformNodeConfiguration struct {
+    JsScript string
+}
+
+// JsTransformNode is the custom component struct, corresponding to the generated component name: jsTransformNode
+type JsTransformNode struct {
+  // Node configuration, If the node requires form configuration, it must have a `Config` field.
+  Config   JsTransformNodeConfiguration
+  jsEngine types.JsEngine
+}
+// Type function returns the type of the component
+func (x *JsTransformNode) Type() string {
+return "jsTransform"
+}
+// New function initializes based on the Config field, obtaining the default values for form items
+func (x *JsTransformNode) New() types.Node {
+return &JsTransformNode{Config: JsTransformNodeConfiguration{
+JsScript: "return {'msg':msg,'metadata':metadata,'msgType':msgType};",
+}}
+}
+// Other interfaces are not shown here
+```
+Automatically generate component configuration form definition:
+```json
+{
+      "type": "jsTransform",
+      "category": "transform",
+      "fields": [
+        {
+          "name": "jsScript",
+          "type": "string",
+          "defaultValue": "return {'msg':msg,'metadata':metadata,'msgType':msgType};",
+          "label": "",
+          "desc": "",
+          "validate": "",
+          "fields": null
+        }
+      ],
+      "label": "JsTransformNode",
+      "desc": "",
+      "icon": "",
+      "relationTypes": [
+        "Success",
+        "Failure"
+      ]
+    }
+```
+
+> - [Component Configuration Form Definition](/en/pages/get-component-form/#types-componentform)
+> - You can make international settings for component configuration in the [RuleGo-Editor](/en/pages/rulego-server-editor/) visual editor `local_zh.js` file.

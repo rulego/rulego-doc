@@ -1,0 +1,72 @@
+---
+title: OPC_UA Read
+permalink: /pages/x-opcua-read/
+---
+`x/opcuaRead`组件：<Badge text="v0.28.0+"/> OPC UA读取组件，用于从OPC UA服务器读取数据。可以读取一个节点或多个节点数据。
+
+>需要额外引入扩展库：[rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## 配置
+
+| 字段          | 类型     | 说明                                                       | 默认值       |
+|-------------|--------|----------------------------------------------------------|-----------|
+| server      | string | OPC UA服务器地址，支持 `ref://` 复用同链连接                          | 无         |
+| policy      | string | 安全策略，可选值包括：None, Basic128Rsa15, Basic256, Basic256Sha256 | None      |
+| mode        | string | 通信模式，可选值包括：None, Sign, SignAndEncrypt                    | None      |
+| auth        | string | 鉴权方式，可选值：Anonymous, UserName, Certificate                | Anonymous |
+| username    | string | 用户名（当`auth`为`UserName`时需要提供）                             | 无         |
+| password    | string | 密码（当`auth`为`UserName`时需要提供）                              | 无         |
+| certFile    | string | 证书文件路径（当`auth`为`Certificate`时需要提供）                       | 无         |
+| certKeyFile | string | 密钥文件路径（当`auth`为`Certificate`时需要提供）                       | 无         |
+| points      | array  | 点位列表（标准读取方式），每项含 name/addr/type，addr 为 OPC UA NodeID     | 无         |
+
+**点位字段（points 数组元素）：**
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| name | string | 点位名，输出时作为 `Data.name` |
+| addr | string | OPC UA NodeID，如 `ns=2;s=Temperature` |
+| type | string | 数据类型，统一枚举 `BOOL/INT16/UINT16/INT32/UINT32/INT64/UINT64/FLOAT32/FLOAT64/STRING` |
+
+**安全策略（policy）可选值含义：**
+
+- **None**：不使用任何安全策略。
+- **Basic128Rsa15**：使用基本的128位加密和RSA15签名。
+- **Basic256**：使用基本的256位加密。
+- **Basic256Sha256**：使用基本的256位加密和SHA256签名。
+
+**通信模式（mode）可选值含义：**
+
+- **None**：不使用任何模式。
+- **Sign**：消息签名。
+- **SignAndEncrypt**：消息签名和加密。
+
+**读取点位（标准方式）**：通过配置 `points` 指定，addr 为 OPC UA NodeID，格式：
+```json
+[
+  {"name": "temp", "addr": "ns=2;s=Temperature", "type": "FLOAT32"},
+  {"name": "humidity", "addr": "ns=2;s=Humidity", "type": "FLOAT32"}
+]
+```
+
+**旧版兼容保留**：也可通过消息负荷 `msg.Data` 传入 NodeID 列表（仅兼容保留，推荐使用 `points`），格式：
+```json
+[
+  "ns=3;i=1003",
+  "ns=3;i=1005"
+]
+```
+
+## Relation Type
+
+- ***Success:*** 执行成功，把消息发送到`Success`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+## 执行结果
+
+查询结果会重新赋值到`msg.Data`，通过`Success`链传给下一个节点，格式：
+```json
+[
+  {"name": "temp", "value": 25.3, "timestamp": 1721900000000000000, "error": ""}
+]
+```

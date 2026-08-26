@@ -1,0 +1,52 @@
+---
+title: nats客户端
+permalink: /pages/nats-client/
+---
+`x/natsClient`组件：<Badge text="v0.21.0+"/> NATS客户端组件。用于将消息发布到NATS消息服务器的指定主题。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的连接客户端，避免重复创建连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段       | 类型     | 必填 | 说明                                                          | 默认值 |
+|----------|--------|-----|-------------------------------------------------------------|-----|
+| topic    | string | 是   | 发布主题，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                    | 无   |
+| server   | string | 是   | NATS服务器地址，格式为host:port                                     | 无   |
+| username | string | 否   | NATS服务器认证用户名                                               | 无   |
+| password | string | 否   | NATS服务器认证密码                                                | 无   |
+
+## 工作原理
+
+1. 组件初始化时会根据配置连接到NATS服务器
+2. 接收到消息后，将消息内容发布到指定的topic
+3. 发布成功后通过Success链路由，失败则通过Failure链路由
+4. 组件会自动管理连接的生命周期，包括重连、心跳等
+
+## Relation Type
+
+- ***Success:*** 消息成功发布到NATS服务器时，原始消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 连接NATS服务器失败
+  - 发布消息失败
+  - topic配置错误
+
+## 执行结果
+
+组件仅负责消息发布，不会修改原始消息的任何内容：
+- msg保持不变
+- metadata保持不变  
+- msgType保持不变
+
+## 配置示例
+
+```json
+   {
+    "id": "s2",
+    "type": "natsClient",
+    "name": "往nats server推送数据",
+    "configuration": {
+      "server": "127.0.0.1:4222",
+      "topic": "/device/msg/${deviceId}"
+    }
+  }
+```

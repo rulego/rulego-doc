@@ -1,0 +1,23 @@
+---
+title: 并发限制切面
+permalink: /pages/limiter-aspect/
+---
+Limiter Aspect：并发限制切面。限制规则引擎并发处理数据，如果超过并发数量，则执行失败。
+:::tip
+该切面需要手动引入。
+:::
+
+## 配置
+
+| 字段  | 类型  | 说明   | 默认值 |
+|-----|-----|------|-----|
+| max | int | 并发数量 | 0   |
+
+## 使用示例
+
+[参考示例](https://github.com/rulego/rulego/tree/main/engine/limiter_aspect_test.go)
+```go
+//限制并发数量为1
+types.WithAspects(
+&aspect.NewConcurrencyLimiterAspect(1)
+```

@@ -1,0 +1,47 @@
+---
+title: git log
+permalink: /pages/ci-git-log/
+---
+`ci/gitLog` component: <Badge text="v0.29.0+"/> Git log component.
+
+> Requires additional import of the extension library: [rulego-components-ci](https://github.com/rulego/rulego-components-ci )
+
+## Configuration
+
+| Field     | Type   | Description                                                                                                                                        | Default Value       |
+|-----------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| directory | string | Local directory                                                                                                                                    | ${metadata.workDir} |
+| limit     | int    | Log count limit                                                                                                                                    | 10                  |
+| startTime | string | Start time, format: yyyy-MM-dd or yyyy-MM-dd HH:mm:ss, e.g., "2006-01-02 15:04:05". Can use [component configuration variables](/en/pages/component-configuration-variables/) |                     |
+| endTime   | string | End time, format: yyyy-MM-dd or yyyy-MM-dd HH:mm:ss, e.g., "2006-01-02 15:04:05". can use [component configuration variables](/en/pages/component-configuration-variables/)   |                     |
+
+
+> All the above fields can use [component configuration variables](/en/pages/component-configuration-variables/)
+
+## Relation Type
+
+- ***Success:*** Execution is successful, and the message is sent to the `Success` chain.
+- ***Failure:*** Execution fails, and the message is sent to the `Failure` chain.
+
+
+## Execution Result
+
+- The query result is saved in `msg.Data`. The return result is an array, with each element being:
+
+| Field     | Type      | Description                         | Default Value |
+|-----------|-----------|-------------------------------------|---------------|
+| hash      | string    | Commit hash                         |               |
+| author    | Committer | Author                              |               |
+| committer | Committer | Committer                           |               |
+| mergeTag  | string    | Merge tag                           |               |
+| message   | string    | Commit message                      |               |
+| treeHash  | string    | Hash of the root tree of the commit |               |
+| encoding  | string    | Encoding                            |               |
+
+**Committer**
+
+| Field    | Type        | Description | Default Value |
+|----------|-------------|-------------|---------------|
+| name     | string      | Name        |               |
+| email    | string      | Email       |               |
+| time     | string      | Timestamp   |               |

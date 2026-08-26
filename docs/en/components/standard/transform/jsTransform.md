@@ -1,0 +1,206 @@
+---
+title: jsTransform
+permalink: /pages/js-transform/
+---
+`jsTransform` Component: Script Transformer. This component is used to transform and process messages using JavaScript scripts. It can flexibly modify the content of `msg`, `metadata`, and `msgType` to achieve functions such as data transformation, format conversion, and data enrichment.
+
+> JavaScript scripts support ECMAScript 5.1(+) syntax specifications and some ES6 features, including async/await/Promise/let, etc. They also support calling Go custom functions to extend functionality. For more details, see [udf](/pages/config/#udf).
+
+## Configuration
+
+| Field       | Type     | Description             | Default Value |
+|----------|--------|----------------|-----|
+| jsScript | string | JavaScript transformation script | None   |
+
+- `jsScript`: The JavaScript transformation script used to process messages. This field serves as the function body of the following function:
+
+  ```javascript
+  function Transform(msg, metadata, msgType, dataType) {
+      ${jsScript}
+  }
+  ```
+
+  Parameter Description:
+  - msg: Message content
+    - When [dataType=JSON](/en/pages/rule-chain-message/), it is of type `jsonObject`, and fields can be accessed using `msg.field`.
+    - When dataType=BINARY, it is of type `Uint8Array`, and the byte array can be manipulated directly, such as accessing the first byte with `msg[0]`.
+    - For other dataTypes, it is of type `string`.
+  - metadata: Message metadata, of type `jsonObject`.
+  - msgType: Message type, of type `string`.
+  - dataType: Message data type (JSON, TEXT, BINARY, etc.), which needs to be converted to a string using `String(dataType)`.
+
+  Return Value:
+  - Must return an object containing the transformed `msg`, `metadata`, and `msgType`:
+    ```javascript
+    return {
+        'msg': msg,           // Transformed message content
+        'metadata': metadata, // Transformed metadata
+        'msgType': msgType,   // Transformed message type
+        'dataType': dataType  // Optional: Transformed data type
+    };
+    ```
+  - Supported data type conversions:
+    - The message data type can be modified using the `dataType` field in the return value.
+    - The `msg` field supports returning a byte array (JavaScript array) that will be automatically converted to binary data.
+
+::: danger Note
+1. Script execution has a timeout limit, which is configured through [config.ScriptMaxExecutionTime](/pages/config/#ScriptMaxExecutionTime).
+   :::
+
+## Relation Type
+
+- ***Success:*** The script executes successfully, and the transformed message is sent to the `Success` chain.
+- ***Failure:*** The message is sent to the `Failure` chain in the following cases:
+  - Script syntax error
+  - Script execution exception
+  - Script execution timeout
+  - Incorrect return value format
+
+## Execution Result
+
+The component transforms the message by executing the JavaScript script:
+- It can modify the content of `msg`.
+- It can modify/add `metadata`.
+- It can modify `msgType`.
+- It can modify `dataType`.
+- The complete transformed message is passed to the next node.
+
+## Configuration Examples
+
+### Basic Data Transformation Example
+```json
+  {
+    "id": "s1",
+    "type": "jsTransform",
+    "name": "Transformation",
+    "configuration": {
+      "jsScript": "metadata['name']='test01';\n metadata['index']=11;\n msg['addField']='addValue1'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+    }
+  }
+```
+
+### Binary Data Processing Example
+```json
+  {
+    "id": "s2",
+    "type": "jsTransform",
+    "name": "Binary Transformation",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY') { var newBytes = new Uint8Array(msg.length + 4); newBytes[0] = 0xFF; newBytes[1] = 0xFE; newBytes[2] = 0xFD; newBytes[3] = 0xFC; for (var i = 0; i < msg.length; i++) { newBytes[i + 4] = msg[i]; } metadata['processed'] = 'true'; return {'msg': newBytes, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### Data Type Conversion Example
+```json
+  {
+    "id": "s3",
+    "type": "jsTransform", 
+    "name": "Type Conversion",
+    "configuration": {
+      "jsScript": "var bytes = [72, 101, 108, 108, 111]; metadata['converted'] = 'text_to_binary'; return {'msg': bytes, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'};"
+    }
+  }
+```
+
+### JSON Data Enrichment Example
+```json
+  {
+    "id": "s4",
+    "type": "jsTransform",
+    "name": "JSON Data Enrichment",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'JSON') { msg.timestamp = new Date().toISOString(); msg.processedBy = 'RuleGo'; if (msg.temperature !== undefined) { msg.temperatureF = msg.temperature * 9/5 + 32; msg.status = msg.temperature > 25 ? 'hot' : 'normal'; } metadata['enhanced'] = 'true'; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### Binary Protocol Parsing Example
+```json
+  {
+    "id": "s5",
+    "type": "jsTransform",
+    "name": "Protocol Parsing",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY' && msg.length >= 8) { var deviceId = (msg[0] << 8) | msg[1]; var functionCode = (msg[2] << 8) | msg[3]; var dataLength = (msg[4] << 8) | msg[5]; var payload = Array.from(msg.slice(6)); var result = { deviceId: deviceId, functionCode: functionCode, dataLength: dataLength, payload: payload, parsedAt: new Date().toISOString() }; metadata['protocol'] = 'custom'; metadata['parsed'] = 'true'; return {'msg': result, 'metadata': metadata, 'msgType': 'PARSED_DATA', 'dataType': 'JSON'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### Text Log Parsing Example
+```json
+  {
+    "id": "s6",
+    "type": "jsTransform",
+    "name": "Log Parsing",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'TEXT') { var logPattern = /^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) \\[(\\w+)\\] (.+)$/; var match = msg.match(logPattern); if (match) { var parsed = { timestamp: match[1], level: match[2], message: match[3], source: 'application' }; metadata['logParsed'] = 'true'; return {'msg': parsed, 'metadata': metadata, 'msgType': 'LOG_ENTRY', 'dataType': 'JSON'}; } } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### Binary Data Encryption Example
+```json
+  {
+    "id": "s7",
+    "type": "jsTransform",
+    "name": "Data Encryption",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY') { var encrypted = new Uint8Array(msg.length + 4); encrypted[0] = 0xAA; encrypted[1] = 0xBB; encrypted[2] = 0xCC; encrypted[3] = 0xDD; for (var i = 0; i < msg.length; i++) { encrypted[i + 4] = msg[i] ^ 0x55; } metadata['encrypted'] = 'true'; metadata['algorithm'] = 'xor'; return {'msg': encrypted, 'metadata': metadata, 'msgType': msgType, 'dataType': 'BINARY'}; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+### Multi-Data Type Conversion Example
+```json
+  {
+    "id": "s8",
+    "type": "jsTransform",
+    "name": "Smart Transformation",
+    "configuration": {
+      "jsScript": "var dt = String(dataType); metadata.originalType = dt; if (dt === 'JSON') { msg.converted = true; msg.convertedAt = new Date().toISOString(); return {'msg': msg, 'metadata': metadata, 'msgType': 'ENHANCED_JSON'}; } else if (dt === 'TEXT') { try { var parsed = JSON.parse(msg); metadata.textToJson = 'success'; return {'msg': parsed, 'metadata': metadata, 'msgType': 'CONVERTED_JSON', 'dataType': 'JSON'}; } catch(e) { metadata.conversionError = e.message; } } else if (dt === 'BINARY') { var hex = Array.from(msg).map(b => b.toString(16).padStart(2, '0')).join(''); metadata.hexString = hex; metadata.binaryLength = msg.length; } return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+  }
+```
+
+## Application Example
+Transform the message and then execute subsequent logic.
+
+```json
+{
+  "ruleChain": {
+    "id":"rule01",
+    "name": "Test Rule Chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+       {
+        "id": "s1",
+        "type": "jsTransform",
+        "name": "Transformation",
+        "configuration": {
+          "jsScript": "metadata['name']='test02';\n metadata['index']=22;\n msg['addField']='addValue2'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "restApiCall",
+        "name": "Push Data",
+        "configuration": {
+          "restEndpointUrlPattern": "<url id=\"d1d1j4gr7lpjqb3pt42g\" type=\"url\" status=\"failed\" title=\"\" wc=\"0\">http://192.168.136.26:9099/api/msg</url>   ",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

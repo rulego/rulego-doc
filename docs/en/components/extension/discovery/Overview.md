@@ -1,0 +1,45 @@
+---
+title: Service Discovery Overview
+permalink: /pages/discovery-overview/
+---
+<Badge text="rulego-components-discovery"/> provides nacos microservice integration: **service discovery & call**, **config read**, **config write**, and **config change listen**.
+
+> Requires extension library: [rulego-components-discovery](https://github.com/rulego/rulego-components-discovery)
+
+## Positioning
+
+Integrates into a microservice cluster as a "singleton member" — rulego stays single-instance, using nacos for service discovery and config read/listen/write, without introducing multi-replica leader-election issues. Multi-instance HA is a separate runtime topic, out of scope.
+
+## Components
+
+| Component | Description |
+|------|------|
+| [x/nacosServiceCall](/en/pages/x-nacos-service-call/) | Discover healthy instances via nacos and call cluster microservices |
+| [x/nacosConfigGet](/en/pages/x-nacos-config-get/) | Read config content from nacos |
+| [x/nacosConfigSet](/en/pages/x-nacos-config-set/) | Write (publish) config to nacos |
+| [endpoint/nacos](/en/pages/endpoint-nacos/) | Listen to nacos config changes, auto-trigger rule chain on change |
+
+## Common Connection Config
+
+All components share `ConnConfig` (anonymously embedded, JSON fields flattened into component configuration):
+
+| Field | Type | Description | Default |
+|---|---|---|---|
+| server | string | nacos address list, comma-separated, e.g. `127.0.0.1:8848` | 127.0.0.1:8848 |
+| namespace | string | Namespace ID | empty (public) |
+| timeout | int | Request timeout (seconds) | 5 |
+| auth | object | Auth: `username`/`password` for open auth, `accessKey`/`secretKey` for Alibaba Cloud | none |
+| tls | object | TLS: `certFile`/`certKeyFile`/`caFile`/`insecureSkipVerify` | none |
+
+> Components with the same `server` automatically reuse the nacos client connection (base.SharedNode); you can also explicitly reuse an on-canvas node's connection with `ref://ownerId`.
+
+## Import
+
+```go
+import (
+    _ "github.com/rulego/rulego-components-discovery/external/nacos"
+    _ "github.com/rulego/rulego-components-discovery/endpoint/nacos"
+)
+```
+
+No special build tags; blank import registers all components.

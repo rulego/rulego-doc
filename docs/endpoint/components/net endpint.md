@@ -1,0 +1,299 @@
+---
+title: Net Endpoint
+permalink: /pages/endpoint-net/
+---
+***Net Endpoint*** 用于创建和启动网络协议服务器，支持多种协议和数据包处理模式。适用于物联网设备接入、传感器数据收集、网络协议代理等场景。
+
+## Type
+
+endpoint/net
+
+## 核心特性
+
+### 🌐 多协议支持
+- **TCP/UDP**: 标准网络协议
+- **IPv4/IPv6**: 支持 ip4:1, ip6:ipv6-icmp, ip6:58 等
+- **Unix Socket**: unix, unixgram 本地通信
+- **扩展协议**: Go net 包支持的所有协议类型
+
+### 📦 智能数据包分割
+- **line**: 按行分割（\n 或 \r\n）- 默认模式
+- **fixed**: 固定长度分割
+- **delimiter**: 自定义分隔符（支持十六进制格式）
+- **length_prefix**: 长度前缀模式（支持大小端序、包含/不包含前缀长度）
+
+### 🔄 数据类型处理
+**默认行为**: 所有网络数据默认为 **BINARY** 类型，确保数据完整性。
+
+**类型转换**: 通过内置处理器可以改变数据类型：
+```javascript
+// 在路由配置中使用处理器
+router := impl.NewRouter().From("").
+  Process("setJsonDataType").    // 设置为 JSON 类型
+  To("chain:jsonProcessor").End()
+```
+
+**可用处理器**：
+- `setJsonDataType`: 适用于 JSON API 和 REST 服务
+- `setTextDataType`: 适用于文本协议（HTTP、SMTP 等）
+- `setBinaryDataType`: 明确设置为二进制（默认）
+
+### ⚡ 热更新支持
+支持规则链热更新，无需重启服务器即可更新处理逻辑。
+
+## 启动配置
+
+| 字段           | 类型     | 是否必填 | 说明                                                   | 默认值   |
+|--------------|--------|------|------------------------------------------------------|-------|
+| protocol     | string | 否    | 网络协议: tcp/udp/unix 等                               | tcp   |
+| server       | string | 是    | 服务器地址，格式为 host:port，如 ":8888"                      | -     |
+| readTimeout  | int    | 否    | 读取超时时间（秒），0 表示无超时                                 | 60    |
+| packetMode   | string | 否    | 数据包分割模式                                            | line  |
+| packetSize   | int    | 否    | 数据包大小（根据模式含义不同）                                  | 0     |
+| delimiter    | string | 否    | 自定义分隔符（支持 0x0A 十六进制格式）                           | -     |
+| maxPacketSize| int    | 否    | 最大数据包大小，防止恶意攻击                                   | 64KB  |
+| encode       | string | 否    | hex/base64 编码字节为字符串；text/string/json 只设 dataType（不编码字节，editor/下游可读） | -     |
+| sessionKey   | string | 否    | 会话寻址 Key 提取规则（rulego `${}` 表达式）。如 `${msg.deviceId}` 从首帧提取设备ID；留空则用 RemoteAddr | -     |
+| sessionTTL   | int    | 否    | 会话空闲 TTL（秒）。空闲超时则关闭连接，促使设备重连并重新提取 sessionKey；<=0 使用默认 1800 | 1800  |
+
+## 会话寻址与主动推送
+
+`endpoint/net` 内置会话注册表，为每个接入的设备连接维护一个会话（Session）。配合发送侧节点（`net`/`ws` 配置为 `ref://` 模式），可**复用设备已建立的长连接**，按 sessionKey（如设备ID）精确寻址主动向特定设备下发数据，无需设备轮询或额外建链。
+
+### sessionKey 提取
+
+`sessionKey` 用 rulego `${}` 表达式从设备上报数据中提取会话 Key（通常首帧携带身份信息）。提取时机：连接建立后每收到一帧都尝试提取，**首次成功后固定**（后续帧不再覆盖），保证会话 Key 稳定。
+
+常见配置：
+- `${msg.deviceId}`：JSON 首帧的 deviceId 字段
+- `${msg.header.sn}`：嵌套字段
+- `${hex(data[4:14])}`：二进制协议，取偏移 4-14 字节的十六进制作为 Key
+- `${reFind("ID:([a-zA-Z0-9_]+)", data)}`：正则提取（**必须用双引号**，el 引擎不认单引号；正则避免 `\w` 用 `[a-zA-Z0-9_]`）
+- 留空：默认用设备 RemoteAddr（IP:Port）
+
+### 主动推送
+
+设备连入并完成 sessionKey 提取后，用 `net` 节点（`server=ref://<本 endpoint 实例ID>`、`target=设备ID或*`）即可向指定设备或全部设备推送。详见 [net 组件 - 会话寻址推送](/pages/net/)。
+
+```go
+// endpoint/net 配置 sessionKey
+ep.Init(config, types.Configuration{
+    "server":     ":8080",
+    "sessionKey": "${msg.deviceId}",
+})
+// net 节点 ref:// 寻址推送：server=ref://<endpoint/net 实例ID>, target=DEV_001 或 *
+```
+
+## 数据包分割模式详解
+
+### Line 模式（默认）
+```json
+{
+  "packetMode": "line"
+}
+```
+适用于文本协议，按 `\n` 或 `\r\n` 分割消息。
+
+### Fixed 模式
+```json
+{
+  "packetMode": "fixed",
+  "packetSize": 16
+}
+```
+固定长度数据包，适用于二进制协议。
+
+### Delimiter 模式
+```json
+{
+  "packetMode": "delimiter",
+  "delimiter": "0x0D0A"
+}
+```
+自定义分隔符，支持十六进制格式。
+
+### Length Prefix 模式
+```json
+{
+  "packetMode": "length_prefix_be",
+  "packetSize": 2,
+  "maxPacketSize": 4096
+}
+```
+长度前缀协议，支持：
+- `length_prefix_le`: 小端序，长度不含前缀
+- `length_prefix_be`: 大端序，长度不含前缀  
+- `length_prefix_le_inc`: 小端序，长度含前缀
+- `length_prefix_be_inc`: 大端序，长度含前缀
+
+## 路由配置
+
+### 推荐配置（单路由模式）
+```go
+// 简单配置
+router := impl.NewRouter().From("").To("chain:main").End()
+ep.AddRouter(router)
+
+// 带数据类型处理器
+router := impl.NewRouter().From("").
+  Process("setJsonDataType").
+  To("chain:jsonProcessor").End()
+ep.AddRouter(router)
+```
+
+### 高级路由配置
+```go
+// 路由匹配选项
+options := &net.RouterMatchOptions{
+  MatchRawData:   true,           // 匹配原始数据
+  DataTypeFilter: "JSON",         // 数据类型过滤
+  MinDataLength:  10,             // 最小数据长度
+  MaxDataLength:  1024,           // 最大数据长度
+}
+router := impl.NewRouter().From("^sensor.*").To("chain:sensor").End()
+routerId, err := ep.AddRouter(router, options)
+```
+
+## 完整配置示例
+
+### IoT 传感器接入
+```json
+{
+  "id": "iot_gateway",
+  "type": "endpoint/net", 
+  "configuration": {
+    "protocol": "tcp",
+    "server": ":8080",
+    "packetMode": "length_prefix_be",
+    "packetSize": 2,
+    "maxPacketSize": 1024,
+    "readTimeout": 30
+  },
+  "routers": [
+    {
+      "from": {
+        "path": ".*",
+        "processors": ["setBinaryDataType"]
+      },
+      "to": {
+        "path": "chain:iotProcessor"
+      }
+    }
+  ]
+}
+```
+
+### JSON API 服务
+```json
+{
+  "id": "json_api", 
+  "type": "endpoint/net",
+  "configuration": {
+    "protocol": "tcp",
+    "server": ":9090",
+    "packetMode": "line",
+    "readTimeout": 60
+  },
+  "routers": [
+    {
+      "from": {
+        "path": ".*",
+        "processors": ["setJsonDataType"]
+      },
+      "to": {
+        "path": "chain:apiProcessor"
+      }
+    }
+  ]
+}
+```
+
+### UDP 广播接收
+```json
+{
+  "id": "udp_receiver",
+  "type": "endpoint/net",
+  "configuration": {
+    "protocol": "udp", 
+    "server": ":8888",
+    "maxPacketSize": 2048
+  },
+  "routers": [
+    {
+      "from": {
+        "path": ".*",
+        "processors": ["setTextDataType"]
+      },
+      "to": {
+        "path": "chain:udpProcessor"
+      }
+    }
+  ]
+}
+```
+
+## 热更新示例
+
+```go
+// 初始 DSL 配置
+initialDSL := `{
+  "ruleChain": {
+    "id": "iotProcessor", 
+    "root": true
+  },
+  "metadata": {
+    "endpoints": [...],
+    "nodes": [...]
+  }
+}`
+
+// 启动规则引擎
+ruleEngine, _ := rulego.New("iotProcessor", []byte(initialDSL))
+
+// 热更新配置
+updatedDSL := `{...}` // 新的配置
+err := ruleEngine.ReloadSelf([]byte(updatedDSL))
+```
+
+## 应用场景
+
+### 🏭 工业物联网
+- 传感器数据收集
+- PLC 设备通信
+- Modbus TCP 代理
+
+### 🌐 网络服务
+- TCP/UDP 代理
+- 协议转换网关
+- 实时数据推送
+
+### 📡 设备接入
+- MQTT 网关
+- 设备注册服务
+- 心跳监控
+
+## 最佳实践
+
+1. **数据类型选择**
+   - 物联网传感器：保持 BINARY 类型
+   - JSON API：使用 `setJsonDataType` 处理器
+   - 文本协议：使用 `setTextDataType` 处理器
+
+2. **路由设计**  
+   - 推荐单一默认路由，在规则链中处理复杂逻辑
+   - 避免过多正则表达式路由
+
+3. **性能优化**
+   - 合理设置 `maxPacketSize` 防止恶意攻击
+   - 适当配置 `readTimeout` 避免连接占用
+
+4. **安全考虑**
+   - 在生产环境中限制服务器绑定地址
+   - 使用防火墙限制访问来源
+
+## 示例代码
+
+参考完整示例：
+- [Net Endpoint 基础用法](https://github.com/rulego/rulego/tree/main/endpoint/net/net_test.go)
+- [固定长度协议处理](https://github.com/rulego/rulego/tree/main/examples/net_endpoint_example/)
+- [热更新演示](https://github.com/rulego/rulego/tree/main/test/integration/)

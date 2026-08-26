@@ -24,3 +24,7 @@ urls.txt
 
 # mac
 .DS_Store
+
+# vitepress
+docs/.vitepress/dist
+docs/.vitepress/cache

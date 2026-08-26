@@ -1,0 +1,23 @@
+---
+title: Get Rule Chain Node Configuration
+permalink: /pages/get-rule-node-config/
+---
+Get the configuration of the specified child node under the specified instantiated rule chain. Used for rule chain visual configuration echo.
+```go
+func (e *RuleEngine) NodeDSL(subChainId types.RuleNodeId, childNodeId types.RuleNodeId) []byte
+```
+
+- **subChainId:** Sub-rule chain ID, if querying the root rule chain node, fill in: `types.EmptyRuleNodeId`
+- **childNodeId:** Child node ID, for example: `types.RuleNodeId{Id: nodeId}`
+- **Return:** Node instantiation configuration (JSON structure)
+
+Example:
+```go
+// Get the rule chain instance that has been created by the rule chain ID
+ruleEngine,_:rulego.Get(chainId)
+// Get the rule chain child node configuration
+def = ruleEngine.NodeDSL(types.EmptyRuleNodeId, types.RuleNodeId{Id: nodeId, Type: types.NODE})
+fmt.Println(string(def))
+```
+
+> The rule chain node configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/rule-chain-overview/). Used for rule chain modification.

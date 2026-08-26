@@ -1,0 +1,130 @@
+---
+title: Component Configuration Variables
+permalink: /pages/component-configuration-variables/
+---
+## Component Configuration Variables
+
+In certain scenarios, it’s necessary to uniformly modify component configurations or dynamically replace them during component runtime. You can achieve this by using built-in variables to substitute component configurations. The syntax is as follows: ${key} or ${key.subKey}.
+
+### Global Variables
+`Global variables` are executed for replacement logic during component initialization (when the component's Init method is executed), including the following variables:
+- `global` variable: Access values from [config.Properties](/en/pages/config/#properties), for example, `${global.key}`.
+- `vars` variable: Access values from [rule chain vars](/en/pages/rule-chain/#rulechain-configuration-configuration-information-of-the-rule-chain), for example, `${vars.key}`.
+
+> **Global Variables:** All component configuration fields support variable substitution.
+### Runtime Variables
+`Runtime Variables` are executed for replacement logic during component runtime (when the component's OnMsg method is executed), including the following variables:
+
+- `id` variable: Access the message ID.
+- `ts` variable: Access the message timestamp.
+- `data` variable: Access the original message content.
+- `msg` variable: Access the transformed message data. If the message's dataType is JSON, you can access fields using `${msg.key}`.
+- `metadata` variable: Access message metadata, e.g., `${metadata.key}`.
+- `msgType` variable: Access the message type.
+- `dataType` variable: Access the data type.
+- `nodeId` variable: <Badge text="v0.33.0+"/> Cross-node variable for accessing output data from specified nodes. Examples: `${node1.msg.temperature}`, `${node1.metadata.deviceId}`, `${node1.msgType}`, etc.
+
+> **Runtime Variables:** Only specific component configuration fields, as indicated, support variable substitution.
+### Cross-Node Variables Details
+
+Cross-node variables allow accessing output data from any previously executed node in the rule chain within component configurations. The syntax format is: `${nodeId.field}`
+
+Supported fields include:
+- `${nodeId.msg}`: Access the message content of the specified node
+- `${nodeId.msg.fieldName}`: Access specific fields in the specified node's message (when message is in JSON format)
+- `${nodeId.metadata}`: Access the metadata of the specified node
+- `${nodeId.metadata.key}`: Access specific key-value pairs in the specified node's metadata
+- `${nodeId.msgType}`: Access the message type of the specified node
+- `${nodeId.dataType}`: Access the data type of the specified node
+- `${nodeId.id}`: Access the message ID of the specified node
+- `${nodeId.ts}`: Access the message timestamp of the specified node
+
+> **Note:** Cross-node variables require the target node to have completed execution and produced output. During rule chain initialization, if cross-node variables in the format `${nodeId.xx.xx}` are detected in component configurations, corresponding dependency relationships will be automatically established to ensure data availability.
+
+### Examples
+
+#### Basic Variables Example
+```json
+{
+  "ruleChain": {
+	"id":"rule01",
+    "name": "test",
+    "configuration": {
+      "vars": {
+        "topicPrefix":"/device/msg"
+      }
+    }
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s2",
+        "type": "mqttClient",
+        "name": "push data",
+        "configuration": {
+          "server": "${global.mqttServer}",
+          "topic": "${vars.topicPrefix}/${metadata.deviceId}"
+        }
+      }
+    ],
+    "connections": [
+      {
+      }
+    ]
+  }
+}
+```
+
+#### Cross-Node Variables Example
+
+> **Note:** Cross-node variables can only be used in component configuration fields that support runtime variable substitution, such as `mqttClient`'s `topic`, `restApiCall`'s `url`, `dbClient`'s `sql`, `functions`'s `functionName`, etc. The `jsScript` field of `jsTransform`/`jsFilter`/`log` nodes does **not** support `${...}` runtime variable substitution.
+
+```json
+{
+  "ruleChain": {
+    "id": "rule02",
+    "name": "cross-node-example"
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "sensor1",
+        "type": "jsTransform",
+        "name": "Sensor Data Processing",
+        "configuration": {
+          "jsScript": "msg.temperature = 25.5; msg.humidity = 60; return {msg: msg, metadata: metadata, msgType: msgType};"
+        }
+      },
+      {
+        "id": "sensor2",
+        "type": "jsTransform",
+        "name": "Another Sensor",
+        "configuration": {
+          "jsScript": "msg.pressure = 1013.25; return {msg: msg, metadata: metadata, msgType: msgType};"
+        }
+      },
+      {
+        "id": "publisher",
+        "type": "mqttClient",
+        "name": "Publish Combined Data",
+        "configuration": {
+          "server": "${global.mqttServer}",
+          "topic": "/sensor/combined/${sensor1.msg.temperature}/${sensor2.msg.pressure}"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "sensor1",
+        "toId": "publisher",
+        "type": "Success"
+      },
+      {
+        "fromId": "sensor2",
+        "toId": "publisher",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

@@ -1,0 +1,139 @@
+---
+title: HTTP客户端
+permalink: /pages/rest-api-call/
+---
+`restApiCall`组件：HTTP客户端组件。用于调用外部REST API服务，支持常见的HTTP方法、自定义请求头、代理配置等功能。组件会将msg.Data作为请求体发送给目标服务,并将响应内容回填到msg.Data中。
+
+## 配置
+
+| 字段                       | 类型     | 说明                                      | 默认值                                |
+|--------------------------|--------|-----------------------------------------|------------------------------------|
+| restEndpointUrlPattern   | string | HTTP URL地址，支持[组件配置变量](/pages/component-configuration-variables/)替换 | 无                                  |
+| requestMethod            | string | HTTP请求方法(GET/POST/PUT/DELETE等)          | POST                               |
+| body                     | string | 请求体,支持[组件配置变量](/pages/component-configuration-variables/)替换        | 取消息负荷                              |
+| withoutRequestBody       | bool   | 是否不传输消息负荷到目标服务                          | false                              |
+| headers                  | map    | 请求头配置，支持[组件配置变量](/pages/component-configuration-variables/)替换      | "Content-Type": "application/json" |
+| readTimeoutMs            | int    | 请求超时时间(毫秒)                              | 2000                               |
+| insecureSkipVerify       | bool   | 是否禁用SSL证书验证 <Badge text="v0.27.0+"/>    | false                              |
+| maxParallelRequestsCount | int    | 最大并发请求数                                 | 200                                |
+| enableProxy              | bool   | 是否启用代理                                  | false                              |
+| useSystemProxyProperties | bool   | 是否使用系统代理配置                              | false                              |
+| proxyHost                | string | 代理服务器主机地址                               | 无                                  |
+| proxyPort                | int    | 代理服务器端口                                 | 无                                  |
+| proxyUser                | string | 代理服务器用户名                                | 无                                  |
+| proxyPassword            | string | 代理服务器密码                                 | 无                                  |
+| proxyScheme              | string | 代理协议(http/https)                        | 无                                  |
+
+::: tip 配置变量
+`restEndpointUrlPattern`和`headers`支持使用${metaKeyName}语法引用metadata中的值进行替换。注意:${} 内不能包含空格。
+:::
+
+## Relation Type
+
+- ***Success:*** 请求执行成功时，消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 请求执行失败
+  - 响应状态码非2xx
+  - 请求超时
+  - URL解析错误
+
+## 执行结果
+
+组件执行后会更新消息内容:
+
+**执行成功时:**
+- msg.Data: 更新为HTTP响应体内容
+- msg.Metadata.status: 响应状态描述
+- msg.Metadata.statusCode: HTTP响应状态码
+
+**执行失败时:**
+- msg.Metadata.status: 错误状态描述
+- msg.Metadata.statusCode: HTTP错误码
+- msg.Metadata.errorBody: 错误响应内容
+  
+## 配置示例
+
+```json
+  {
+  "id": "s1",
+  "type": "restApiCall",
+  "name": "推送数据",
+  "configuration": {
+    "restEndpointUrlPattern": "http://192.168.136.26:9099/api/msg",
+    "requestMethod": "POST",
+    "maxParallelRequestsCount": 200
+  }
+}
+```
+
+## SSE(Server-Sent Events)流式请求
+
+`headers`配置 "Accept":"text/event-stream"，会进入SSE流式响应模式。可以通过该方式调用大模型流式API和大模型API集成，如：
+```json
+ {
+    "id": "s2",
+    "type": "restApiCall",
+    "name": "调用restApi",
+    "configuration": {
+      "restEndpointUrlPattern": "http://127.0.0.1:8080/sse",
+      "requestMethod":"POST",
+      "headers":{"Accept":"text/event-stream"},
+      "maxParallelRequestsCount": 200
+    }
+  }
+```
+
+SSE的数据结构主要由以下几个部分组成：
+- 事件流（Event Stream）：事件流是服务器向客户端发送的数据流，每个事件流由若干个消息（Message）组成，每个消息之间用两个换行符（\n\n）分隔。
+- 消息（Message）：消息是事件流的基本单位，每个消息由若干个字段（Field）组成，每个字段占一行，以冒号（:）分隔字段名和字段值，以换行符（\n）结尾。
+- 字段（Field）：字段是消息的属性，用于指定事件的类型、数据、标识符、重试间隔等信息。SSE规范定义了四种字段：data、event、id和retry，分别表示事件的数据、类型、标识符和重试间隔。此外，还可以有以冒号（:）开头的注释行，用于发送评论或保持连接。
+- 事件（Event）：事件是客户端接收到的消息，每个事件有一个类型（Type）和一个数据（Data），以及可选的标识符（ID）和重试间隔（Retry）。
+
+SSE Message和RuleGo Msg的对应关系：
+- msg.Metadata.eventType=SSE Message 字段名(对应SSE规范定义的字段类型：data、event、id或者retry)
+- msg.Data=Message 字段值
+  
+每收到一条SSE消息，会触发把消息发送到`Success`链。 直到SSE服务器断开。
+
+## 应用示例
+
+调用rest api。
+
+```json
+{
+  "ruleChain": {
+    "id":"rule01",
+    "name": "测试规则链",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+       {
+        "id": "s1",
+        "type": "jsTransform",
+        "name": "转换",
+        "configuration": {
+          "jsScript": "metadata['name']='test02';\n metadata['index']=22;\n msg['addField']='addValue2'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "restApiCall",
+        "name": "推送数据",
+        "configuration": {
+          "restEndpointUrlPattern": "http://192.168.136.26:9099/api/msg",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

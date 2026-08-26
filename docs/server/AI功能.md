@@ -1,0 +1,185 @@
+---
+title: AI 功能
+permalink: /pages/rulego-server-ai/
+---
+RuleGo-Server 的 AI 能力基于"规则链即 Agent"理念。内置 AI Agent 助手，支持 Skill 技能管理，并可接入 Claude Code、Cursor 等 AI 编程工具实现规则链的智能化管理。
+
+AI 扩展组件的完整文档（智能体框架架构、`ai/agent` 节点配置、工具系统、切面框架、会话管理、LLM/意图识别/MCP 等组件参考），参见 [AI 扩展组件](/pages/ai-agent-overview/)。
+
+## 架构概览
+
+```
+用户/AI工具
+    │
+    ▼
+OpenAI 兼容 API ──────────────────────────┐
+    POST /api/v1/rules/{id}/v1/chat/completions
+    │                                      │
+    ▼                                      │
+规则链 (ai/agent 节点)                      │
+    │                                      │
+    ├── 系统提示词 (AGENTS.md)              │
+    ├── LLM 调用 (全局配置)                 │
+    └── 工具调用                            │
+         ├── MCP self 工具（规则链管理）     │
+         ├── skill 工具（知识技能）          │
+         └── builtin 工具                   │
+                                            │
+MCP 端点 ◀─────────────────────────────────┘
+/api/v1/mcp/{apiKey}
+```
+
+## 前置配置
+
+在 `config.conf` 的 `[global]` 段配置 LLM 连接信息：
+
+```ini
+[global]
+llm_url = https://api.openai.com/v1
+llm_api_key = sk-xxx
+llm_model = gpt-4o
+```
+
+支持所有兼容 OpenAI API 的大模型服务（DeepSeek、通义千问、Ollama 等）。
+
+## 内置 AI Agent
+
+### assistant — 规则链助手
+
+多轮对话式 AI 助手，能够创建、修改、部署规则链。
+
+**端点：**
+
+```http
+POST /api/v1/rules/assistant/v1/chat/completions
+```
+
+**特性：**
+- 基于 `ai/agent` 节点的规则链
+- 系统提示词通过 `${include()}` 加载 `data/system/agents/_assistant/AGENTS.md`
+- 最多 25 轮工具调用迭代（maxStep: 25）
+- 支持的 MCP 工具：`list_rule_chains`、`get_rule_chain`、`preview_rule_chain`、`save_rule_chain`、`delete_rule_chain`、`operate_rule_chain`、`execute_rule_chain`、`list_components`、`get_component_doc`、`list_node_pool`
+- 支持的内置工具：`skill`（动态加载技能知识）
+- 支持 SSE 流式输出
+
+**使用场景：**
+- 在编辑器 AI 助手面板中对话式创建/修改规则链
+- 通过 API 调用实现自动化规则链管理
+
+> 提示词文件存储在 `data/system/agents/_assistant/AGENTS.md`。通过 API 管理提示词和模型配置，详见 [REST API 参考](/pages/rulego-server-api/)。
+
+## Skill 技能管理
+
+Skill 是给 AI Agent 的知识片段，以 `SKILL.md` 文件形式存储，让 Agent 了解特定领域的知识。支持通过编辑器或 API 进行管理，详见 [REST API 参考](/pages/rulego-server-api/)。
+
+作用域：当前仅支持 `global`（全局共享）。
+
+技能目录路径通过 `config.conf` 的 `skill_path` 配置项控制。
+
+### 内置 Skill
+
+系统内置了 StreamSQL 技能（`data/system/agents/_assistant/skills/streamsql/SKILL.md`），提供 StreamSQL 组件的完整使用参考。
+
+## 自定义 AI Agent
+
+任何包含 `ai/agent` 节点的规则链都可以作为 AI Agent，自动获得 OpenAI 兼容端点。
+
+### 创建步骤
+
+1. 创建一个新规则链
+2. 添加 `ai/agent` 类型节点
+3. 配置节点参数：
+   - `systemPrompt`：系统提示词
+   - `url`/`key`/`model`：LLM 连接配置（可使用 `${global.xxx}` 引用全局变量，如 `${global.llm_url}`）
+   - `maxStep`：最大工具调用轮数
+   - `tools`：工具列表
+
+### 工具配置
+
+```json
+{
+  "tools": [
+    {
+      "type": "mcp",
+      "config": {
+        "server": "self",
+        "tools": ["list_rule_chains", "get_rule_chain", "save_rule_chain"]
+      }
+    },
+    {
+      "type": "builtin",
+      "name": "skill",
+      "config": {
+        "globalDirs": ["${global.skill_path}"],
+        "useChinese": true
+      }
+    }
+  ]
+}
+```
+
+- `server: "self"`：回调自身 MCP 服务
+- `type: "builtin", "name: "skill"`：加载技能文件
+
+### 输入参数定义
+
+通过 `additionalInfo.inputSchema` 定义 Agent 的输入参数格式：
+
+```json
+{
+  "additionalInfo": {
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "查询内容"
+        }
+      },
+      "required": ["query"]
+    }
+  }
+}
+```
+
+配置后，该 Agent 在 MCP 中也会以对应参数格式注册为工具。
+
+## 通过 MCP 管理规则链
+
+RuleGo-Server 内置 MCP 工具，支持 Claude Code、Cursor、Trae 等 AI 编程工具通过自然语言管理规则链——创建、查看、修改、部署、执行，全部无需手动编写 JSON。
+
+客户端配置、可用工具列表和使用示例，详见 [MCP 服务](/pages/rulego-server-mcp/)。
+
+## 在编辑器中使用 AI
+
+> 图文操作指南请参见 [AI 助手使用教程](/pages/rulego-server-ai-tutorial/)。
+
+### 规则链 AI 助手面板
+
+在编辑器中打开规则链后，右侧会出现 AI 助手面板：
+
+- 多轮对话，上下文包含当前规则链
+- AI 可以直接预览和保存修改到画布
+- 快捷提示词建议
+- 支持消息复制、重新生成
+- 聊天历史按规则链存储在本地
+
+### AI 一键生成
+
+工具栏【AI 生成】按钮：
+- 输入需求描述
+- 提供常见场景示例提示词（数据过滤、IoT、API 编排、AI Agent 等）
+- 一键生成规则链 JSON 并加载到画布
+
+### AI Agent 对话
+
+当规则链分类为 AI Agent 时，编辑器底部显示完整的 Agent 对话界面：
+- 支持展示推理过程
+- 显示工具调用（read、write、edit、bash、rulechain、mcp、skill）及状态
+- SSE 流式输出，每个工具有进度指示
+
+> 图文教程请参见 [创建智能体教程](/pages/rulego-server-create-agent/)。
+
+## AI 工具安全
+
+在演示环境或需要限制 AI 工具能力的场景，可通过 `config.conf` 的 `[ai_security]` 段配置全局工具拦截策略（如禁用 bash/write/edit 工具、限制文件访问路径等），不影响每个智能体节点自身的工具安全设置。配置项详见 [安装与部署 - AI 工具安全配置](/pages/rulego-server-install/#ai-工具安全配置)。

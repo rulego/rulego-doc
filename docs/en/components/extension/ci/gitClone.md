@@ -1,0 +1,33 @@
+---
+title: gitClone
+permalink: /pages/ci-git-clone/
+---
+`ci/gitClone` component: <Badge text="v0.23.0+"/> The git clone component is used to pull projects from git clone.
+
+> If the directory does not exist, clone the project; otherwise, pull (with forced overwrite).
+
+> Additional extension libraries are required: [rulego-components-ci](https://github.com/rulego/rulego-components-ci)
+
+## Configuration
+
+| Field         | Type   | Description                                                                                           | Default Value                         |
+|---------------|--------|-------------------------------------------------------------------------------------------------------|---------------------------------------|
+| repository    | string | Git repository URL, can use [component configuration variables](/en/pages/component-configuration-variables/)                       | Obtained from the ref in metadata     |
+| directory     | string | Local directory to clone into, can use [component configuration variables](/en/pages/component-configuration-variables/)            | Obtained from the workDir in metadata |
+| reference     | string | Full reference name of the branch or tag, can use [component configuration variables](/en/pages/component-configuration-variables/) | refs/heads/main                       |
+| authType      | string | Authentication type, can be `ssh`, `password`, or `token`                                             | token                                 |
+| authUser      | string | Path to SSH key file or username                                                                      | Empty                                 |
+| authPassword  | string | Password or token                                                                                     | Empty                                 |
+| proxyUrl      | string | Proxy address                                                                                         | Empty                                 |
+| proxyUsername | string | Proxy username                                                                                        | Empty                                 |
+| proxyPassword | string | Proxy password                                                                                        | Empty                                 |
+
+## Relation Type
+
+- ***Success:*** On successful execution, the message is sent to the `Success` chain.
+- ***Failure:*** On failure, the message is sent to the `Failure` chain.
+
+## Execution Result
+
+- This component does not change the value of `msg.Data`.
+- The project's save directory is obtained through the workDir key in `msg.Metadata`.

@@ -1,0 +1,28 @@
+---
+title: Use Cases
+permalink: /pages/use-cases/
+---
+`RuleGo` is a component-based rule engine that is best at decoupling your system.
+
+- If your system is complex and the code is bloated
+- If your business scenario is highly customized or often changes
+- If your system needs to interface with a large number of third-party applications or protocols
+- Or need an end-to-end Internet of Things solution
+- Or need to centrally process data from heterogeneous systems
+- Or you want to try hot deployment in `Go` language......             
+  Then `RuleGo` framework will be a very good solution.
+
+## 🎯Typical use cases
+
+* **Edge computing:** You can deploy `RuleGo` on the edge server, preprocess the data, filter, aggregate or calculate and then report to the cloud. The data processing rules and distribution rules can be dynamically configured and modified by the rule chain without restarting the system.
+* **Internet of Things:** Collect device data reporting, after the rule chain's rule judgment, trigger one or more actions, such as: send email, send alarm, and linkage with other devices or systems.
+* **Data distribution:** You can distribute data to different systems according to different message types, such as HTTP, MQTT or gRPC.
+* **Application integration:** Use `RuleGo` as glue to connect various systems or protocols, such as: ssh, webhook, kafka, message queue, database, chatGPT, third-party application systems.
+* **Heterogeneous system data centralized processing:** Receive data from different data sources (such as MQTT, HTTP, TCP/UDP, etc.), and then filter, format conversion, and distribute to databases, business systems or dashboards.
+* **Highly customized business:** Decouple highly customized or frequently changing business and hand it over to `RuleGo` rule chain for management. Business needs change without restarting the main program.
+* **Complex business orchestration:** Encapsulate business into custom components, and use `RuleGo` to orchestrate and drive these custom components, and support dynamic adjustment and replacement of business logic.
+* **Microservice orchestration:** Use `RuleGo` to orchestrate and drive microservices, or dynamically call third-party services to process business and return results.
+* **Decoupling of business code and business logic:** For example: user points calculation system, risk control system.
+* **Automation:** For example: CI/CD systems, process automation systems, marketing automation systems, quantitative Trading System.
+* **Low-code:** For example: low-code platforms, iPaaS systems, ETL, Langflow-like/dify-like systems (connecting to 'large models' to extract user intent, then triggering rule chains to interact with other systems or to process business operations).
+* **Flexible configuration and highly customized event processing framework:** For different message types, perform asynchronous or synchronous processing.

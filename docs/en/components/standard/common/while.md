@@ -1,0 +1,60 @@
+---
+title: While Loop
+permalink: /pages/while/
+---
+`while` component: Conditional loop node. It executes the target node or rule chain repeatedly as long as the specified condition is met.
+
+## Configuration
+
+| Field     | Type   | Description                                                                         | Default |
+|:----------|:-------|:------------------------------------------------------------------------------------|:--------|
+| condition | string | The loop condition expression using `el` expression language. E.g., `msg.count==nil \|\| msg.count < 5`. |  |
+| do        | string | The Node ID or Sub-Rule Chain ID to execute in each iteration.                      |         |
+| mode      | int    | How to handle output after the loop finishes. 0 - Ignore, 1 - Append/Merge, 2 - Override | 0       |
+
+**mode**
+- 0(Ignore) - Outputs the original message as it was before the loop started.
+- 1(Append) - Merges the `msg.Data` produced in each iteration into a JSON array as the final output, preserving the metadata from the last iteration.
+- 2(Override) - Uses the exact result (Data and Metadata) of the last iteration directly as the output.
+
+:::tip
+**Difference from the `For` node:**
+In a `While` node, the result of each iteration (including modified metadata) **must** be passed as input to the next iteration. This ensures the `condition` can change dynamically to prevent infinite loops. It acts as a **state-continuous** conditional loop.
+In contrast, a `For` node generally provides an isolated context for each iteration.
+:::
+
+## Relation Type
+
+- ***Success:*** After the loop finishes, the message is passed along the `Success` chain.
+- ***Failure:*** If an error occurs during expression evaluation or iteration, the message is passed along the `Failure` chain.
+
+## Execution Result
+
+During the loop, **the result of the previous iteration is used as input for the next iteration**.
+When the condition evaluates to false and the loop completes, the final output message depends on the `mode`:
+- `mode=0`: Outputs the original message as it was before entering the component.
+- `mode=1`: Collects results from each iteration into an array, and outputs the final message replacing `msg.Data` with this array.
+- `mode=2`: Outputs the final result of the last iteration directly.
+
+## Iteration Context Variables
+
+During iteration, the component sets the following metadata variables:
+- `_loopIndex`: Current iteration index (starting from 0).
+
+## Breaking the Loop
+
+If the message metadata contains `_break` with value `true` during iteration, the loop terminates immediately.
+
+## Configuration Example
+
+```json
+{
+  "id": "s1",
+  "type": "while",
+  "name": "While Loop",
+  "configuration": {
+    "condition": "msg.count==nil || msg.count < 5",
+    "do": "s2"
+  }
+}
+```

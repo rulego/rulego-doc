@@ -1,0 +1,42 @@
+---
+title: Node Reference
+permalink: /pages/ref/
+---
+`ref`: Refers to a specified rule chain or the current rule chain node for reuse by nodes.<Badge text="v0.24.0+"/>
+
+## Configuration
+
+| Field                              | Type   | Required | Description                                                                                   | Default |
+|------------------------------------|--------|----------|-----------------------------------------------------------------------------------------------|---------|
+| targetId                           | string | Yes      | Format: [{chainId}]:{nodeId}. If referring to the current rule chain, the format is: {nodeId} | None    |
+| tellChain <Badge text="v0.34.0+"/> | bool   | Yes      | true: executes the whole sub-chain starting at targetId; false: runs only the target node.    | false   |
+
+
+## Relation Type
+
+- If executed successfully, use the output relation of this node to send to the next node.
+- If the node is not found, send the message through the `Failure` relation to the next node.
+
+## Example
+
+```json
+  {
+      "id": "node_5",
+      "type": "ref",
+      "name": "Reference the current chain node",
+      "configuration": {
+          "targetId": "node_4"
+      }
+  }
+```
+
+```json
+{
+  "id": "node_2",
+  "type": "ref",
+  "name": "Reference the other chain node",
+  "configuration": {
+    "targetId": "ynlLYSAgCy2J:node_2"
+  }
+}
+```

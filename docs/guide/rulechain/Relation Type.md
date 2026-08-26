@@ -1,0 +1,35 @@
+---
+title: Relation Type
+permalink: /pages/relation-type/
+---
+Relation Type是节点之间的连接关系类型，它决定了消息在规则链中的流转路径。不同类型的组件支持不同的连接关系：
+
+### 常见的关系类型
+
+- **过滤器组件(Filter)**
+  - True: 条件满足时的输出路径
+  - False: 条件不满足时的输出路径  
+  - Failure: 执行出错时的输出路径
+
+- **动作组件(Action)**
+  - Success: 执行成功时的输出路径
+  - Failure: 执行失败时的输出路径
+
+- **路由组件(Router)**
+  - 支持通过脚本动态控制路由
+  - 可基于msgType实现复杂的条件路由
+  - 常见路由组件包括：[脚本路由](/pages/js-switch/)、[MsgType消息路由](/pages/msg-type-switch/)等
+
+### 配置方式
+
+节点间的关系类型通过规则链配置文件中的`connection.type`字段指定，示例：
+```json
+  "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "True"
+      }
+    ]
+    
+```

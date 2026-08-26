@@ -1,0 +1,57 @@
+---
+title: Extension Components Overview
+permalink: /pages/extension-overview/
+---
+RuleGo provides not only standard components, but also an extended component library `rulego-components`, project address: [Github](https://github.com/rulego/rulego-components) | [Gitee](https://gitee.com/rulego/rulego-components).
+If you need to use extended components, you need to manually import them separately. In addition, using RuleGo ecosystem or third-party provided components is also the same way to import.
+
+## Usage
+
+1. Use the `go get` command to install `rulego-components` or other third-party components:
+```bash
+go get github.com/rulego/rulego-components@main
+```
+
+2. Use a blank symbol to import the corresponding component to complete the registration, for example:
+```bash
+//If the component has registration logic in the `init` function, simply import the component to trigger its `init` function.
+import (
+_ "github.com/rulego/rulego-components/external/redis"
+)
+//Otherwise, register it manually.
+rulego.Registry.Register(&xx{})
+```
+
+3. Then in the rule chain, use the component by configuring `type` and `configuration`:
+```json
+{
+  "id": "s5",
+  "type": "x/redisClient",
+  "name": "Save to redis",
+  "debugMode": true,
+  "configuration": {
+    "cmd": "SET",
+    "params": ["${key}", "${msg.data}"],
+    "poolSize": 10,
+    "Server": "192.168.1.1:6379"
+  }
+}
+```
+
+## Other Extended Components
+- [rulego-components](https://github.com/rulego/rulego-components)
+- [rulego-components-ai](https://github.com/rulego/rulego-components-ai)
+- [rulego-components-ci](https://github.com/rulego/rulego-components-ci)
+- [rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## Contribute components
+
+One of RuleGo's core features is componentization, where all business logic is components and can be flexibly configured and reused. RuleGo has already built-in a lot of common components.
+However, we know that these components are far from meeting the needs of all users, so we hope that more developers can contribute extended components to RuleGo, making RuleGo's ecosystem more rich and powerful.
+
+
+* If the code for your component does not have third-party dependencies or is a general-purpose component, please submit it to the standard components [components](https://github.com/rulego/rulego) under the main repository.
+* Common components should be submitted to the extension component repository: [rulego-components](https://github.com/rulego/rulego-components)
+* CI/CD related components should be submitted to: [rulego-components-ci](https://github.com/rulego/rulego-components-ci)
+* AI-related components should be submitted to: [rulego-components-ai](https://github.com/rulego/rulego-components-ai)
+* IoT-related components should be submitted to: [rulego-components-iot](https://github.com/rulego/rulego-components-iot)

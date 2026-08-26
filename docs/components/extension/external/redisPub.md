@@ -1,0 +1,40 @@
+---
+title: redis发布
+permalink: /pages/redis-pub/
+---
+`x/redisPub`组件：<Badge text="v0.26.0+"/> Redis发布组件。用于将消息发布到Redis指定的频道。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的Redis连接客户端，避免重复创建连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段       | 类型     | 必填 | 说明                                                          | 默认值 |
+|----------|--------|-----|-------------------------------------------------------------|-----|
+| server   | string | 是   | Redis服务器地址，格式为host:port                                    | 无   |
+| password | string | 否   | Redis服务器认证密码                                               | 无   |
+| poolSize | int    | 否   | 连接池大小，0表示不限制                                              | 0   |
+| db       | int    | 否   | Redis数据库索引号                                                | 0   |
+| channel  | string | 是   | 发布频道名称，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                | 无   |
+
+## 工作原理
+
+1. 组件初始化时会根据配置连接到Redis服务器
+2. 接收到消息后，将消息内容发布到指定的channel
+3. 发布成功后通过Success链路由，失败则通过Failure链路由
+4. 组件会自动管理连接的生命周期，包括重连、心跳等
+
+## Relation Type
+
+- ***Success:*** 消息成功发布到Redis服务器时，原始消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 连接Redis服务器失败
+  - 认证失败
+  - 发布消息失败
+  - channel配置错误
+
+## 执行结果
+
+组件仅负责消息发布，不会修改原始消息的内容：
+- msg保持不变
+- metadata会添加`result`字段，表示接收到消息的订阅者数量
+- msgType保持不变

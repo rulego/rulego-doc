@@ -1,0 +1,120 @@
+---
+title: groupAction
+permalink: /pages/group-action/
+---
+`groupAction` component: node group. It groups multiple nodes into a group, executes all nodes asynchronously, waits for all nodes to finish execution, merges the results of all nodes, and sends them to the next node. [Similar to sub-rule chain](/pages/sub-rule-chain/)
+
+If the number of nodes that match `Config.MatchNum` is of the type specified by `Config.MatchRelationType`, then send the data to the `Success` chain, otherwise send it to the `Failure` chain.
+
+## Configuration
+
+| Field             | Type   | Required | Description                                                  | Default |
+|-------------------|--------|----------|--------------------------------------------------------------|---------|
+| matchRelationType | string | No       | Match the relationship type of the nodes in the group        | Success |
+| matchNum          | int    | No       | Match the number of nodes that meet the condition            | 0       |
+| nodeIds           | string | Yes      | List of node IDs in the group, multiple IDs separated by `,` | -       |
+| timeout           | int    | No       | Execution timeout, in seconds, default 30, <=0 treated as 30 | 30      |
+| mergeToMap        | bool   | No       | Whether to merge the results into a map. false: result is []WrapperMsg list; true: result merged into Map (JSON merges fields, others use nodeId as key) | false   |
+
+**matchNum:** number of nodes that match the condition
+- Default 0, which means that all nodes in the group are of the type specified by `matchRelationType`, and will be sent to the `Success` chain, otherwise they will be sent to the `Failure` chain.
+- matchNum>0, which means that any match to `matchNum` nodes are of the type specified by `matchRelationType`, and will be sent to the `Success` chain, otherwise they will be sent to the `Failure` chain.
+- matchNum>=len(nodeIds), which is equivalent to matchNum=0
+
+## Relation Type
+
+- ***Success:*** Send the message to the `Success` chain
+- ***Failure:*** nodeIds is empty, execution timeout or node execution failure, send to the `Failure` chain
+
+- **metadata:** Merge the metadata of each end node after processing, overwrite if the same key.
+- **data:** Determine merge strategy based on `mergeToMap` configuration:
+  - `mergeToMap=false` (default): Encapsulate messages processed by all nodes into a `WrapperMsg` array.
+  - `mergeToMap=true`: Merge data from all nodes into a single Map.
+    - If the node output is in JSON format, merge its fields into the result Map.
+    - If the node output is not in JSON format, merge it into the result Map using the node ID as the key and the message content as the value.
+
+**Example of merged result when mergeToMap=true:**
+
+Assuming there are three nodes:
+- Node A (id=nodeA) output: `{"temperature": 25}`
+- Node B (id=nodeB) output: `{"humidity": 60}`
+- Node C (id=nodeC) output: `running` (Non-JSON)
+
+Merged data result:
+```json
+{
+  "temperature": 25,
+  "humidity": 60,
+  "nodeC": "running"
+}
+```
+
+**WrapperMsg Structure (Valid only when `mergeToMap=false`):**
+
+| Field  | Type                            | Description              | Default |
+|--------|---------------------------------|--------------------------|---------|
+| msg    | [types.RuleMsg](/en/pages/rule-chain-message/) | Message                  | None    |
+| err    | string                          |                          | ""      |
+| nodeId | string                          | The last processing node | ""      |
+
+## Configuration example
+
+```json
+//Note: The rule chain is triggered from the third node. firstNodeIndex=2
+{
+  "ruleChain": {
+    "id": "rule01",
+    "name": "Test rule chain",
+    "root": true
+  },
+  "metadata": {
+    "firstNodeIndex": 2,
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "functions",
+        "name": "Component 1",
+        "debugMode": true,
+        "configuration": {
+          "functionName": "groupActionTest1"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "functions",
+        "name": "Component 2",
+        "debugMode": true,
+        "configuration": {
+          "functionName": "groupActionTest2"
+        }
+      },
+      {
+        "id": "group1",
+        "type": "groupAction",
+        "name": "Action group",
+        "debugMode": true,
+        "configuration": {
+          "matchRelationType": "Success",
+          "nodeIds": "s1,s2"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "Log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return msg;"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "group1",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

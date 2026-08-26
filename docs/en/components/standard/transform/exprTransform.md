@@ -1,0 +1,61 @@
+---
+title: exprTransform
+permalink: /pages/expr-transform/
+---
+`exprTransform` component: Expression transformer. Use the expression language provided by the [expr](https://expr-lang.org/docs/language-definition) library to transform or create new messages.
+
+## Configuration
+
+| Field   | Type   | Description                                                                                 | Default |
+|---------|--------|---------------------------------------------------------------------------------------------|---------|
+| expr    | string | Transformation expression, the transformation result replaces msg and goes to the next node | None    |
+| mapping | map    | Multiple field transformation expressions, format (field:transformation expression)         | None    |
+
+If the `mapping` field is set, multiple transformation results are converted to json strings and go to the next node. If `expr` is set, expr is preferred.
+
+- Access the message ID through the `${id}` variable.
+- Access the message timestamp through the `${ts}` variable.
+- Access the original content of the message through the `${data}` variable.
+- Access the message body through the `${msg}` variable. If the message's dataType is JSON, you can access the fields of `${msg}` by `${msg.XX}`. For example: `${msg.temperature} > 50;`
+- Access the message metadata through the `${metadata}` variable. For example `${metadata.customerName}`
+- Access the message type through the `${msgType}` variable.
+- Access the data type through the `${dataType}` variable.
+
+Expression Examples:
+- upper(${msg.name})
+- ${metadata.productType}
+- ${msg.temperature}+50
+- replace(${metadata.productType},'oldValue','newValue')
+  >For more expr expression syntax, refer to: [expr](https://expr-lang.org/docs/language-definition)
+
+## Relation Type
+
+- ***Success:*** Execution successful, send the message to the `Success` chain
+- ***Failure:*** Execution failed, send the message to the `Failure` chain
+
+## Execution Result
+
+Replace the `msg` content with the expression execution result.
+
+## Configuration Example
+
+```json
+{
+  "id": "s2",
+  "type": "exprTransform",
+  "name": "Expression transformation",
+  "configuration": {
+    "mapping": {
+      "name":        "upper(${msg.name})",
+      "tmp":         "${msg.temperature}",
+      "alarm":       "${msg.temperature}>50",
+      "productType": "${metadata.productType}"
+    }
+  }
+}
+}
+```
+
+## Related Documentation
+
+- [Component Configuration Variables](/en/pages/component-configuration-variables/)

@@ -1,0 +1,91 @@
+---
+title: Analytical Functions
+permalink: /pages/streamsql-analytical-functions/
+---
+# StreamSQL Analytical Functions
+
+Analytical functions perform cross-event stateful computations on a continuous event stream — e.g. "previous value", "has it changed", "running sum". Each event is evaluated immediately upon arrival, with state retained across events. They are usable in `SELECT` and `WHERE`, and are typically used for change detection (CDC).
+
+An optional `OVER` clause controls partitioning and conditional state:
+
+```
+func(args) OVER ( [PARTITION BY col[, col...]] [WHEN condition] )
+```
+
+- **`PARTITION BY`**: maintains independent state per partition (e.g. "previous value per device").
+- **`WHEN condition`**: only events satisfying the condition update state; others reuse the last result.
+- `ORDER BY` / `ROWS BETWEEN` are **not supported** (streamsql's analytic functions are per-event state machines, not Flink-style window frames).
+
+Analytic functions cannot appear in `HAVING`; for threshold / sustained detection use windowed aggregation + `HAVING`.
+
+## Function List
+
+### lag — Previous value
+**Syntax**: `lag(field [, offset [, default [, ignoreNull]]])`  
+**Description**: Returns the value from the `offset`-th event before the current row (default offset=1; returns `default` when there are not enough rows).  
+**Example**:
+```sql
+SELECT temperature, lag(temperature) AS prev FROM stream
+```
+
+### latest — Latest non-null value
+**Syntax**: `latest(field [, default])`  
+**Description**: Returns the latest non-null value of the field (nil does not update state).  
+**Example**:
+```sql
+SELECT latest(temperature) AS lt FROM stream
+```
+
+### had_changed — Whether a value changed
+**Syntax**: `had_changed(ignoreNull, field[, field...])`  
+**Description**: Returns a boolean: whether any value changed vs. the previous row (the first row counts as changed). Supports multiple fields; `"*"` checks every column of the row.  
+**Example**:
+```sql
+SELECT ts FROM stream WHERE had_changed(true, status) == true
+```
+
+### changed_col — Changed column value (single-column scalar)
+**Syntax**: `changed_col(ignoreNull, field)`  
+**Description**: Returns the new value when changed, nil when unchanged (omitted from projection).  
+**Example**:
+```sql
+SELECT changed_col(true, temperature) AS chg FROM stream
+```
+
+### changed_cols — Multiple changed column values (dynamic columns)
+**Syntax**: `changed_cols(prefix, ignoreNull, field[, field...])`  
+**Description**: Returns `{prefix+column: new value}` containing only changed columns; `"*"` checks all columns of the row. `SELECT` only.  
+**Example**:
+```sql
+SELECT changed_cols("c_", true, temperature, humidity) FROM stream
+```
+
+### acc_sum / acc_max / acc_min / acc_count / acc_avg — Lifecycle accumulation
+**Syntax**: `acc_sum(field [, startExpr [, resetExpr]])` (likewise for the other acc_*)  
+**Description**: Lifecycle accumulation across events (sum / max-min / count / avg); optional `startExpr` / `resetExpr` for conditional start and reset.  
+**Example**:
+```sql
+SELECT acc_sum(power) AS total_power FROM stream
+```
+
+### hysteresis — Schmitt trigger / deadband
+**Syntax**: `hysteresis(value, enter, exit [, initial])`  
+**Description**: Dual-threshold state machine (Schmitt trigger). When `enter>=exit` (upper limit): `value>=enter` sets true, `value<=exit` sets false; when `enter<exit` (lower limit) the direction is inferred automatically. Values inside the hysteresis band keep the current state, suppressing boundary jitter — the core of deadband debouncing that `changed_col`/`lag` cannot do. Use `OVER (PARTITION BY name)` for an independent deadband per point; `initial` sets the state before the first row (default false).  
+**Example**:
+```sql
+SELECT hysteresis(temp, 80, 78) AS alarm FROM stream
+```
+
+### latch — SR/RS latch
+**Syntax**: `latch(set, reset [, setPriority])`  
+**Description**: Boolean latch. `set` sets true, `reset` sets false, neither holds the previous state; when both are true, `setPriority` decides (default true = SR set-dominant, pass false = RS reset-dominant). Used for e-stop latching, holding relays.  
+**Example**:
+```sql
+SELECT latch(estop, reset) AS latched FROM stream
+```
+
+## 📚 Related Documentation
+
+- [Aggregate Functions](/en/pages/streamsql-aggregate-functions/) - Learn detailed usage of aggregate functions
+- [Window Functions](/en/pages/streamsql-window-functions/) - Learn detailed usage of window functions
+- [SQL Reference](/en/pages/streamsql-sql/) - View complete SQL syntax reference

@@ -1,0 +1,143 @@
+---
+title: Quick Start
+permalink: /pages/quick-start/
+---
+## Installation
+
+Use the `go get` command to install `RuleGo`:
+
+```bash
+go get github.com/rulego/rulego
+```
+
+## Usage
+
+First, use Json format to define the rule chain. The rule chain definition does not require learning any specific rule syntax or DSL, just configure the components and connect them with a certain relationship, you can achieve your functional requirements. [Reference Rule Chain](/pages/rule-chain-overview/)
+
+Using RuleGo is extremely simple and lightweight. Just 2 steps:
+
+1. Import the `RuleGo` package and use the rule chain definition to create a rule engine instance:
+
+The following example is a simple rule chain definition that includes a filter, a transformer, and a data push component. It filters out device data with a device ID of `aa`, transforms the data, and then pushes the data of the device with ID `aa` to a remote server.
+```go
+import "github.com/rulego/rulego"
+var ruleFile=`{
+{
+  "ruleChain": {
+    "id":"chain_call_rest_api",
+    "name": "Test Rule Chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "jsFilter",
+        "name": "Filter",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msg.deviceId=='aa' || msg.deviceId=='aa';"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsTransform",
+        "name": "Transform",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "msg.temperature=msg.temperature/10; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "restApiCall",
+        "name": "Push Data",
+        "debugMode": true,
+        "configuration": {
+          "restEndpointUrlPattern": "http://192.168.1.1:9099/api/msg  ",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "True"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ]
+  }
+}
+}
+`
+// Create a rule engine instance using the rule chain definition
+// TIPS: The first argument (ID) must match the `ruleChain.id` defined in the DSL file
+ruleEngine, err := rulego.New("chain_call_rest_api", []byte(ruleFile))
+```
+
+2. Hand over the message to the rule engine instance for processing (the message includes: message payload, message type, message metadata, etc.), and then the rule engine will process the message according to the definition of the rule chain.
+
+```go
+// Example 1:
+// Define message payload and message type
+msg := types.NewMsg(0, "telemetry_msg", types.JSON, types.NewMetadata(), "{\"deviceId\":\"aa\",\"temperature\":290}")
+// Pass the message to the rule engine, and obtain the rule-chain processing result via a callback
+ruleEngine.OnMsg(msg,
+types.WithOnEnd(func (ctx types.RuleContext, msg types.RuleMsg, err error, relationType string) {
+    fmt.Println(msg.Data) // Get the rule-chain processing result
+}))
+
+// Example 2:
+// Define message metadata
+metadata := types.NewMetadata()
+metadata.PutValue("productType", "test01")
+// Define message payload and message type
+msg = types.NewMsg(0, "device_alarm", types.JSON, metadata, "{\"deviceId\":\"bb\",\"alarm\":1}")
+// Process a device-alarm-type message, obtaining the processing result without a callback
+ruleEngine.OnMsg(msg)
+```
+
+**Rule Chain Supports Dynamic Hot Update:**
+
+```go
+// Obtain the rule engine instance that has been created by the rule chain ID.
+ruleEngine, ok := rulego.Get("chain_call_rest_api")
+
+// Update the rule chain, which allows modifying existing node configurations, adding or removing nodes, and changing their connections.
+updateRuleChainFile := `{
+//... Other configurations remain unchanged
+// Modify node s2 to add 5 to the temperature
+{
+    "id": "s2",
+    "type": "jsTransform",
+    "name": "Transformation",
+    "debugMode": true,
+    "configuration": {
+        "jsScript": "msg.temperature = msg.temperature / 10 + 5; return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+    }
+}
+//... Other configurations and connections remain unchanged
+}`
+
+// Hot update the rule engine instance.
+_ = ruleEngine.ReloadSelf([]byte(updateRuleChainFile))
+```
+
+## Others
+1. We have built in a large number of [standard components](/en/pages/standard-components/) and [extended components](/en/pages/extension-overview/) . You only need to combine these components in a configuration - based way to meet your functional requirements.
+2. You can also easily develop your own components. Refer to [custom components](/en/pages/custom-components-overview/) .
+3. We also provide a lightweight [Rule Engine Service](/en/pages/rulego-server/) that can be independently deployed. It enables you to meet your needs by writing rule chains without writing any code. Supports executing rule chains via HTTP interfaces.
+
+## Summary
+
+Using RuleGo is extremely simple and lightweight. Just 2 steps:
+- 1. Use Json format rule chain to define business logic, and initialize the rule engine according to the rule chain.
+- 2. Then pass the message or event to the rule engine instance, and each message or event will be processed according to the logic defined by the rule chain. The rule chain supports hot update.
+
+RuleGo is light but powerful, let's continue to explore the following chapters......

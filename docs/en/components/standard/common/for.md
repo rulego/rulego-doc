@@ -1,0 +1,69 @@
+---
+title: for
+permalink: /pages/for/
+---
+`for` component: <Badge text="v0.22.0+"/> A component for iteration. Used for iterating over arrays, slices, and structs, as well as for repeatedly executing a chain or sub-rule chain starting from a specified node.
+
+## Configuration
+
+| Field | Type   | Description                                                                                        | Default Value |
+|-------|--------|----------------------------------------------------------------------------------------------------|---------------|
+| range | string | The target expression for iteration                                                                | 1..3          |
+| do    | string | Specifies the node or sub-rule chain for processing the iterated elements                          | s3            |
+| mode  | int    | Mode of merging iteration results, 0 - Ignore, 1 - Append, 2 - Override, 3- Asynchronous execution | 0             |
+
+**range**
+- Supports iterating over arrays, slices, and structs. For example: ${msg.items} iterates over msg.items,1..5 iterates over []int{1,2,3,4,5}
+- If empty, iterates over the entire msg
+- Access the message body through the `${msg}` variable; if the message's dataType is JSON, you can access the fields of msg by `${msg.XX}`. For example: `${msg.items}`
+- Access message metadata through the `${metadata}` variable. For example `${metadata.customerName}`
+- Access message type through the `${msgType}` variable
+- Access data type through the `${dataType}` variable
+
+Expression examples:
+- ${msg.items} iterates over msg.items
+- 1..3 iterates over []int{1,2,3}, with do executed 3 times
+>For more expr expression syntax, refer to: [expr](https://expr-lang.org/docs/language-definition)
+
+**do**
+- For example: "s1", item will start executing from the branch chain of s1, until the chain is completed, then return to the starting point of iteration
+- An item can also be processed by a sub-rule chain, usage: chain:chainId, for example: chain:rule01, item will start executing from the sub-chain rule01, until the chain is completed, then return to the starting point of iteration
+
+:::tip
+**Context Isolation vs Passing:**
+- When `mode` is `0` or `1`, the input for each iteration is the **original message** (with only `Data` replaced by the current item), keeping the context **isolated** between iterations.
+- When `mode` is `2` (Override), the modified result (including Metadata) from the previous iteration is **passed to the next iteration**.
+:::
+
+:::tip
+- Access the current iteration index through ${metadata._loopIndex}
+- Access the current iterated item through ${metadata._loopItem}
+- Access the current iterated key through ${metadata._loopKey}, which only has a value when iterating over a struct
+- If the loop object is of type []interface{}, the value of the item will be passed to the processing node through msg.Data
+:::
+## Relation Type
+
+- ***Success:*** If executed successfully, sends the message to the `Success` chain
+- ***Failure:*** If execution fails, sends the message to the `Failure` chain
+
+## Execution Result
+
+- If sync=true, merge each iteration result and pass it to the next node; otherwise, do not modify msg.Data.
+- `msg.metadata`: Will be modified by the iteration component.
+## Configuration Example
+
+```json
+{
+  "id": "s1",
+  "type": "for",
+  "name": "Iteration",
+  "configuration": {
+    "range": "${msg.items}",
+    "do":        "s3"
+  }
+}
+```
+
+## Related Documentation
+
+- [Component Configuration Variables](/en/pages/component-configuration-variables/)

@@ -1,0 +1,178 @@
+---
+title: MQTT Endpoint
+permalink: /pages/endpoint-mqtt/
+---
+
+***Mqtt Endpoint*** 用来创建和启动MQTT接收服务，它可以订阅不同主题数据，然后路由到不同规则链进行处理。
+
+## Type
+
+endpoint/mqtt
+
+## 启动配置
+
+该组件允许通关过`server`字段复用共享的连接客户端。参考[组件连接复用](/pages/component-connection-reuse/) 。
+
+| 字段           | 类型     | 是否必填 | 说明            | 默认值   |
+|--------------|--------|------|---------------|-------|
+| server       | string | 是    | mqtt broker地址 | -     |
+| username     | string | 否    | 用户名           | 0     |
+| password     | string | 否    | 密码            | -     |
+| qOS          | int    | 否    | QOS           | 0     |
+| cleanSession | bool   | 否    | CleanSession  | false |
+| clientID     | string | 否    | 客户端ID         | 默认随机数 |
+| cAFile       | string | 否    | CA文件路径        | -     |
+| certFile     | string | 否    | Cert文件路径      | -     |
+| certKeyFile  | string | 否    | CertKey文件路径   | -     |
+
+## 响应
+
+`exchange.Out.SetBody`响应之前，需要通过`exchange.Out.Headers()`或者`exchange.Out.Msg.Metadata`指定`responseTopic`参数，组件就会往指定的主题发送数据：
+
+```go
+exchange.Out.GetMsg().Metadata.PutValue("responseTopic", "device.msg.response")
+// or
+exchange.Out.Headers().Add("responseTopic", "device.msg.response")
+
+exchange.Out.SetBody([]byte("ok"))
+```
+
+响应参数配置：
+
+| 字段            | 类型     | 是否必填 | 说明    | 默认值 |
+|---------------|--------|------|-------|-----|
+| responseTopic | string | 是    | 响应主题  | -   |
+| responseQos   | int    | 否    | 响应QOS | 0   |
+
+
+## 示例
+
+以下是使用endpoint的示例代码：
+- [RestEndpoint](https://github.com/rulego/rulego/tree/main/examples/http_endpoint/http_endpoint.go)
+- [WebsocketEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/websocket/websocket_test.go)
+- [MqttEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/mqtt/mqtt_test.go)
+- [ScheduleEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/schedule/schedule_test.go)
+- [NetEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/net/net_test.go)
+- [KafkaEndpoint](https://github.com/rulego/rulego-components/blob/main/endpoint/kafka/kafka_test.go) （扩展组件库）
+
+
+### 注意事项：主题重叠（Topic Overlap）与重复消息
+
+在部分 MQTT Broker（例如 EMQX）中，如果同一个客户端同时订阅了存在重叠关系的主题模式，匹配到同一条消息时，Broker 会针对每个订阅分别投递一次，导致客户端收到重复数据。典型示例：
+
+- /sys/msg/a/+
+- /sys/msg/+/+
+
+上述两个订阅的匹配范围存在交集，当消息主题命中交集部分时，同一条消息会被投递两次（或多次，取决于订阅数量）。在使用 Mqtt Endpoint 路由到规则链处理时，需要考虑去重或避免重叠订阅。
+
+建议：通过只订阅一个最大覆盖的主题，然后通过节点进行路由分发，例如：通过msgType（msgType=topic）或者 `metadata.topic` 进行分发。或者js脚本进行复杂的分发处理。
+
+1）分发方案A：通过 msgTypeSwitch 组件使用 msgType 匹配分发
+
+```json
+{
+	"ruleChain": {
+		"id": "tgimYPt5L06J",
+		"name": "test",
+		"root": true,
+		"debugMode": true,
+		"additionalInfo": {
+			"description": "",
+			"noDefaultInput": false,
+			"layoutX": "306",
+			"layoutY": "285"
+		},
+		"configuration": {}
+	},
+	"metadata": {
+		"endpoints": [
+			{
+				"id": "node_1",
+				"type": "endpoint/mqtt",
+				"name": "MQTT",
+				"configuration": {
+					"clientId": "test5888",
+					"maxReconnectInterval": 0,
+					"password": "nc_admin",
+					"qos": 0,
+					"server": "192.168.62.20:1883",
+					"username": "nc_admin"
+				},
+				"debugMode": false,
+				"additionalInfo": {
+					"layoutX": 351,
+					"layoutY": 132
+				},
+				"routers": [
+					{
+						"id": "m62quFtZlMMZ",
+						"params": [],
+						"from": {
+							"path": "/sys/msg/+/+",
+							"configuration": null,
+							"processors": []
+						},
+						"to": {
+							"path": "tgimYPt5L06J:node_3",
+							"configuration": null,
+							"wait": false,
+							"processors": []
+						}
+					}
+				]
+			}
+		],
+		"nodes": [
+			{
+				"id": "node_6",
+				"type": "log",
+				"name": "日志",
+				"configuration": {
+					"jsScript": "return 'Incoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+				},
+				"debugMode": false,
+				"additionalInfo": {
+					"layoutX": 1048,
+					"layoutY": 248
+				}
+			},
+			{
+				"id": "node_5",
+				"type": "log",
+				"name": "日志",
+				"configuration": {
+					"jsScript": "return 'Incoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+				},
+				"debugMode": false,
+				"additionalInfo": {
+					"layoutX": 1040,
+					"layoutY": -29
+				}
+			},
+			{
+				"type": "msgTypeSwitch",
+				"debugMode": false,
+				"id": "node_3",
+				"name": "消息路由",
+				"additionalInfo": {
+					"layoutX": 748,
+					"layoutY": 126
+				}
+			}
+		],
+		"connections": [
+			{
+				"fromId": "node_3",
+				"toId": "node_5",
+				"type": "/sys/msg/device01/data"
+			},
+			{
+				"fromId": "node_3",
+				"toId": "node_6",
+				"type": "/sys/msg/device02/data"
+			}
+		]
+	}
+}
+```
+![mqtt_endpoint_demo.png](/img/demo/mqtt_endpoint_demo.png)

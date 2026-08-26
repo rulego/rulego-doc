@@ -1,0 +1,26 @@
+---
+title: rabbitmqClient
+permalink: /pages/rabbitmq-client/
+---
+`x/rabbitmqClient` Component: <Badge text="v0.24.0+"/> RabbitMQ client. Publishes the current message data to the specified topic on the RabbitMQ server.
+
+## Configuration
+
+This component allows the reuse of shared connection clients through the `server` field. See [Component Connection Reuse](/en/pages/component-connection-reuse/) for reference.
+
+| Field        | Type   | Description                                                                                                                                         | Default |
+|--------------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| server       | string | RabbitMQ server address, example: amqp://guest:guest@127.0.0.1:5672/                                                                                | None    |
+| key          | string | Routing key, can use [component configuration variables](/en/pages/component-configuration-variables/)                                                                         | None    |
+| exchange     | string | Exchange name                                                                                                                                       | None    |
+| exchangeType | string | Exchange type, available values: direct, fanout, topic                                                                                              | None    |
+| durable      | bool   | Indicates whether the exchange is durable. If set to true, the exchange will be preserved even if the message server is restarted.                  | false   |
+| autoDelete   | bool   | Indicates whether the exchange is automatically deleted. If set to true, the exchange will be automatically deleted when there are no bound queues. | false   |
+
+## Relation Type
+
+- ***Success:*** Execution successful, send the message to the `Success` chain
+- ***Failure:*** Execution failed, send the message to the `Failure` chain
+
+## Execution Result
+None

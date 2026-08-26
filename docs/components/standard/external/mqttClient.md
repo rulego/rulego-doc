@@ -1,0 +1,105 @@
+---
+title: MQTT客户端
+permalink: /pages/mqtt-client/
+---
+`mqttClient`组件：MQTT客户端组件。用于将消息发布到MQTT Broker的指定主题，支持QoS设置、SSL/TLS加密连接、断线重连等功能。组件会将msg.Data作为消息负载发送到目标主题。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的MQTT连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段                   | 类型            | 说明                                                         | 默认值   |
+|----------------------|---------------|--------------------------------------------------------------|-------|
+| topic                | string        | 发布主题，支持使用[组件配置变量](/pages/component-configuration-variables/)进行变量替换                  | 无     |
+| server               | string        | MQTT Broker地址，格式为host:port                                 | 无     |
+| username             | string        | MQTT认证用户名                                                  | 无     |
+| password             | string        | MQTT认证密码                                                   | 无     |
+| maxReconnectInterval | time.Duration | 断线重连间隔，支持10s、1m等时间格式                                    | 10s   |
+| qos                  | int          | MQTT QoS等级(0/1/2)                                           | 0     |
+| cleanSession        | bool          | 是否清除会话，true表示每次连接都是新会话                                  | false |
+| clientId            | string        | MQTT客户端标识，需保证唯一性                                         | 随机ID  |
+| caFile              | string        | SSL/TLS CA证书文件路径                                          | 无     |
+| certFile            | string        | SSL/TLS 客户端证书文件路径                                        | 无     |
+| certKeyFile         | string        | SSL/TLS 客户端私钥文件路径                                        | 无     |
+
+::: tip 配置说明
+1. SSL/TLS加密连接需同时配置CAFile、CertFile和CertKeyFile三个证书相关字段
+2. topic支持使用${metaKeyName}语法引用metadata中的值进行替换
+3. clientID建议配置有意义的唯一标识，方便问题排查
+:::
+
+## Relation Type
+
+- ***Success:*** 以下情况消息发送到`Success`链路:
+  - 消息成功发布到MQTT Broker
+  - QoS0消息发送完成
+  - QoS1/2消息收到确认
+
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - MQTT连接断开
+  - 发布超时
+  - 主题格式错误
+  - SSL/TLS连接失败
+
+## 执行结果
+
+组件执行时:
+- 将msg.Data作为消息负载发送到指定主题
+- 不会修改原始消息的msg、metadata和msgType内容
+- 发送失败时会在metadata中添加error字段描述错误信息
+
+## 配置示例
+
+```json
+   {
+    "id": "s2",
+    "type": "mqttClient",
+    "name": "往mqtt Broker 推送数据",
+    "configuration": {
+      "server": "127.0.0.1:1883",
+      "topic": "/device/msg/${deviceId}"
+    }
+  }
+```
+
+## 应用示例
+
+应用示例参考：[mqttClient](https://github.com/rulego/rulego/blob/main/examples/mqtt_client/mqtt_client.go)
+
+```json
+{
+  "ruleChain": {
+	"id":"rule01",
+    "name": "测试规则链",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+       {
+        "id": "s1",
+        "type": "jsTransform",
+        "name": "转换",
+        "configuration": {
+          "jsScript": "metadata['name']='test02';\n metadata['deviceId']='id01';\n msg['addField']='addValue2'; return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "mqttClient",
+        "name": "往mqtt Broker 推送数据",
+        "configuration": {
+          "server": "127.0.0.1:1883",
+          "topic": "/device/msg/${deviceId}"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```

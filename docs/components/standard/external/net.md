@@ -1,0 +1,97 @@
+---
+title: TCP/UDP客户端
+permalink: /pages/net/
+---
+`net`组件：用于将消息发送到指定网络协议的服务器。支持多种网络协议，包括TCP、UDP、IPv4、IPv6、Unix Socket等。该组件仅支持发送数据，不支持读取响应数据。
+
+支持的协议类型包括:
+- tcp: TCP协议
+- udp: UDP协议  
+- ip4:1: IPv4 ICMP协议
+- ip6:ipv6-icmp: IPv6 ICMP协议
+- ip6:58: IPv6 ICMPv6协议
+- unix: Unix域套接字
+- unixgram: Unix数据报套接字
+- 以及Go标准库net包支持的其他协议类型
+
+::: tip
+- 每条消息发送前会在内容末尾自动添加换行符'\n'作为消息结束标记
+:::
+
+## 配置
+
+| 字段                | 类型     | 是否必填 | 说明                                                         | 默认值 |
+|-------------------|--------|------|--------------------------------------------------------------|-----|
+| protocol          | string | 是    | 网络协议类型，如tcp/udp等                                           | tcp |
+| server            | string | 是    | 服务器地址，格式为host:port，如127.0.0.1:8888或:8888                  | 0   |
+| connectTimeout    | int    | 否    | 连接超时时间，单位为秒。<=0时使用默认值60秒                                  | 60  |
+| heartbeatInterval | int    | 否    | 心跳检测间隔，单位为秒。用于定期发送心跳包保持连接活跃。设为0则不发送心跳                    | 60  |
+| target            | string | 否    | 寻址目标。仅当 `server` 为 `ref://` 模式时生效。支持 `${}` 表达式（如 `${metadata.deviceId}`）；值为 sessionKey 提取的标识（如设备ID），`*` 表示广播。按 `target == sessionKey` 精确匹配，不按 IP 聚合 | -   |
+
+## Relation Type
+
+- ***Success:*** 消息发送成功时，将消息转发到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 网络连接建立失败
+  - 发送超时
+  - 连接断开
+  - 心跳检测失败
+
+## 执行结果
+
+组件执行后:
+- 成功时不修改原始消息内容
+- 失败时在metadata中添加error字段描述错误信息
+
+## 会话寻址推送（ref:// 模式）
+
+除作为 TCP/UDP 客户端主动拨号发送外，`net` 组件还支持**会话寻址推送**：当 `server` 配置为 `ref://<endpoint/net 实例ID>` 时，不再自己拨号，而是复用服务端 endpoint 已建立的设备长连接，按 `target` 向指定设备主动下发数据。
+
+**适用场景**：设备作为客户端连入 `endpoint/net` 建立长连接后，业务侧通过 `net` 节点（ref:// 模式）向特定设备下发指令，复用同一条连接，无需设备轮询或额外建链。
+
+**工作流程**：
+1. 设备 TCP/UDP 连入 `endpoint/net`，首帧携带身份信息（如 `deviceId`）
+2. `endpoint/net` 按 `sessionKey`（如 `${msg.deviceId}`）从首帧提取会话 Key 并注册到会话池
+3. `net` 节点 `server=ref://<endpoint/net>`，`target` 指定目标，从会话池查找连接并推送
+
+**target 取值**：
+- 具体值（如 `DEV_001`）：精确寻址单个设备
+- `${metadata.deviceId}`：从消息元数据动态解析目标
+- `*`：广播到所有已连接设备
+- 空（且非显式 `*`）：表达式解析为空时报错，不静默广播，避免配错变全量推送
+
+```json
+{
+  "id": "s1",
+  "type": "net",
+  "name": "下发指令",
+  "configuration": {
+    "server": "ref://net_endpoint_1",
+    "target": "${metadata.deviceId}"
+  }
+}
+```
+
+::: tip
+- `ref://` 解析顺序：**同链 endpoint 优先**（当前规则链 `metadata.endpoints` 内定义的 `endpoint/net`）→ 共享池 `NodePool` 回退。即 endpoint 不必放进 `node_pool.json`，定义在规则链内也能被同链 `net` 节点引用。详见 [组件连接复用](/pages/component-connection-reuse/)
+- 寻址为 `target == sessionKey` 精确匹配（`*`/空为广播）；`target` 应为 `sessionKey` 提取出的值（如 deviceId）
+- 出站拨号模式（`server=host:port`）的心跳/重连在 ref:// 模式下不生效（非出站连接）
+:::
+
+## 配置示例
+
+```json
+  {
+  "id": "s1",
+  "type": "net",
+  "name": "推送数据",
+  "configuration": {
+    "protocol": "tcp",
+    "server": "127.0.0.1:8888"
+  }
+ }
+```
+
+## 应用示例
+
+示例参考：[示例](https://github.com/rulego/rulego/blob/main/examples/net_node/tcp.go)

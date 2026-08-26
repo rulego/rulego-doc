@@ -1,0 +1,79 @@
+---
+title: TSDB Write Node
+permalink: /pages/x-tsdb-write/
+---
+`x/tsdbWrite`: Universal time-series database write node, delegates by `driver`.
+
+> Requires: [rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## Configuration
+
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| driver | string | opengemini/influxdb/tdengine/timescaledb/promremote | Required |
+| measurement | string | Table name. When set, a collection-point array (`iot_points.Data`) input is auto-pivoted to SeriesPoint, and a flat map / map-array input is converted row by row; when empty, input must already be in SeriesPoint format | empty |
+| tags | array | Storage index dimensions, see below | empty |
+| fields | array | Storage field mapping, see below; empty = expand all points (collection points) or the whole map row as fields | empty |
+| *(others)* | — | Passed to TSDB write node (dsn/url/token/database) | — |
+
+### tags
+
+Each entry is a key/value pair:
+
+| key | value |
+|-----|-------|
+| Index dimension name | Index value, supports `${msg.xx}` templates |
+
+### fields
+
+Each entry is a field mapping:
+
+| key | source |
+|-----|--------|
+| Storage field name | Source key: the collection-point name for point arrays, or the map key for flat maps; empty = expand all |
+
+## Input Format (msg.Data)
+
+Input has three forms (the first two are auto-converted when `measurement` is configured; only SeriesPoint is accepted when it is not):
+
+- **SeriesPoint**: a pre-pivoted time-series point (required when `measurement` is not configured), JSON array or single object, passed through as-is.
+- **`iot_points.Data` array**: raw collection-point data (i.e. x/iotRead output), **pivoted into a single** SeriesPoint — each point's name→value becomes a field, timestamp = the max across points.
+- **Flat map / map array**: e.g. the output of jsTransform or an x/streamAggregator window. Converted **row by row** — each map row yields one SeriesPoint whose fields are the whole map (filtered/renamed when `fields` is configured), timestamp = now.
+
+SeriesPoint example:
+
+```json
+[{"measurement": "device1", "tags": {"site": "A"}, "fields": {"temp": 25.3}, "timestamp": 0}]
+```
+
+| Field | Description |
+|-------|-------------|
+| measurement | Table/device name |
+| tags | Index dimensions |
+| fields | Value fields |
+| timestamp | Unix ns (0 = now) |
+
+Flat-map conversion example (with `measurement: device1` and `fields: [{key: temp, source: temperature}]`):
+
+```
+Input:  {"deviceId":"dev-07","temperature":25.3,"humidity":60}
+Output: [{"measurement":"device1","tags":{...},"fields":{"temp":25.3},"timestamp":now}]
+```
+
+A map array yields one SeriesPoint per row. Input already shaped like a SeriesPoint (with measurement+fields keys) is not converted again.
+
+Non-JSON input parsed as line protocol text.
+
+> Note the distinction: `measurement`/`tags`/`fields` in the Configuration section are the node's static storage config; the same-named fields inside a SeriesPoint are per-input runtime data. When the input is an `iot_points.Data` array, the config items determine how it is pivoted; when the input is a flat map, the whole map (or the `fields`-filtered subset) becomes the SeriesPoint fields.
+
+## Supported drivers
+
+| driver | Delegate node | Connection config |
+|--------|---------------|-------------------|
+| opengemini | x/opengeminiWrite | host/username/password/database |
+| influxdb | x/influxdbWrite | url/token/org/bucket |
+| tdengine | x/tdengineWrite | dsn (REST: root:taosdata@http(host:6041)/) |
+| timescaledb | x/timescaledbWrite | dsn (PostgreSQL: postgres://...) |
+| promremote | x/promremoteWrite | url (http://victoria:8428/api/v1/write) |
+
+> **Schema requirements differ**: opengemini/influxdb/promremote are schemaless and write directly; **tdengine** (`x/tdengineWrite`) requires a pre-created supertable (sub-tables are auto-created when points carry tags) or a pre-created normal table named after the measurement (when points carry no tags); **timescaledb** (`x/timescaledbWrite`) requires a pre-created hypertable named after the measurement.

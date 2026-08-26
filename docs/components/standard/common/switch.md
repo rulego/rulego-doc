@@ -1,0 +1,151 @@
+---
+title: 条件分支
+permalink: /pages/switch/
+---
+`switch`组件：条件分支组件。根据配置的条件表达式列表，依次匹配每个case表达式，当匹配成功时停止匹配并将消息转发到对应的路由链。如果所有case都匹配失败，则转发到默认的`Default`链。
+
+## 配置
+
+| 字段    | 类型     | 说明   | 默认值 |
+|-------|--------|------|-----|
+| cases | Case列表 | 条件表达式列表 | 无   |
+
+**Case配置项:**
+
+| 字段   | 类型     | 说明    | 默认值 |
+|------|--------|-------|-----|
+| case | string | 条件表达式 | 无   |
+| then | string | 路由关系名称  | 无   |
+
+条件表达式使用 [expr](https://expr-lang.org/docs/language-definition) 表达式引擎，支持以下内置变量：
+
+- `id` - 访问消息ID
+- `ts` - 访问消息时间戳(毫秒)
+- `data` - 访问消息原始内容
+- `msg` - 访问消息体。如果消息的dataType是JSON类型，可以通过 `msg.field`方式访问字段，例如:`msg.temperature > 50`
+- `metadata` - 访问消息元数据，例如 `metadata.customerName`
+- `type` - 访问消息类型
+- `dataType` - 访问数据类型
+
+:::tip
+不要写成 `msg.x == ${vars.order_code}`，应写成 `msg.x == vars.order_code` 或 `${msg.x == vars.order_code}`。
+:::
+
+表达式示例：
+- `msg.temperature > 50`
+- `msg.temperature > 50 && metadata.customerName == 'rulego'`
+- `upper(metadata.customerName[:4]) == 'GO'`
+- `replace(toJSON(msg),'name','productName')`
+- `msg.humidity >= 80 || msg.temperature >= 30`
+
+>更多expr表达式语法和函数请参考：[expr语言定义](https://expr-lang.org/docs/language-definition)
+
+## Relation Type
+
+- ***Case.then:*** 当匹配到某个case表达式时，消息将被路由到该case配置的then关系链
+- ***Default:*** 当所有case表达式都匹配失败时，消息将被路由到Default关系链
+- ***Failure:*** 当表达式执行出错时，消息将被路由到Failure关系链
+
+## 执行结果
+
+该组件是纯路由组件，不会修改传入的`msg`、`metadata`和`msgType`内容。仅根据条件表达式的匹配结果决定消息的路由方向。
+
+## 配置示例
+
+```json
+{
+	"ruleChain": {
+		"id": "bW1lMC97oYih",
+		"name": "测试条件分支",
+		"debugMode": true,
+		"root": true
+	},
+	"metadata": {
+		"endpoints": [],
+		"nodes": [
+			{
+				"id": "node_2",
+				"additionalInfo": {
+					"description": "",
+					"layoutX": 480,
+					"layoutY": 280
+				},
+				"type": "switch",
+				"name": "条件分支",
+				"debugMode": false,
+				"configuration": {
+					"cases": [
+						{
+							"case": "msg.temperature>=20 && msg.temperature<=50",
+							"then": "Case1"
+						},
+						{
+							"case": "msg.temperature>50",
+							"then": "Case2"
+						}
+					]
+				}
+			},
+			{
+				"id": "node_4",
+				"additionalInfo": {
+					"description": "",
+					"layoutX": 840,
+					"layoutY": 160
+				},
+				"type": "jsTransform",
+				"name": "case1",
+				"debugMode": false,
+				"configuration": {
+					"jsScript": "msg=msg||{}\nmsg.match='Case1'\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+				}
+			},
+			{
+				"id": "node_5",
+				"additionalInfo": {
+					"description": "",
+					"layoutX": 840,
+					"layoutY": 280
+				},
+				"type": "jsTransform",
+				"name": "case2",
+				"debugMode": false,
+				"configuration": {
+					"jsScript": "msg=msg||{}\nmsg.match='Case2'\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+				}
+			},
+			{
+				"id": "node_6",
+				"additionalInfo": {
+					"description": "",
+					"layoutX": 840,
+					"layoutY": 380
+				},
+				"type": "jsTransform",
+				"name": "default",
+				"debugMode": false,
+				"configuration": {
+					"jsScript": "msg=msg||{}\nmsg.match='Default'\nreturn {'msg':msg,'metadata':metadata,'msgType':msgType};"
+				}
+			}
+		],
+		"connections": [
+			{
+				"fromId": "node_2",
+				"toId": "node_4",
+				"type": "Case1"
+			},
+			{
+				"fromId": "node_2",
+				"toId": "node_5",
+				"type": "Case2"
+			},
+			{
+				"fromId": "node_2",
+				"toId": "node_6",
+				"type": "Default"
+			}
+		]
+	}
+}
+```

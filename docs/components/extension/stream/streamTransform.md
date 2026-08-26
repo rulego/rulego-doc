@@ -1,0 +1,534 @@
+---
+title: 流转换器
+permalink: /pages/x-stream-transform/
+---
+# streamTransform
+
+**节点类型：** `x/streamTransform`
+
+**说明：** 流转换器节点，基于 [StreamSQL](/pages/streamsql-overview/) 引擎，使用SQL语法对实时数据流进行过滤、转换和字段处理。逐条同步处理非聚合查询（状态跨事件保留），支持数据过滤、字段转换、格式变换、变化检测、生命周期累计等。支持单条数据和数组数据输入。
+
+::: danger 升级提示（v0.37.0）
+被过滤的数据（WHERE 不满足、`changed_cols`/`changed_col` 无变化）改走 `False` 链，不再走 `Failure`（过滤不是错误）。若您的 DSL 把过滤出口接在 Failure 链上，请改接 False 链；Failure 仅保留给真正的处理错误。
+:::
+
+## 功能特点
+
+- **SQL语法**：使用标准SQL语法进行数据转换，学习成本低
+- **实时处理**：同步处理单条数据和数组数据
+- **字段操作**：支持字段选择、重命名、计算和条件过滤
+- **函数支持**：内置60+函数，包括数学、字符串、时间等函数
+- **分析函数**：跨事件状态计算——`lag`/`latest`、`had_changed`/`changed_col`/`changed_cols`、`acc_*`（详见[分析函数](/pages/streamsql-analytic/)）
+- **流-表 JOIN**：用元数据表富化流行（详见[SQL 参考](/pages/streamsql-sql/)）
+- **条件过滤**：支持WHERE子句进行数据过滤
+- **数组处理**：自动处理数组数据，逐个转换并合并结果
+
+## 输入数据支持
+
+该节点支持两种输入数据格式：
+
+### 单条数据输入
+直接处理单个JSON对象：转换成功走 Success，不符合 WHERE 条件走 False，处理出错走 Failure：
+```json
+{"deviceId": "sensor001", "temperature": 25.5, "humidity": 60.2}
+```
+
+### 数组数据输入
+自动处理JSON数组，遍历每个元素进行转换，将成功转换的结果合并成新数组输出：
+```json
+[
+  {"deviceId": "sensor001", "temperature": 25.5, "humidity": 60.2},
+  {"deviceId": "sensor002", "temperature": 28.3, "humidity": 55.8},
+  {"deviceId": "sensor003", "temperature": 22.1, "humidity": 65.4}
+]
+```
+
+::: tip 数组处理说明
+- 数组中的每个元素都会逐个进行SQL转换处理
+- 只有转换成功且符合WHERE条件的元素才会包含在输出数组中
+- 如果至少有一个元素转换成功，则通过Success链输出合并后的数组
+- 全部元素被 WHERE 过滤（无出错）走 False；存在出错元素走 Failure
+- 消息元数据中会包含处理统计信息：originalCount、transformedCount、failedCount
+:::
+
+### IoT 点位数组输入（inputFormat）
+
+[IoT 采集组件](/pages/iot-overview/)（`x/iotRead`）输出的点位数组可以直接进入本节点，无需任何转换节点：
+
+```json
+[
+  {"name": "temperature", "value": 25.3, "timestamp": 1721900000000000000},
+  {"name": "humidity", "value": 60, "timestamp": 1721900000000000000}
+]
+```
+
+由 `inputFormat` 配置决定处理方式，**两种模式的输出结构不同**：
+
+| inputFormat | 处理方式 | 输出结构 | 适合 |
+|---|---|---|---|
+| `auto`（默认） | 每个点位一行逐条转换（列为 `name/value/timestamp`），结果合并为**数组** | `[{"name":"temperature","value":25.3,...}, ...]` | 逐点变换/变化检测，输出保留 `name/value` 键时 `x/tsdbWrite` 可直接透视落盘 |
+| `columns` | 整批点位透视为一行宽表 `{点位名:值}`（坏点跳过），按单条处理 | **单个扁平 map**：`{"temperature":25.3,...}` | 跨点位计算，输出可整体作为 `x/tsdbWrite` 一条记录的 fields |
+
+纵表示例（逐点变化检测）：
+
+```sql
+SELECT name, value FROM stream WHERE name = 'temperature' AND value > 30
+```
+
+宽表示例（跨点位计算）：
+
+```sql
+SELECT temperature, humidity, temperature * 1.8 + 32 AS temp_f FROM stream WHERE temperature > 0
+```
+
+## 配置
+
+| 字段 | 类型 | 说明 | 默认值 |
+|----|------|----|------|
+| sql | string | 转换 SQL 语句，须为非聚合查询（不能含 GROUP BY / 聚合函数；**分析函数允许**） | 无 |
+| inputFormat | string | 数组输入模式：`auto` 逐条转换合并为数组输出；`columns` 将 IoT 点位数组透视为一行宽表、输出单个扁平 map | auto |
+| tables | array | 可选，元数据表配置（流-表 JOIN 富化，见下文） | 无 |
+
+## SQL语法支持
+
+::: tip 详细语法参考
+完整的 SQL 语法说明请参考：[StreamSQL SQL语法参考](/pages/streamsql-sql/)
+:::
+
+## 关系类型
+
+- **Success：** 数据转换成功，通过此关系链传递转换后的数据（metadata 设 `match=true`）
+- **False：** 数据被过滤（WHERE 不满足，或 `changed_cols`/`changed_col` 无变化），**非错误**；metadata 设 `match=false`
+- **Failure：** 处理出错（非 JSON 数据、SQL 求值错误等），通过此关系链传递错误信息
+
+::: tip 区分"过滤"和"错误"
+被 WHERE 过滤或 `changed_cols` 无变化是**预期的不输出**，走 **False**；只有真正的处理错误才走 **Failure**。所以 Failure 链可以放心接告警/错误处理，不会混入正常的事件压缩。
+:::
+
+## 执行结果
+
+### Success链输出
+转换后的数据，格式根据SQL查询结果确定：
+```json
+{
+  "field1": "transformed_value1",
+  "field2": "transformed_value2",
+  "calculated_field": 123.45
+}
+```
+
+### False链输出
+原始（未转换）的输入数据：WHERE 不满足或 `changed_cols`/`changed_col` 无变化时，消息体不变，仍是进来的原始数据（metadata `match=false`），便于下游查看/记录被过滤的内容。
+
+### Failure链输出
+错误信息，包含具体的错误描述。
+
+## 配置示例
+
+### 基础字段转换
+```json
+{
+  "id": "s1",
+  "type": "x/streamTransform",
+  "name": "温度单位转换",
+  "configuration": {
+    "sql": "SELECT deviceId, temperature, humidity, temperature * 1.8 + 32 as temp_fahrenheit FROM stream WHERE temperature IS NOT NULL",
+    "debug": false
+  }
+}
+```
+
+### 数据过滤和计算
+```json
+{
+  "id": "s2",
+  "type": "x/streamTransform",
+  "name": "高温数据处理",
+  "configuration": {
+    "sql": "SELECT deviceId, temperature, CASE WHEN temperature > 30 THEN 'HIGH' WHEN temperature < 10 THEN 'LOW' ELSE 'NORMAL' END as temp_level FROM stream WHERE temperature > 20",
+    "debug": true
+  }
+}
+```
+
+### 字符串处理
+```json
+{
+  "id": "s3",
+  "type": "x/streamTransform",
+  "name": "设备信息格式化",
+  "configuration": {
+    "sql": "SELECT UPPER(deviceId) as device_id, CONCAT(location, '-', deviceType) as device_info, ROUND(temperature, 2) as temp FROM stream",
+    "debug": false
+  }
+}
+```
+
+## 分析函数（跨事件状态）
+
+streamTransform 逐条同步处理，天然适合**跨事件保留状态**的分析函数——每条消息到达即求值，状态在节点实例生命周期内跨消息保留。
+
+```sql
+-- CDC 变化检测：电流从低跨过 300A 时输出
+SELECT current, deviceId FROM stream
+WHERE current > 300 AND lag(current) OVER (PARTITION BY deviceId) < 300
+
+-- 只在温度变化时输出
+SELECT ts, temperature FROM stream WHERE had_changed(true, temperature) == true
+
+-- 仅发送变化的字段，加 c_ 前缀
+SELECT changed_cols("c_", true, temperature, humidity) FROM stream
+
+-- 生命周期累计（不随窗口重置）
+SELECT acc_sum(power) AS total, acc_count(*) AS cnt FROM stream
+```
+
+::: tip "无变化"走 False 链
+`changed_cols`/`changed_col` 作为唯一输出且本次无变化时，节点返回 nil → 走 **False** 链（`match=false`）。这是预期的事件压缩——接 False 链丢弃/忽略即可，不会再混进 Failure。
+:::
+
+完整语法与更多用法（`OVER`/`PARTITION BY`/`WHEN`、条件累计等）见 [分析函数](/pages/streamsql-analytic/)。
+
+## 流-表 JOIN（元数据富化）
+
+配置 `tables` 加载元数据表（设备→位置、产品→类目等），SQL 中 `JOIN` 它给流行富化。表可从 file/http 加载并定时刷新，JOIN 索引键由 ON 子句自动推导。
+
+```json
+{
+  "id": "enrich", "type": "x/streamTransform", "name": "设备富化",
+  "configuration": {
+    "sql": "SELECT deviceId, m.location, m.type FROM stream s LEFT JOIN meta m ON s.deviceId = m.deviceId WHERE s.temp > 30",
+    "tables": [
+      {"name": "meta", "source": "file", "path": "/etc/rulego/device_meta.json", "format": "json", "refresh": "30s"}
+    ]
+  }
+}
+```
+
+完整 `tables` 字段与 JOIN 语法见 [SQL 参考](/pages/streamsql-sql/)。
+
+## 应用示例
+
+### 示例1：IoT数据预处理
+
+**场景：** 对IoT设备上报的原始数据进行清洗和格式转换。
+
+**规则链配置：**
+```json
+{
+  "ruleChain": {
+    "id": "iot_data_preprocessing",
+    "name": "IoT数据预处理",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamTransform",
+        "name": "数据清洗",
+        "configuration": {
+          "sql": "SELECT deviceId, temperature, humidity, pressure, CASE WHEN temperature > 50 OR temperature < -20 THEN 'INVALID' ELSE 'VALID' END as data_quality FROM stream WHERE deviceId IS NOT NULL"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsFilter",
+        "name": "有效数据过滤",
+        "configuration": {
+          "jsScript": "return msg.data_quality === 'VALID';"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "x/streamTransform",
+        "name": "单位转换",
+        "configuration": {
+          "sql": "SELECT deviceId, ROUND(temperature, 2) as temperature_c, ROUND(temperature * 1.8 + 32, 2) as temperature_f, ROUND(humidity, 1) as humidity_percent, pressure FROM stream"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "log",
+        "name": "处理结果",
+        "configuration": {
+          "jsScript": "return 'Processed: ' + JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s5",
+        "type": "log",
+        "name": "无效数据",
+        "configuration": {
+          "jsScript": "return 'Invalid data: ' + JSON.stringify(msg);"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "True"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s5",
+        "type": "False"
+      },
+      {
+        "fromId": "s3",
+        "toId": "s4",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```
+
+**输入数据：**
+```json
+{"deviceId": "sensor001", "temperature": 25.678, "humidity": 65.432, "pressure": 1013.25}
+```
+
+**输出结果：**
+```json
+{
+  "deviceId": "sensor001",
+  "temperature_c": 25.68,
+  "temperature_f": 78.22,
+  "humidity_percent": 65.4,
+  "pressure": 1013.25
+}
+```
+
+### 示例2：数据标准化处理
+
+**场景：** 将不同格式的设备数据标准化为统一格式。
+
+**规则链配置：**
+```json
+{
+  "ruleChain": {
+    "id": "data_standardization",
+    "name": "数据标准化",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamTransform",
+        "name": "字段标准化",
+        "configuration": {
+          "sql": "SELECT UPPER(COALESCE(device_id, deviceId, id)) as device_id, COALESCE(temp, temperature, t) as temperature, COALESCE(hum, humidity, h) as humidity, CONCAT(COALESCE(location, 'unknown'), '-', COALESCE(building, 'default')) as location_info FROM stream"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "x/streamTransform",
+        "name": "数据分类",
+        "configuration": {
+          "sql": "SELECT *, CASE WHEN temperature > 25 AND humidity > 60 THEN 'HOT_HUMID' WHEN temperature > 25 THEN 'HOT_DRY' WHEN humidity > 60 THEN 'COOL_HUMID' ELSE 'COMFORTABLE' END as environment_type FROM stream"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "标准化结果",
+        "configuration": {
+          "jsScript": "return 'Standardized: ' + JSON.stringify(msg);"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```
+
+### 示例3：数组数据批量处理
+
+**场景：** 处理包含多个传感器数据的数组消息，进行批量温度转换和过滤。
+
+**输入数据：**
+```json
+[
+  {"sensorId": "s001", "value": 23.5, "unit": "C", "status": "active"},
+  {"sensorId": "s002", "value": 45.2, "unit": "C", "status": "active"},
+  {"sensorId": "s003", "value": 18.7, "unit": "C", "status": "inactive"},
+  {"sensorId": "s004", "value": 35.8, "unit": "C", "status": "active"}
+]
+```
+
+**规则链配置：**
+```json
+{
+  "ruleChain": {
+    "id": "batch_transform",
+    "name": "批量数据转换",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamTransform",
+        "name": "批量温度转换",
+        "configuration": {
+          "sql": "SELECT sensorId, value as celsius, ROUND(value * 1.8 + 32, 1) as fahrenheit, CASE WHEN value > 30 THEN 'HIGH' ELSE 'NORMAL' END as temp_status FROM stream WHERE status = 'active'"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "转换成功",
+        "configuration": {
+          "jsScript": "return 'Transformed ' + metadata.getValue('transformedCount') + ' out of ' + metadata.getValue('originalCount') + ' items: ' + JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "转换失败",
+        "configuration": {
+          "jsScript": "return 'Failed to transform: ' + metadata.getValue('failedCount') + ' out of ' + metadata.getValue('originalCount') + ' items';"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      },
+      {
+        "fromId": "s1",
+        "toId": "s3",
+        "type": "Failure"
+      }
+    ]
+  }
+}
+```
+
+**Success链输出结果：**
+```json
+[
+  {"sensorId": "s001", "celsius": 23.5, "fahrenheit": 74.3, "temp_status": "NORMAL"},
+  {"sensorId": "s002", "celsius": 45.2, "fahrenheit": 113.4, "temp_status": "HIGH"},
+  {"sensorId": "s004", "celsius": 35.8, "fahrenheit": 96.4, "temp_status": "HIGH"}
+]
+```
+
+**消息元数据：**
+```json
+{
+  "match": "true",
+  "originalCount": "4",
+  "transformedCount": "3",
+  "failedCount": "1"
+}
+```
+
+::: tip 处理说明
+ 在这个示例中：
+ - 原始数组包含4个元素
+ - WHERE条件过滤掉了status为'inactive'的s003传感器
+ - 最终输出数组包含3个转换成功的元素
+ - 元数据记录了详细的处理统计信息
+ :::
+
+### 示例4：CDC 变化检测（电流跨阈值）
+
+**场景：** 每个设备电流从低变高、跨越 300A 时输出（当前 >300 且上一次 <300）。
+
+**节点配置：**
+```json
+{
+  "id": "s4",
+  "type": "x/streamTransform",
+  "configuration": {
+    "sql": "SELECT current, deviceId, ts FROM stream WHERE current > 300 AND lag(current) OVER (PARTITION BY deviceId) < 300"
+  }
+}
+```
+
+**输入/输出：**
+```
+{current:200, deviceId:1, ts:2}
+{current:500, deviceId:1, ts:3}  → 输出（200→500 跨阈值）
+{current:600, deviceId:1, ts:4}  → 不输出（500→600 未跨越）
+```
+
+`PARTITION BY deviceId` 让每个设备各自维护"上一次电流"；`lag` 在 WHERE 之前求值，WHERE 才能引用它。
+
+### 示例5：事件压缩（只发送变化字段）
+
+**场景：** 上行带宽有限，每条消息只携带**发生变化的字段**，并加前缀 `c_`。
+
+**节点配置：**
+```json
+{
+  "id": "s5",
+  "type": "x/streamTransform",
+  "configuration": {
+    "sql": "SELECT changed_cols(\"c_\", true, temperature, humidity) FROM stream"
+  }
+}
+```
+
+**输入/输出：**
+```
+{temperature:23, humidity:50} → {c_temperature:23, c_humidity:50}（首次全变）
+{temperature:23, humidity:55} → {c_humidity:55}（只 humidity 变）
+{temperature:23, humidity:55} → 走 False 链（都未变，整行抑制）
+```
+
+::: tip 无变化走 False 链
+`changed_cols` 作为唯一输出且本次无变化时返回 nil → 走 **False** 链（`match=false`）。这是预期的事件压缩，接 False 链丢弃/忽略即可。
+:::
+
+### 示例6：生命周期累计（开机至今统计）
+
+**场景：** 统计开机以来的总能耗、峰值、采样次数——不随窗口重置，逐条累加。
+
+**节点配置：**
+```json
+{
+  "id": "s6",
+  "type": "x/streamTransform",
+  "configuration": {
+    "sql": "SELECT acc_sum(power) AS total, acc_max(power) AS peak, acc_count(*) AS cnt, acc_avg(power) AS avg_power FROM stream"
+  }
+}
+```
+
+每条事件到达即累加并输出当前累计值，状态在节点生命周期内持续保留。
+
+## 注意事项
+
+1. **SQL语法限制：** 只支持非聚合查询，不能包含 GROUP BY / 聚合函数（COUNT/SUM/AVG 等）；**分析函数（lag/changed_col/acc_* 等）不属于聚合，允许使用**
+2. **数据类型：** 仅支持JSON数据类型输入
+3. **同步处理：** 转换处理是同步的，会阻塞当前消息的处理
+4. **数组处理特性：**
+   - 数组中的每个元素都会逐个进行SQL转换处理
+   - 只有转换成功且符合WHERE条件的元素才会包含在输出数组中
+   - 部分元素转换失败不会影响整体结果，只影响最终数组的元素数量
+   - 消息元数据会自动添加处理统计信息：originalCount、transformedCount、failedCount
+5. **WHERE条件：** 不符合WHERE条件的数据会被过滤掉（走 False 链），不包含在输出结果中
+6. **性能考虑：** 对于大数组，建议考虑数据量对处理性能的影响

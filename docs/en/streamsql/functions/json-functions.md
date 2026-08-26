@@ -1,0 +1,59 @@
+---
+title: JSON Functions
+permalink: /pages/streamsql-json-functions/
+---
+# StreamSQL JSON Functions
+
+JSON functions are used for handling JSON data.
+
+## TO_JSON - Convert to JSON Function
+**Syntax**: `to_json(value)`  
+**Description**: Converts a value to a JSON string.  
+ 
+## FROM_JSON - Parse from JSON Function
+**Syntax**: `from_json(json_str)`  
+**Description**: Parses a value from a JSON string.  
+ 
+## JSON_EXTRACT - JSON Extract Function
+**Syntax**: `json_extract(json_source, path)`  
+**Description**: Extracts the value at the specified path from a JSON string, Map, or Array. Supports nested objects and array indexing.
+ 
+**Parameters**:
+- `json_source`: Input data; can be a JSON string, Map, or Array object
+- `path`: Extraction path; supports `.` for field access and `[]` for array index or Map key
+ 
+**Examples**:
+```sql
+-- Extract basic field
+json_extract('{"name": "Alice"}', 'name') -- returns "Alice"
+json_extract('{"name": "Alice"}', '$.name') -- returns "Alice"
+
+-- Extract nested field
+json_extract('{"user": {"address": {"city": "New York"}}}', 'user.address.city') -- returns "New York"
+json_extract('{"user": {"address": {"city": "New York"}}}', '$.user.address.city') -- returns "New York"
+
+-- Extract array element
+json_extract('[10, 20, 30]', '[1]') -- returns 20
+json_extract('[10, 20, 30]', '$[1]') -- returns 20
+
+-- Complex nested extraction
+json_extract('{"users": [{"name": "Alice"}, {"name": "Bob"}]}', 'users[1].name') -- returns "Bob"
+```
+ 
+## JSON_VALID - JSON Validation Function
+**Syntax**: `json_valid(json_str)`  
+**Description**: Validates whether a string is valid JSON.  
+
+## JSON_TYPE - JSON Type Function
+**Syntax**: `json_type(json_str)`  
+**Description**: Returns the type of a JSON value.  
+
+## JSON_LENGTH - JSON Length Function
+**Syntax**: `json_length(json_str)`  
+**Description**: Returns the length of a JSON array or object.  
+
+## 📚 Related Documentation
+
+- [DateTime Functions](/en/pages/streamsql-datetime-functions/) - Learn detailed usage of datetime functions
+- [Hash Functions](/en/pages/streamsql-hash-functions/) - Learn detailed usage of hash functions
+- [SQL Reference](/en/pages/streamsql-sql/) - View complete SQL syntax reference

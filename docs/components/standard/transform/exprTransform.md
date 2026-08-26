@@ -1,0 +1,55 @@
+---
+title: 表达式转换器
+permalink: /pages/expr-transform/
+---
+`exprTransform`组件：表达式转换器。使用 [expr](https://expr-lang.org/docs/language-definition) 表达式引擎对消息进行灵活转换和处理。支持数学运算、字符串处理、条件判断等丰富的表达式功能。
+
+## 配置
+
+| 字段      | 类型     | 说明                                | 默认值 |
+|---------|--------|-----------------------------------|-----|
+| expr    | string | 单个转换表达式，执行结果将替换msg内容            | 无   |
+| mapping | map    | 多字段转换表达式映射表，格式为 {字段名: 转换表达式}    | 无   |
+
+**配置说明:**
+- 当同时配置expr和mapping时，优先使用expr字段的表达式
+- expr用于单一转换场景，结果直接替换msg
+- mapping用于多字段转换场景，多个转换结果会合并成JSON字符串
+
+**支持的变量:**
+- `${id}` - 消息ID 
+- `${ts}` - 消息时间戳
+- `${data}` - 原始消息内容
+- `${msg}` - 消息体对象(JSON类型时可用${msg.field}访问字段)
+- `${metadata}` - 消息元数据对象
+- `${msgType}` - 消息类型
+- `${dataType}` - 数据类型
+
+**表达式示例:**
+- `${msg.temperature} > 30` - 温度大于30度的条件判断
+- `upper(${msg.name})` - 转换名称为大写
+- `len(${msg.items})` - 获取数组长度
+- `${msg.price} * 1.2` - 价格加价20%
+- `${metadata.deviceType} == "sensor"` - 判断设备类型
+- `${msg.value} > 100 ? "High" : "Normal"` - 三元运算判断状态
+- 更多函数参考[expr](https://expr-lang.org/docs/language-definition)
+
+>更多变量使用方法参考：[组件配置变量](/pages/component-configuration-variables/)
+
+## 配置示例
+
+```json
+{
+  "id": "s2",
+  "type": "exprTransform",
+  "name": "表达式转换",
+  "configuration": {
+    "mapping": {
+      "name":        "upper(${msg.name})",
+      "tmp":         "${msg.temperature}",
+      "alarm":       "${msg.temperature}>50",
+      "productType": "${metadata.productType}"
+    }
+  }
+}
+```

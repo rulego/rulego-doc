@@ -1,0 +1,146 @@
+---
+title: Rule Chain
+permalink: /pages/rule-chain/
+---
+### Rule Chain DSL
+The rule chain configuration file is a JSON format file, with the following overall structure:
+```json
+{
+  "ruleChain": {
+    "id":"ruleId"
+  },
+  "metadata": {
+    "endpoints": [
+    ],
+    "nodes": [
+    ],
+    "connections": [
+    ]
+  }
+}
+```
+
+#### ruleChain: Basic Information of the Rule Chain
+
+| Field                              | Type    | Required | Description                                                                                   |
+|------------------------------------|---------|----------|-----------------------------------------------------------------------------------------------|
+| id                                 | string  | Yes      | Rule chain ID, the unique identifier for the rule chain                                       |
+| name                               | string  | No       | Name of the rule chain, can be any string                                                     |
+| root                               | boolean | No       | Indicates whether this rule chain is a root or a sub-rule chain.                              |
+| disabled  <Badge text="v0.27.0+"/> | boolean | No       | Whether to disable the rule chain; if true, it will not be instantiated                       |                           |
+| debugMode                          | boolean | No       | Indicates whether it is in debug mode. If true, it overrides the debugMode value of the node. |
+| configuration                      | object  | No       | Configuration information of the rule chain, including a list of variables and keys           |
+| additionalInfo                     | object  | No       | Extended field, used to save additional information.                                          |
+
+#### ruleChain.configuration: Configuration Information of the Rule Chain
+
+| Field   | Type   | Required | Description                                    |
+|---------|--------|----------|------------------------------------------------|
+| vars    | object | No       | List of variables, format: varKey:varValue     |
+| secrets | object | No       | List of secrets, format: secretKey:secretValue |
+
+#### metadata: Metadata of the Rule Chain, Including Nodes, Connections, and Endpoints
+
+| Field          | Type         | Required | Description                                          |
+|----------------|--------------|----------|------------------------------------------------------|
+| endpoints      | endpoint[]   | No       | List of Endpoints for the rule chain                 |
+| firstNodeIndex | int          | No       | Index value of the first node to execute, default: 0 |
+| nodes          | node[]       | Yes      | List of nodes in the rule chain                      |
+| connections    | connection[] | Yes      | List of connections in the rule chain                |
+
+#### metadata.nodes: List of Nodes in the Rule Chain
+
+| Field          | Type    | Required | Description                                                                                                                     |
+|----------------|---------|----------|---------------------------------------------------------------------------------------------------------------------------------|
+| id             | string  | Yes      | Node ID, the unique identifier for the node                                                                                     |
+| type           | string  | Yes      | Node type                                                                                                                       |
+| name           | string  | No       | Node name, can be any string                                                                                                    |
+| debugMode      | boolean | No       | Indicates whether this node is in debug mode. If true, it triggers the debug callback function when the node processes messages |
+| configuration  | object  | No       | Configuration information of the node, including a list of variables and keys                                                   |
+| additionalInfo | object  | No       | Extended field, used to save additional information.                                                                            |
+
+#### metadata.nodes.configuration: Node Configuration
+
+Different node types have different configuration fields, please refer to the specific component configuration documentation.
+
+#### metadata.nodes.additionalInfo: Component Visualization Coordinate Information
+
+| Field       | Type   | Required | Description              |
+|-------------|--------|----------|--------------------------|
+| layoutX     | int    | No       | Component's x-coordinate |
+| layoutY     | int    | No       | Component's y-coordinate |
+| description | string | No       | Component description    |
+
+#### metadata.connections: List of Connections in the Rule Chain
+
+| Field  | Type   | Required | Description                                                                                                                                                                                                                                                                                                              |
+|--------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| fromId | string | Yes      | Source node id of the connection, should match an id of a node in the nodes array                                                                                                                                                                                                                                        |
+| toId   | string | Yes      | Target node id of the connection, should match an id of a node in the nodes array                                                                                                                                                                                                                                        |
+| type   | string | No       | Connection type, determines when and how messages are sent from one node to another. It should match one of the supported connection types of the source node type. For example, a JS filter node supports two connection types: "True" and "False", indicating whether the message passes or fails the filter condition |
+
+#### metadata.endpoints: List of Endpoints for the Rule Chain <Badge text="v0.21.0+"/>
+
+Used to configure the automatic triggering of the rule chain, such as mqtt, http, ws, schedule, and other Endpoint triggers, detailed reference: [Endpoint DSL](/en/pages/endpoint-dsl/)
+
+### Example
+The following is an example of a simple rule chain configuration file:
+
+```json
+{
+  "ruleChain": {
+    "id": "rule01",
+    "name": "Test rule chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "jsFilter",
+        "name": "Filter",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msg!='bb';"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsTransform",
+        "name": "Transform",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "metadata['test']='test02';\n metadata['index']=50;\n msgType='TEST_MSG_TYPE2';\n var msg2=JSON.parse(msg);\n msg2['aa']=66;\n return {'msg':msg2,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "restApiCall",
+        "name": "Push data",
+        "debugMode": true,
+        "configuration": {
+          "restEndpointUrlPattern": "http://192.168.216.21:9099/api/socket/msg",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "True"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```
+
+Its logic is shown in the figure:
+
+![img](/img/chain/chain_simple.png)

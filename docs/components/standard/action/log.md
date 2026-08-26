@@ -1,0 +1,107 @@
+---
+title: 记录日志
+permalink: /pages/log/
+---
+`log`组件：记录日志组件。用于将消息内容格式化并记录到日志中，支持使用JavaScript脚本自定义日志格式。
+
+> JavaScript脚本支持ECMAScript 5.1(+) 语法规范和部分ES6规范，如：async/await/Promise/let。允许在脚本中调用Go自定义函数，请参考[udf](/pages/config/#udf) 。
+
+## 配置
+
+| 字段 | 类型     | 说明   | 默认值 |
+|----|--------|------|--------|
+| jsScript   | string | 日志格式化脚本 | 无|
+
+- `jsScript`：用于格式化日志内容的JavaScript脚本。该字段作为以下函数的函数体:
+
+  ```javascript
+      function ToString(msg, metadata, msgType, dataType) { 
+          ${jsScript} 
+       }
+  ```
+  
+  函数参数说明:
+  - **msg**：消息内容，根据数据类型进行智能转换
+    - 当`dataType=JSON`时，类型为`jsonObject`，可使用`msg.field`方式访问字段
+    - 当`dataType=BINARY`时，类型为`Uint8Array`，可进行字节级操作
+    - 其他dataType时，类型为`string`
+  - **metadata**：消息元数据，类型为`jsonObject`
+  - **msgType**：消息类型，类型为`string`
+  - **dataType**：消息数据类型，类型为`string`（如：JSON、TEXT、BINARY等）
+  
+  函数返回值必须是`string`类型，返回的字符串将作为日志内容记录。
+
+:::tip
+- 日志记录器可通过[config.Logger](/pages/config/#logger)配置
+- 默认输出到控制台
+- 支持配置日志级别、输出格式等
+- 支持多种数据类型的智能处理，包括JSON对象访问和二进制数据处理
+:::
+
+## 数据类型支持
+
+该组件支持多种消息数据类型：
+
+- **JSON类型**：自动解析为JavaScript对象，可直接访问属性
+- **BINARY类型**：转换为Uint8Array，便于进行字节级操作
+- **TEXT类型**：保持为字符串格式
+- **其他类型**：统一处理为字符串
+
+## Relation Type
+
+- ***Success:*** 执行成功，把消息发送到`Success`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+## 执行结果
+
+该组件不会改变`msg.Data`和`msg.Metadata`内容。
+
+## 配置示例
+
+### 基础示例
+```json
+  {
+    "id": "s1",
+    "type": "log",
+    "name": "记录日志",
+    "configuration": {
+      "jsScript": "return 'Incoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+    }
+  }
+```
+
+### JSON数据处理示例
+```json
+  {
+    "id": "s2",
+    "type": "log",
+    "name": "记录温度日志",
+    "configuration": {
+      "jsScript": "if (dataType === 'JSON' && msg.temperature !== undefined) { return 'Temperature: ' + msg.temperature + '°C, Device: ' + (metadata.deviceId || 'unknown'); } else { return 'Non-JSON message: ' + JSON.stringify(msg); }"
+    }
+  }
+```
+
+### 二进制数据处理示例
+```json
+  {
+    "id": "s3",
+    "type": "log",
+    "name": "记录二进制日志",
+    "configuration": {
+      "jsScript": "if (dataType === 'BINARY') { return 'Binary data length: ' + msg.length + ' bytes, first byte: ' + (msg.length > 0 ? msg[0] : 'empty'); } else { return 'Text message: ' + msg; }"
+    }
+  }
+```
+
+### 多类型智能处理示例
+```json
+  {
+    "id": "s4",
+    "type": "log",
+    "name": "智能日志格式化",
+    "configuration": {
+      "jsScript": "var prefix = '[' + msgType + '][' + dataType + '] '; switch(dataType) { case 'JSON': return prefix + 'JSON data: ' + JSON.stringify(msg); case 'BINARY': return prefix + 'Binary data: ' + msg.length + ' bytes'; default: return prefix + 'Text data: ' + msg; }"
+    }
+  }
+```

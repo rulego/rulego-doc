@@ -1,0 +1,420 @@
+---
+title: IoT Scenarios
+permalink: /pages/iot-scenarios/
+---
+# IoT Scenario Examples
+
+Typical combinations of IoT components with RuleGo standard components/endpoints.
+
+## Scenario 1: Scheduled Acquisition → Alarm → Notification
+
+Email alert when temperature exceeds threshold.
+
+```
+endpoint/schedule(every 30s) → x/iotRead(S7) → jsFilter(temp>80?) → sendEmail
+                                              → x/tsdbWrite(always store)
+```
+
+```json
+{
+  "ruleChain": {"name": "temp-alarm", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "sch", "type": "endpoint/schedule", "configuration": {"interval": "@every 30s"}},
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [
+          {"name": "furnace_temp", "addr": "DB1.DBD0", "type": "FLOAT32"},
+          {"name": "pressure", "addr": "DB1.DBD4", "type": "FLOAT32"}
+        ]
+      }},
+      {"id": "filter", "type": "jsFilter", "configuration": {
+        "jsScript": "var data = JSON.parse(msg.data || '[]'); return data.some(function(d){return d.name==='furnace_temp' && d.value > 80;});"
+      }},
+      {"id": "email", "type": "sendEmail", "configuration": {
+        "smtpHost": "smtp.example.com", "smtpPort": 465,
+        "from": "alarm@example.com", "to": "ops@example.com",
+        "subject": "ALERT: Furnace overheat", "isHtml": false,
+        "body": "Data: ${msg.data}"
+      }},
+      {"id": "tsdb", "type": "x/tsdbWrite", "configuration": {
+        "driver": "tdengine", "dsn": "root:taosdata@http(localhost:6041)/", "db": "iot",
+        "measurement": "device_data",
+        "tags": [{"key": "device_id", "value": "s7-01"}],
+        "fields": [{"key": "temp", "source": "furnace_temp"}, {"key": "pressure", "source": "pressure"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "sch", "toId": "read", "type": "ip"},
+      {"fromId": "read", "toId": "filter", "type": "Success"},
+      {"fromId": "read", "toId": "tsdb", "type": "Success"},
+      {"fromId": "filter", "toId": "email", "type": "True"}
+    ]
+  }
+}
+```
+
+> Writing to TDengine requires a pre-created supertable (sub-tables are auto-created on write): `CREATE STABLE iot.device_data (ts TIMESTAMP, temp DOUBLE, pressure DOUBLE) TAGS (device_id NCHAR(32));`
+
+## Scenario 2: HTTP API On-Demand Read
+
+REST API triggers real-time PLC read.
+
+```
+endpoint/http(POST /api/read) → x/iotRead(Modbus) → response
+```
+
+```json
+{
+  "ruleChain": {"name": "api-read", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "http", "type": "endpoint/http", "configuration": {
+        "server": ":9090", "certFile": "", "certKeyFile": ""
+      }},
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "modbus", "server": "tcp://192.168.1.100:502",
+        "points": [
+          {"name": "temperature", "addr": "40001", "type": "INT16", "scale": 0.1},
+          {"name": "humidity", "addr": "40002", "type": "INT16", "scale": 0.1}
+        ]
+      }}
+    ],
+    "connections": [
+      {"fromId": "http", "toId": "read", "type": "POST /api/read"}
+    ]
+  }
+}
+```
+
+## Scenario 3: MQTT Command → Write PLC → Feedback
+
+```
+endpoint/mqtt(sub cmd/+) → jsTransform(parse) → x/iotWrite(S7) → mqttClient(publish result)
+```
+
+```json
+{
+  "ruleChain": {"name": "mqtt-control", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "mqtt_in", "type": "endpoint/mqtt", "configuration": {
+        "server": "tcp://localhost:1883", "topic": "device/cmd/#"
+      }},
+      {"id": "parse", "type": "jsTransform", "configuration": {
+        "jsScript": "var cmd = JSON.parse(msg.data); msg.data = JSON.stringify([{name:'setTemp', addr:'DB1.DBD0', type:'FLOAT32', value: String(cmd.targetTemp)}]); return {msg:msg, metadata:metadata, msgType:msgType};"
+      }},
+      {"id": "write", "type": "x/iotWrite", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102"
+      }},
+      {"id": "mqtt_out", "type": "mqttClient", "configuration": {
+        "server": "tcp://localhost:1883", "topic": "device/status/${metadata.deviceId}"
+      }}
+    ],
+    "connections": [
+      {"fromId": "mqtt_in", "toId": "parse", "type": "mqtt/device/cmd/#"},
+      {"fromId": "parse", "toId": "write", "type": "Success"},
+      {"fromId": "write", "toId": "mqtt_out", "type": "Success"}
+    ]
+  }
+}
+```
+
+## Scenario 4: Multi-Protocol Parallel → Merge → Store
+
+```
+endpoint/schedule → x/iotRead(Modbus meter) ─┐
+                  → x/iotRead(S7 PLC)       ─┤→ join → x/tsdbWrite (measurement configured)
+```
+
+```json
+{
+  "ruleChain": {"name": "multi-protocol", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "sch", "type": "endpoint/schedule", "configuration": {"interval": "@every 1m"}},
+      {"id": "meter", "type": "x/iotRead", "configuration": {
+        "driver": "modbus", "server": "tcp://192.168.1.50:502",
+        "points": [{"name": "power", "addr": "40013", "type": "FLOAT32", "scale": 0.1}]
+      }},
+      {"id": "plc", "type": "x/iotRead", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "speed", "addr": "DB1.DBD0", "type": "FLOAT32"}]
+      }},
+      {"id": "merge", "type": "join", "configuration": {"joinInterval": 5}},
+      {"id": "tsdb", "type": "x/tsdbWrite", "configuration": {
+        "driver": "opengemini", "host": "127.0.0.1:8086", "database": "iot",
+        "measurement": "factory", "tags": [{"key": "line", "value": "1"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "sch", "toId": "meter", "type": "ip"},
+      {"fromId": "sch", "toId": "plc", "type": "ip"},
+      {"fromId": "meter", "toId": "merge", "type": "Success"},
+      {"fromId": "plc", "toId": "merge", "type": "Success"},
+      {"fromId": "merge", "toId": "tsdb", "type": "Success"}
+    ]
+  }
+}
+```
+
+## Scenario 5: Modbus Slave → Transform → REST Push
+
+SCADA writes register → format → push to third-party API.
+
+```
+endpoint/modbusServer → jsTransform → restApiCall(POST)
+```
+
+```json
+{
+  "ruleChain": {"name": "scada-bridge", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "slave", "type": "endpoint/modbusServer", "configuration": {
+        "server": "tcp://:5020", "unitId": 1
+      }},
+      {"id": "format", "type": "jsTransform", "configuration": {
+        "jsScript": "var d = JSON.parse(msg.data); msg.data = JSON.stringify({device: 'PLC-01', register: d.addr, value: d.values[0], time: new Date().toISOString()}); return {msg:msg, metadata:metadata, msgType:msgType};"
+      }},
+      {"id": "push", "type": "restApiCall", "configuration": {
+        "restEndpointUrlPattern": "http://third-party:8080/api/data",
+        "requestMethod": "POST",
+        "headers": {"Content-Type": "application/json"}
+      }}
+    ],
+    "connections": [
+      {"fromId": "slave", "toId": "format", "type": "ip"},
+      {"fromId": "format", "toId": "push", "type": "Success"}
+    ]
+  }
+}
+```
+
+## Scenario 6: SNMP Trap → DB + WeChat Alert
+
+```
+endpoint/snmp(Trap) → jsTransform → dbClient(insert alert)
+                                   → restApiCall(WeChat webhook)
+```
+
+```json
+{
+  "ruleChain": {"name": "snmp-alarm", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "trap", "type": "endpoint/snmp", "configuration": {
+        "server": "0.0.0.0:162", "version": "v2c", "community": "public"
+      }},
+      {"id": "parse", "type": "jsTransform", "configuration": {
+        "jsScript": "var d = JSON.parse(msg.data); msg.data = JSON.stringify({source: d.from, oid: metadata.trapOID, time: Date.now()}); return {msg:msg, metadata:metadata, msgType:msgType};"
+      }},
+      {"id": "db", "type": "dbClient", "configuration": {
+        "driverName": "postgres", "dsn": "postgres://user:pass@localhost:5432/alarm?sslmode=disable",
+        "sql": "INSERT INTO alerts(source, oid, created_at) VALUES('${source}', '${oid}', NOW())"
+      }},
+      {"id": "wecom", "type": "restApiCall", "configuration": {
+        "restEndpointUrlPattern": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY",
+        "requestMethod": "POST",
+        "headers": {"Content-Type": "application/json"}
+      }}
+    ],
+    "connections": [
+      {"fromId": "trap", "toId": "parse", "type": "ip"},
+      {"fromId": "parse", "toId": "db", "type": "Success"},
+      {"fromId": "parse", "toId": "wecom", "type": "Success"}
+    ]
+  }
+}
+```
+
+## Scenario 7: Acquisition → Window Aggregation → Downsampled Store
+
+High-frequency acquisition (once per second), windowed into per-minute averages before storage — storage volume reduced to 1/60. The point array from `x/iotRead` connects **directly** to the aggregator — no transform node needed.
+
+```
+endpoint/schedule(every 1s) → x/iotRead(Modbus) → x/streamAggregator(1min window) → x/tsdbWrite
+```
+
+```json
+{
+  "ruleChain": {"name": "downsample", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "sch", "type": "endpoint/schedule", "configuration": {"interval": "@every 1s"}},
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "modbus", "server": "tcp://192.168.1.100:502",
+        "points": [
+          {"name": "temperature", "addr": "40001", "type": "FLOAT32", "scale": 0.1},
+          {"name": "humidity", "addr": "40002", "type": "FLOAT32", "scale": 0.1}
+        ]
+      }},
+      {"id": "agg", "type": "x/streamAggregator", "configuration": {
+        "sql": "SELECT name, AVG(value) AS value FROM stream WHERE error IS NULL GROUP BY name, TumblingWindow('1m')"
+      }},
+      {"id": "tsdb", "type": "x/tsdbWrite", "configuration": {
+        "driver": "timescaledb", "dsn": "postgres://user:pass@localhost:5432/iot?sslmode=disable",
+        "measurement": "device_minute"
+      }}
+    ],
+    "connections": [
+      {"fromId": "sch", "toId": "read", "type": "ip"},
+      {"fromId": "read", "toId": "agg", "type": "Success"},
+      {"fromId": "agg", "toId": "tsdb", "type": "stream_event"}
+    ]
+  }
+}
+```
+
+> - Default long format: each point becomes one row (columns `name/value/timestamp`); the SQL uses `GROUP BY name` for per-point stats. The aggregation result is an array of `{name,value}` rows; with `measurement` configured, `x/tsdbWrite` pivots it into a single time-series record.
+> - For cross-point calculations (e.g. `temperature + humidity`), set `"inputFormat": "columns"` on the `agg` node: the point array is pivoted into a wide row before entering the stream, the SQL reads `SELECT AVG(temperature)...`, and the whole output map becomes the fields of one record.
+> - Aggregation results travel on the `stream_event` relation; `Success` passes the original message through — to store raw data as well, wire another `x/tsdbWrite` from `read`.
+> - Component docs: [x/streamAggregator](/en/pages/x-stream-aggregator/), [StreamSQL Overview](/en/pages/streamsql-overview/).
+
+## Soft-PLC Logic Control
+
+`x/control/timer` (timer) and `x/control/watchdog` (watchdog) are protocol-agnostic logic components. Wire them in series with any of the 9 protocol read/write nodes in a rule chain to build soft-PLC-style delayed actuation and loss-of-communication protection. Component docs: [Control Timer](/en/pages/x-control-timer/), [Watchdog](/en/pages/x-control-watchdog/).
+
+Note on the read side: the output of `x/iotRead` is a point array `[{name,value,timestamp,error}]`. [Stream aggregation](/en/pages/x-stream-aggregator/) consumes this array directly (see Scenario 7); before feeding a timer, flatten it into `{name:value}` (one-line jsTransform):
+
+```js
+var d = JSON.parse(msg.data || '[]'); var out = {}; d.forEach(function(p){ if(!p.error) out[p.name] = p.value; }); msg.data = JSON.stringify(out); return {msg:msg, metadata:metadata, msgType:msgType};
+```
+
+### Scenario 8: Tank Over-Temperature Delayed Valve Close (Sustained Condition)
+
+Close the feed valve only when the tank temperature stays above 80 °C for 5 consecutive seconds. Window aggregation with `HAVING MIN>80` = **over-temperature throughout the whole window**, inherently debounced (a single transient spike does not trigger).
+
+```
+endpoint/schedule(every 1s) → x/iotRead(S7) → jsTransform(flatten) → x/streamAggregator(5s window) → x/iotWrite(close valve)
+```
+
+```json
+{
+  "ruleChain": {"name": "tank-overtemp-shutoff", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "sch", "type": "endpoint/schedule", "configuration": {"interval": "@every 1s"}},
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "temperature", "addr": "DB1.DBD0", "type": "REAL"}]
+      }},
+      {"id": "flat", "type": "jsTransform", "configuration": {
+        "jsScript": "var d = JSON.parse(msg.data || '[]'); var out = {}; d.forEach(function(p){ if(!p.error) out[p.name] = p.value; }); msg.data = JSON.stringify(out); return {msg:msg, metadata:metadata, msgType:msgType};"
+      }},
+      {"id": "agg", "type": "x/streamAggregator", "configuration": {
+        "sql": "SELECT MIN(temperature) AS min_temp FROM stream GROUP BY TumblingWindow('5s') HAVING min_temp > 80"
+      }},
+      {"id": "write", "type": "x/iotWrite", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "valve", "addr": "DB1.DBX4.0", "type": "BOOL", "value": "false"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "sch", "toId": "read", "type": "ip"},
+      {"fromId": "read", "toId": "flat", "type": "Success"},
+      {"fromId": "flat", "toId": "agg", "type": "Success"},
+      {"fromId": "agg", "toId": "write", "type": "stream_event"}
+    ]
+  }
+}
+```
+
+> - `HAVING min_temp > 80`: a window is filtered out as soon as one sample drops back below 80; only windows that are over-temperature throughout emit output, and when no window qualifies the aggregator emits **nothing** and the write node never fires.
+> - `HAVING` must reference the SELECT alias (`min_temp`), not the aggregate function; aggregation results travel via the `stream_event` relation (`Success` passes the original message through).
+> - The write node uses its configured points (fixed valve-close `false`); the aggregation output only controls whether it fires.
+
+### Scenario 9: Motor Delayed Start, Cancellable Midway
+
+A rising edge on the start signal → 3-second delay → motor energized; cancelled if the signal drops during the delay (TON on-delay semantics).
+
+```
+endpoint/schedule(every 1s) → x/iotRead(read start signal) → jsTransform(flatten, set metadata.start) → x/control/timer(TON,3s) → x/iotWrite(motor)
+```
+
+```json
+{
+  "ruleChain": {"name": "motor-delay-start", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "sch", "type": "endpoint/schedule", "configuration": {"interval": "@every 1s"}},
+      {"id": "read", "type": "x/iotRead", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "start", "addr": "DB1.DBX0.0", "type": "BOOL"}]
+      }},
+      {"id": "flat", "type": "jsTransform", "configuration": {
+        "jsScript": "var d = JSON.parse(msg.data || '[]'); var out = {}; d.forEach(function(p){ if(!p.error) out[p.name] = p.value; }); metadata.start = out.start; msg.data = JSON.stringify(out); return {msg:msg, metadata:metadata, msgType:msgType};"
+      }},
+      {"id": "timer", "type": "x/control/timer", "configuration": {
+        "mode": "TON", "pt": "3s", "in": "${metadata.start}", "out": "q"
+      }},
+      {"id": "write", "type": "x/iotWrite", "configuration": {
+        "driver": "s7", "server": "192.168.1.10:102",
+        "points": [{"name": "motor", "addr": "Q0.0", "type": "BOOL", "value": "${metadata.q}"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "sch", "toId": "read", "type": "ip"},
+      {"fromId": "read", "toId": "flat", "type": "Success"},
+      {"fromId": "flat", "toId": "timer", "type": "Success"},
+      {"fromId": "timer", "toId": "write", "type": "Success"}
+    ]
+  }
+}
+```
+
+> - A rising edge (false→true) starts timing; after `pt=3s` of sustained input, `metadata.q` is set to `true`. If the input returns to `false` early, timing is cancelled and `q` resets; the next rising edge re-triggers.
+> - The timer writes its result to `metadata.q` (the `out` field); the write node references it via `${metadata.q}`.
+
+### Scenario 10: Host Link Lost → Safe Shutdown
+
+The host sends a heartbeat every few seconds; if none arrives for 10 seconds, the watchdog emits a failsafe JSON that closes the valve and stops the motor.
+
+```
+endpoint/mqtt(sub scada/heartbeat/#) → x/control/watchdog(10s) → x/iotWrite(valve/motor)
+```
+
+```json
+{
+  "ruleChain": {"name": "heartbeat-failsafe", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "hb", "type": "endpoint/mqtt", "configuration": {
+        "server": "tcp://localhost:1883", "topic": "scada/heartbeat/#"
+      }},
+      {"id": "wd", "type": "x/control/watchdog", "configuration": {
+        "timeout": "10s",
+        "failsafe": {"valve": 0, "motor": 0}
+      }},
+      {"id": "write", "type": "x/iotWrite", "configuration": {
+        "driver": "modbus", "server": "tcp://192.168.1.100:502",
+        "points": [
+          {"name": "valve", "addr": "00001", "type": "BOOL", "value": "${msg.valve}"},
+          {"name": "motor", "addr": "00002", "type": "BOOL", "value": "${msg.motor}"}
+        ]
+      }}
+    ],
+    "connections": [
+      {"fromId": "hb", "toId": "wd", "type": "mqtt/scada/heartbeat/#"},
+      {"fromId": "wd", "toId": "write", "type": "Success"}
+    ]
+  }
+}
+```
+
+> - While heartbeats arrive, the watchdog forwards `msg.Data` (valve/motor state carried by the heartbeat) downstream and re-arms its timer; if no message arrives within `timeout`, the `failsafe` `{"valve":0,"motor":0}` is emitted via the `Success` chain.
+> - The heartbeat payload and `failsafe` share the same `valve/motor` field names, so the write node references them uniformly via `${msg.xx}`.
+
+## Quick Reference
+
+| Scenario | Trigger | Acquisition | Processing | Output |
+|----------|---------|-------------|------------|--------|
+| Scheduled store | endpoint/schedule | x/iotRead | — | x/tsdbWrite (measurement configured) |
+| Downsampled store | endpoint/schedule | x/iotRead | x/streamAggregator (window) | x/tsdbWrite |
+| Threshold alarm | same | same | jsFilter | sendEmail / restApiCall |
+| API read | endpoint/http | x/iotRead | — | response |
+| MQTT control | endpoint/mqtt | — | jsTransform | x/iotWrite + mqttClient |
+| Multi-protocol | endpoint/schedule | multiple x/iotRead | join | x/tsdbWrite |
+| SCADA bridge | endpoint/modbusServer | — | jsTransform | restApiCall / x/tsdbWrite |
+| Trap alert | endpoint/snmp | — | jsTransform | dbClient + restApiCall |
+| HJ212 env | endpoint/hj212 | — | — | x/tsdbWrite (measurement configured) |

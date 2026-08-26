@@ -1,0 +1,95 @@
+---
+title: OPC_UA Write
+permalink: /pages/x-opcua-write/
+---
+`x/opcuaWrite`组件：<Badge text="v0.28.0+"/> OPC UA写入组件，用于写入一个或者多个OPC UA节点数据。
+
+>需要额外引入扩展库：[rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## 配置
+
+| 字段          | 类型     | 说明                                                       | 默认值       |
+|-------------|--------|----------------------------------------------------------|-----------|
+| server      | string | OPC UA服务器地址，支持 `ref://` 复用同链连接                          | 无         |
+| policy      | string | 安全策略，可选值包括：None, Basic128Rsa15, Basic256, Basic256Sha256 | None      |
+| mode        | string | 通信模式，可选值包括：None, Sign, SignAndEncrypt                    | None      |
+| auth        | string | 鉴权方式，可选值：Anonymous, UserName, Certificate                | Anonymous |
+| username    | string | 用户名（当`auth`为`UserName`时需要提供）                             | 无         |
+| password    | string | 密码（当`auth`为`UserName`时需要提供）                              | 无         |
+| certFile    | string | 证书文件路径（当`auth`为`Certificate`时需要提供）                       | 无         |
+| certKeyFile | string | 密钥文件路径（当`auth`为`Certificate`时需要提供）                       | 无         |
+| points      | array  | 点位列表（标准写入方式），每项含 addr/type/value，addr 为 OPC UA NodeID    | 无         |
+
+**点位字段（points 数组元素）：**
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| addr | string | OPC UA NodeID，如 `ns=2;s=Temperature` |
+| type | string | 数据类型，统一枚举 `BOOL/INT16/UINT16/INT32/UINT32/INT64/UINT64/FLOAT32/FLOAT64/STRING` |
+| value | string | 写入值（字符串形式，driver 按 type 解析） |
+
+**安全策略（policy）可选值含义：**
+
+- **None**：不使用任何安全策略。
+- **Basic128Rsa15**：使用基本的128位加密和RSA15签名。
+- **Basic256**：使用基本的256位加密。
+- **Basic256Sha256**：使用基本的256位加密和SHA256签名。
+
+**通信模式（mode）可选值含义：**
+
+- **None**：不使用任何模式。
+- **Sign**：消息签名。
+- **SignAndEncrypt**：消息签名和加密。
+
+**写入点位（标准方式）**：通过配置 `points` 指定，addr 为 OPC UA NodeID，type 使用统一枚举，格式：
+```json
+[
+  {"addr": "ns=2;s=Switch", "type": "BOOL", "value": "true"},
+  {"addr": "ns=2;s=Setpoint", "type": "FLOAT32", "value": "25.5"},
+  {"addr": "ns=2;s=Count", "type": "INT32", "value": "100"}
+]
+```
+
+**旧版兼容保留**：也可通过消息负荷 `msg.Data` 传入 nodeId/value/dataType 结构（仅兼容保留，推荐使用 `points`），格式：
+```json
+[
+  {
+    "nodeId": "ns=3;i=1009",
+    "value": 1
+  },
+  {
+    "nodeId": "ns=3;i=1010",
+    "value": 2,
+    "dataType": "Int32"
+  },
+  {
+    "nodeId": "ns=3;i=1011",
+    "value": [1.1, 2.2, 3.3],
+    "dataType": "Double"
+  }
+]
+```
+
+**DataType说明（仅旧版 msg.Data 方式）：**
+
+如果不指定`dataType`，则根据`value`的类型自动推断（数字默认为Double）。
+可选值包括：
+- Boolean
+- SByte, Byte
+- Int16, UInt16
+- Int32, UInt32
+- Int64, UInt64
+- Float, Double
+- String
+- DateTime (格式：2006-01-02T15:04:05Z07:00)
+
+支持数组写入，当`value`为数组时，会自动转换为对应类型的数组。
+
+## Relation Type
+
+- ***Success:*** 执行成功，把消息发送到`Success`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+## 执行结果
+
+不改变消息负荷值

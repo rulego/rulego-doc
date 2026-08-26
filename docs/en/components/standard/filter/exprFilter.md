@@ -1,0 +1,52 @@
+---
+title: exprFilter
+permalink: /pages/expr-filter/
+---
+`exprFilter` component: Expression filter. Use the expression language provided by the [expr](https://expr-lang.org/docs/language-definition) library to filter messages.
+
+## Configuration
+
+| Field | Type   | Description                                                      | Default |
+|-------|--------|------------------------------------------------------------------|---------|
+| expr  | string | Expression, the return value of the expression must be bool type | None    |
+
+- Access the message ID through the `${id}` variable.
+- Access the message timestamp through the `${ts}` variable.
+- Access the original content of the message through the `${data}` variable.
+- Access the message body through the `${msg}` variable. If the message's dataType is JSON, you can access the fields of `${msg}` by `${msg.XX}`. For example: `${msg.temperature} > 50;`
+- Access the message metadata through the `${metadata}` variable. For example `${metadata.customerName}`
+- Access the message type through the `${msgType}` variable.
+- Access the data type through the `${dataType}` variable.
+
+Expression Examples:
+- ${msg.temperature} > 50
+- ${msg.temperature} > 50 && ${metadata.customerName} == 'rulego'
+- upper(${metadata.customerName}[:4]) == 'GO'
+  >For more expr expression syntax, refer to: [expr](https://expr-lang.org/docs/language-definition)
+
+## Relation Type
+
+- ***True:*** Send the message to the `True` chain
+- ***False:*** Send the message to the `False` chain
+- ***Failure:*** Execution failed, send the message to the `Failure` chain
+
+## Execution Result
+
+This component does not change the `msg`, `metadata`, and `msgType` content.
+
+## Configuration Example
+
+```json
+  {
+    "id": "s1",
+    "type": "exprFilter",
+    "name": "Expression filter",
+    "configuration": {
+      "expr": "${msg.temperature} > 50"
+    }
+  }
+```
+
+## Related Documentation
+
+- [Component Configuration Variables](/en/pages/component-configuration-variables/)

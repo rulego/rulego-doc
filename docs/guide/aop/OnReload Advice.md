@@ -1,0 +1,16 @@
+---
+title: OnReload 增强点
+permalink: /pages/on-reload-advice/
+---
+重新加载通知（OnReload Advice）：在规则引擎重新加载规则链或者子节点配置执行完成之后执行。
+
+## 接口
+
+```go
+// Order 返回执行顺序，值越小，优先级越高
+Order() int
+// 规则链初始化时候会调用该方法创建新的实例，如果字段值需要继承，在这里处理
+New() Aspect
+// OnReload 规则链重新加载规则链或者子节点配置之后的增强点
+OnReload(parentCtx NodeCtx, ctx NodeCtx, err error) error
+```

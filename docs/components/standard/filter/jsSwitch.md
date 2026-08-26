@@ -1,0 +1,129 @@
+---
+title: js脚本路由
+permalink: /pages/js-switch/
+---
+`jsSwitch`组件：脚本路由。执行已配置的JS脚本，根据脚本返回值动态路由消息到一个或多个输出链。
+
+> JavaScript脚本支持ECMAScript 5.1(+) 语法规范和部分ES6规范，如：async/await/Promise/let。允许在脚本中调用Go自定义函数，请参考[udf](/pages/config/#udf) 。
+
+## 配置
+
+| 字段       | 类型     | 说明   | 默认值 |
+|----------|--------|------|-----|
+| jsScript | string | js脚本 | 无   |
+
+- `jsScript`：可以对msg、metadata、msgType、dataType进行处理和判断。该字段是以下函数体内容：
+
+  ```javascript
+      function Switch(msg, metadata, msgType, dataType) { 
+          ${jsScript} 
+       }
+  ```
+  参数说明:
+  - msg：消息内容
+    - 当[dataType=JSON](/pages/rule-chain-message/)时，类型为`jsonObject`，可使用`msg.temperature`方式操作
+    - 当dataType=BINARY时，类型为`Uint8Array`，可直接操作字节数组，如`msg[0]`访问第一个字节
+    - 其他dataType时，类型为`string`
+  - metadata：消息元数据，类型为`jsonObject`
+  - msgType：消息类型，类型为`string`
+  - dataType：消息数据类型（JSON、TEXT、BINARY等），需要使用`String(dataType)`转换为字符串使用
+  - 函数返回值类型：`数组`，返回一个字符串数组，包含要路由到的一个或多个链名称
+
+::: danger 注意
+1. 脚本执行超时时间配置参考： [config.ScriptMaxExecutionTime](/pages/config/#ScriptMaxExecutionTime)
+2. 返回的链名称必须在规则链connections中定义，否则消息会被丢弃
+:::
+
+## Relation Type
+
+使用脚本返回值动态决定路由关系，可以路由到一个或多个输出链。如果返回的链名称没有对应的连接，则会使用`Default`链进行路由。
+
+## 执行结果
+
+该组件不会改变`msg`、`metadata`和`msgType`内容，仅用于决定消息的路由方向。
+
+## 配置示例
+
+### 基本路由示例
+```json
+  {
+    "id": "s1",
+    "type": "jsSwitch",
+    "name": "脚本路由",
+    "configuration": {
+      "jsScript": "if (msg.temperature > 50) return ['highTemp']; else if (msg.temperature < 10) return ['lowTemp']; else return ['normalTemp'];"
+    }
+  }
+```
+
+### 多路由示例
+```json
+  {
+    "id": "s2",
+    "type": "jsSwitch",
+    "name": "多路由",
+    "configuration": {
+      "jsScript": "var routes = []; if (msgType === 'ALARM') routes.push('alarm'); if (msg.priority === 'high') routes.push('priority'); return routes;"
+    }
+  }
+```
+
+### 基于数据类型的路由示例
+```json
+  {
+    "id": "s3",
+    "type": "jsSwitch",
+    "name": "数据类型路由",
+    "configuration": {
+      "jsScript": "var dt = String(dataType); if (dt === 'BINARY') { if (msg.length > 1024) return ['largeBinary']; else return ['smallBinary']; } else if (dt === 'JSON') return ['jsonData']; else return ['textData'];"
+    }
+  }
+```
+
+### JSON数据路由示例
+```json
+  {
+    "id": "s4",
+    "type": "jsSwitch",
+    "name": "JSON数据路由",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'JSON') { var routes = []; if (msg.temperature > 50) routes.push('highTemp'); if (msg.humidity > 80) routes.push('highHumidity'); if (msg.level === 'critical') routes.push('critical'); return routes.length > 0 ? routes : ['normal']; } return ['skip'];"
+    }
+  }
+```
+
+### 二进制设备数据路由示例
+```json
+  {
+    "id": "s5",
+    "type": "jsSwitch",
+    "name": "设备数据路由",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'BINARY' && msg.length >= 4) { var deviceId = (msg[0] << 8) | msg[1]; var functionCode = (msg[2] << 8) | msg[3]; if (deviceId === 0x1001) { if (functionCode === 0x0001) return ['sensorData']; else if (functionCode === 0x0002) return ['statusData']; else if (functionCode === 0x0010) return ['commandData']; } return ['unknownDevice']; } return ['invalidData'];"
+    }
+  }
+```
+
+### 文本日志路由示例
+```json
+  {
+    "id": "s6",
+    "type": "jsSwitch",
+    "name": "日志路由",
+    "configuration": {
+      "jsScript": "if (String(dataType) === 'TEXT') { var routes = []; if (msg.includes('ERROR')) routes.push('errorLog'); if (msg.includes('WARN')) routes.push('warnLog'); if (msg.includes('DEBUG')) routes.push('debugLog'); return routes.length > 0 ? routes : ['infoLog']; } return ['nonTextData'];"
+    }
+  }
+```
+
+### 混合数据处理路由示例
+```json
+  {
+    "id": "s7",
+    "type": "jsSwitch",
+    "name": "混合数据路由",
+    "configuration": {
+      "jsScript": "var dt = String(dataType); var routes = []; if (msgType === 'ALARM') routes.push('alarm'); if (dt === 'JSON' && msg.priority === 'high') routes.push('priority'); else if (dt === 'BINARY' && msg.length > 0 && msg[0] === 0xFF) routes.push('protocolData'); else if (dt === 'TEXT' && msg.includes('URGENT')) routes.push('urgent'); return routes.length > 0 ? routes : ['default'];"
+    }
+  }
+```

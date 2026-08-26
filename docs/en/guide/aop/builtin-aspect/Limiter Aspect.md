@@ -1,0 +1,22 @@
+---
+title: Concurrency Limiter Aspect
+permalink: /pages/limiter-aspect/
+---
+Concurrency Limiter Aspect: A concurrency limiting aspect for the rule engine. Limit the rule engine to process data concurrently, and if the concurrent number exceeds the limit, the execution will fail.
+:::tip
+This aspect needs to be manually imported.
+:::
+## Configuration
+
+| Field | Type | Description               | Default |
+|-------|------|---------------------------|---------|
+| max   | int  | Maximum concurrent number | 0       |
+
+## Usage Example
+
+[Reference Example](https://github.com/rulego/rulego/tree/main/engine/limiter_aspect_test.go)
+```go
+// Limit the concurrent number to 1
+types.WithAspects(
+    &aspect.NewConcurrencyLimiterAspect(1)
+```

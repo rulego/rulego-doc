@@ -1,0 +1,98 @@
+---
+title: opengemini写客户端
+permalink: /pages/opengemini-write/
+---
+`x/opengeminiWrite`组件：<Badge text="v0.24.0+"/> OpenGemini写入客户端。用于将消息数据写入OpenGemini时序数据库服务器。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的连接客户端，避免重复创建连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段       | 类型     | 必填 | 说明                                                          | 默认值 |
+|----------|--------|-----|-------------------------------------------------------------|-----|
+| server   | string | 是   | OpenGemini服务器地址，格式为host:port，多个服务器用逗号分隔                   | 无   |
+| database | string | 是   | 数据库名称，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                  | 无   |
+| username | string | 否   | 认证用户名                                                       | 无   |
+| password | string | 否   | 认证密码                                                        | 无   |
+| token    | string | 否   | 认证令牌，如果设置则优先使用token认证方式                                  | 无   |
+
+## 工作原理
+
+1. 组件初始化时会根据配置连接到OpenGemini服务器
+2. 接收到消息后，根据消息格式(JSON或Line Protocol)写入数据
+3. 写入成功后通过Success链路由，失败则通过Failure链路由
+4. 组件会自动管理连接的生命周期，包括重连等
+
+## Relation Type
+
+- ***Success:*** 数据成功写入OpenGemini服务器时，原始消息发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 连接OpenGemini服务器失败
+  - 认证失败
+  - 写入数据失败
+  - 消息格式错误
+  - 配置参数错误
+
+### 写入格式
+
+#### Json格式
+消息负荷格式必须是Json格式：`msg.DataType = types.JSON`
+
+写入格式支持多条或者单条，例如：
+```json
+{
+  "Fields": {
+    "value": 98.6
+  },
+  "Measurement": "cpu_load",
+  "Tags": {
+    "host": "server01"
+  },
+  "Time": "2024-09-01T13:41:27.3142051+08:00"
+}
+```
+```json
+[
+  {
+    "Fields": {
+      "value": 98.6
+    },
+    "Measurement": "cpu_load",
+    "Tags": {
+      "host": "server01"
+    },
+    "Time": "2024-09-01T13:41:27.3142051+08:00"
+  },
+  {
+    "Fields": {
+      "value": 91.6
+    },
+    "Measurement": "cpu_load",
+    "Tags": {
+      "host": "server02"
+    },
+    "Time": "2024-09-01T13:41:27.3142051+08:00"
+  }
+]
+```
+> `Time`：必须是RFC3339格式，例如：`2024-09-01T13:41:27.3142051+08:00`。如果不填，默认为当前时间戳。
+
+#### Line Protocol格式
+
+Line Protocol（行协议）格式参考文档[Line Protocol](https://opengemini.github.io/zh/guide/write_data/insert_line_protocol.html)
+消息负荷格式必须是TEXT格式：`msg.DataType = types.TEXT`
+写入格式支持多条或者单条，多条使用`\n`,例如：
+```text
+cpu_load,host=server01 value=98.6 1693821027000000000
+cpu_load,host=server02 value=91.6 1693821027000000000
+```
+> 时间戳必须为纳秒，例如：`1693821027000000000`，如果不填，默认为当前时间戳。
+
+## Relation Type
+
+- ***Success:*** 执行成功，把消息发送到`Success`链
+- ***Failure:*** 执行失败，把消息发送到`Failure`链
+
+## 执行结果
+
+无

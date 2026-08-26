@@ -1,0 +1,135 @@
+---
+title: gRPC客户端
+permalink: /pages/grpc-client/
+---
+`x/grpcClient`组件：<Badge text="v0.25.0+"/> gRPC客户端。允许动态调用gRPC服务。
+
+> gRPC 服务端必须注册gRPC 反射服务。允许客户端在运行时查询服务器支持的服务和方法。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的连接客户端，避免重复创建连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段      | 类型     | 必填 | 说明                                                          | 默认值 |
+|---------|--------|-----|-------------------------------------------------------------|-----|
+| server  | string | 是   | gRPC服务地址，格式为host:port                                      | 无   |
+| service | string | 是   | gRPC服务名称，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置              | 无   |
+| method  | string | 是   | gRPC方法名称，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置              | 无   |
+| request | string | 否   | 请求参数，JSON格式。如果为空则使用当前消息负荷。必须与service/method要求的参数类型一致  | 无   |
+| headers | map    | 否   | 请求头，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                  | 无   |
+
+## 工作原理
+
+1. 组件初始化时会根据配置连接到gRPC服务器
+2. 接收到消息后，通过反射机制动态调用指定的service和method
+3. 调用成功后通过Success链路由，失败则通过Failure链路由
+4. 组件会自动管理连接的生命周期，包括重连等
+
+## Relation Type
+
+- ***Success:*** 以下情况消息发送到`Success`链路:
+  - gRPC调用成功完成
+  - 服务响应成功返回
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 连接gRPC服务器失败
+  - 服务或方法不存在
+  - 请求参数格式错误
+  - 调用执行失败
+  - 配置参数错误
+
+## 执行结果
+
+gRPC调用的响应结果会被赋值到消息负荷并传递到下一个节点：
+- 响应数据会被赋值到msg.data
+- metadata会保留原有内容
+- msgType保持不变
+
+## 示例
+1. 定义一个gRPC服务，如下：
+```text
+syntax = "proto3";
+
+package helloworld;
+
+option go_package = ".;helloworld";
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
+
+```
+
+2. 生成protobuf代码
+```shell
+protoc --go_out=. --go-grpc_out=. helloworld.proto
+```
+3. 运行服务端
+```go
+package main
+
+import (
+	"context"
+	pb "github.com/rulego/rulego-components/external/grpc/testdata/helloworld"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"log"
+	"net"
+)
+
+// server 是 Greeter 服务的服务器实现
+type server struct {
+	pb.UnimplementedGreeterServer
+}
+
+// SayHello 实现 Greeter 服务的 SayHello 方法
+func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+    // 从上下文中获取元数据
+    md, ok := metadata.FromIncomingContext(ctx)
+    if ok {
+      // 打印所有头部信息
+      for key, values := range md {
+        log.Printf("Header %s: %v", key, values)
+      }
+    }
+	log.Printf("Received: %v", in.GetName())
+	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+}
+
+func main() {
+	listen, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterGreeterServer(s, &server{})
+	// 注册 gRPC 反射服务
+	reflection.Register(s)
+	//启动服务
+	if err := s.Serve(listen); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}
+```
+
+4. 通过grpcClient组件调用服务端
+```json
+{
+    "id": "s1",
+    "type": "x/grpcClient",
+    "name": "call grpc service",
+    "configuration": {
+      "server":  "127.0.0.1:50051",
+      "service": "helloworld.Greeter",
+      "method":  "SayHello",
+      "request": "{\"name\": \"lulu\"}"
+    }
+}
+```

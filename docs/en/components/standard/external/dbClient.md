@@ -1,0 +1,174 @@
+---
+title: dbClient
+permalink: /pages/db-client/
+---
+`dbClient` component: perform CRUD operations on the database through the standard sql interface. Built-in support for `mysql` and `postgres` databases.
+
+It also supports third-party database drivers that implement the `database/sql` interface, but you need to import them yourself, such as [TDengine](https://docs.taosdata.com/develop/connect/) driver:
+
+```go
+import (
+_ "github.com/taosdata/driver-go/v3/taosRestful"
+)
+
+//Configuration use
+//driverName:taosRestful
+```
+
+## GO third-party database driver packages
+
+| Driver Package Name  | Database Type        | Import Path                                      | driverName  | dns                                                                                                            |
+|----------------------|----------------------|--------------------------------------------------|-------------|----------------------------------------------------------------------------------------------------------------|
+| TDengine             | TDengine             | _ "github.com/taosdata/driver-go/v3/twosRestful" | taosRestful | root:root@tcp(127.0.0.1:6030)/test                                                                             |
+| Microsoft SQL Server | Microsoft SQL Server | _ "github.com/denisenkom/go-mssqldb"             | mssql       | server=127.0.0.1;user id=root;password=root;database=test                                                      |
+| Oracle Database      | Oracle Database      | _ "github.com/godror/godror"                     | oracle      | username/password@//127.0.0.1:1521/test                                                                        |
+| Snowflake            | Snowflake            | _ "github.com/snowflakedb/gosnowflake"           | snowflake   | ACCOUNT=account_name;USER=user_name;PASSWORD=password;DATABASE=database_name;WAREHOUSE=warehouse_name          |
+| ClickHouse           | ClickHouse           | _ "github.com/ClickHouse/clickhouse-go"          | clickhouse  | tcp://127.0.0.1:9000?username=root&password=root&database=test                                                 |
+| Vertica              | Vertica              | _ "github.com/vertica/vertica-sql-go"            | vertica     | vertica://127.0.0.1:5433/test?username=root&password=root"                                                     |
+| MySQL                | MySQL                | _ "github.com/go-sql-driver/mysql"               | mysql       | root:root@tcp(127.0.0.1:3306)/test                                                                             |
+| PostgreSQL           | PostgreSQL           | _ "github.com/lib/pq"                            | postgres    | user:password@tcp(127.0.0.1:5432)/test or user= password= host=127.0.0.1 port=5432 dbname=test sslmode=disable |
+| sqlite               | sqlite               | "github.com/glebarez/go-sqlite"                  | sqlite      | path/to/some.db // pure Go                                                                                     |
+| sqlite3              | sqlite3              | "github.com/mattn/go-sqlite3"                    | sqlite3     | path/to/some.db // C , requires enabling cgo                                                                   |
+
+## Configuration
+
+This component allows the reuse of shared connection clients through the `dsn` field. See [Component Connection Reuse](/en/pages/component-connection-reuse/) for reference.
+
+| Field                             | Type   | Description                                                                                                                           | Default value |
+|-----------------------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| opType   <Badge text="v0.34.0+"/> | string | SQL operation type: INSERT / UPDATE / DELETE / SELECT; detected automatically when left empty                                         | ''            |
+| sql                               | string | SQL statement, can using [Component Configuration Variables](/en/pages/component-configuration-variables/)                                                       | None          |
+| params                            | array  | SQL statement parameter list, can using [Component Configuration Variables](/en/pages/component-configuration-variables/)                                        | None          |
+| getOne                            | bool   | Whether to return only one record, true: the return structure is not an array structure, false: the return data is an array structure | None          |
+| poolSize                          | int    | Connection pool size                                                                                                                  | None          |
+| driverName                        | string | Database driver name, mysql/postgres, or other database driver types                                                                  | mysql         |
+| dsn                               | string | Database connection configuration, refer to sql.Open parameters                                                                       | None          |
+
+
+## Relation Type
+
+- ***Success:*** Execution successful, send the message to the `Success` chain
+- ***Failure:*** Execution failed, send the message to the `Failure` chain
+
+## Execution result
+
+- Select: Query result, replace to msg.Data, and pass to the next node.
+- UPDATE, DELETE: The result is stored in msg.Metadata:
+  - msg.Metadata.rowsAffected: How many rows are affected
+  - msg.Data: Content unchanged
+- INSERT: The result is stored in msg.Metadata:
+  - msg.Metadata.rowsAffected: How many rows are affected
+  - msg.Metadata.lastInsertId: Insert ID (if any)
+  - msg.Data: Content unchanged
+
+## Configuration example
+
+```json
+  {
+  "id": "s1",
+  "type": "dbClient",
+  "name": "Insert 1 record",
+  "configuration": {
+    "driverName":"mysql",
+    "dsn":"root:root@tcp(127.0.0.1:3306)/test",
+    "poolSize":5,
+    "sql":"insert into users (id,name, age) values (?,?,?)",
+    "params":["${id}", "${name}", "${age}"]
+  }
+ }
+```
+
+## Application example
+
+Application example reference: [dbClient](https://github.com/rulego/rulego/blob/main/examples/db_client/db_client.go)
+
+```json
+{
+  "ruleChain": {
+	"id":"rule01",
+    "name": "Test rule chain",
+	"root": true
+  },
+  "metadata": {
+    "nodes": [
+       {
+        "id": "s1",
+        "type": "dbClient",
+        "name": "Insert 1 record",
+        "configuration": {
+			"driverName":"mysql",
+			"dsn":"root:root@tcp(127.0.0.1:3306)/test",
+			"poolSize":5,
+			"sql":"insert into users (id,name, age) values (?,?,?)",
+			"params":["${metadata.id}", "${metadata.name}", "${metadata.age}"]
+        }
+      },
+     {
+        "id": "s2",
+        "type": "dbClient",
+        "name": "Query 1 record",
+        "configuration": {
+			"driverName":"mysql",
+			"dsn":"root:root@tcp(127.0.0.1:3306)/test",
+			"sql":"select * from users where id = ?",
+			"params":["${metadata.id}"],
+			"getOne":true
+        }
+      },
+	  {
+        "id": "s3",
+        "type": "dbClient",
+        "name": "Query multiple records, parameters do not use placeholders",
+        "configuration": {
+			"driverName":"mysql",
+			"dsn":"root:root@tcp(127.0.0.1:3306)/test",
+			"sql":"select * from users where age >= 18"
+        }
+      },
+	  {
+        "id": "s4",
+        "type": "dbClient",
+        "name": "Update record, parameters use placeholders",
+        "configuration": {
+			"driverName":"mysql",
+			"dsn":"root:root@tcp(127.0.0.1:3306)/test",
+			"sql":"update users set age = ? where id = ?",
+			"params":["${metadata.updateAge}","${metadata.id}"]
+        }
+      },
+	  {
+        "id": "s5",
+        "type": "dbClient",
+        "name": "Delete record",
+        "configuration": {
+			"driverName":"mysql",
+			"dsn":"root:root@tcp(127.0.0.1:3306)/test",
+			"sql":"delete from users"
+        }
+      }
+    ],
+    "connections": [
+     {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      },
+	 {
+		"fromId": "s2",
+		"toId": "s3",
+		"type": "Success"
+	  },
+	 {
+		"fromId": "s3",
+		"toId": "s4",
+		"type": "Success"
+	  },
+	{
+		"fromId": "s4",
+		"toId": "s5",
+		"type": "Success"
+	  }
+    ]
+  }
+}
+```

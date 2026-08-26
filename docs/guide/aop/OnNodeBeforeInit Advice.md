@@ -1,0 +1,16 @@
+---
+title: OnNodeBeforeInit 增强点
+permalink: /pages/on-node-before-init-advice/
+---
+规则节点初始化之前通知（OnNodeBeforeInit Advice）：在规则节点初始化之前执行执行，如果返回错误，则创建失败。
+
+## 接口
+
+```go
+// Order 返回执行顺序，值越小，优先级越高
+Order() int
+// 规则链初始化时候会调用该方法创建新的实例，如果字段值需要继承，在这里处理
+New() Aspect
+// OnNodeBeforeInit 规则节点初始化之前的增强点，如果返回错误，则创建失败
+OnNodeBeforeInit(config types.Config,def *RuleNode) error
+```

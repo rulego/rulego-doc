@@ -1,0 +1,164 @@
+---
+title: luaFilter
+permalink: /pages/lua-filter/
+---
+`luaFilter` Component: Lua Script Filter. It can filter `msg`, `metadata`, and `msgType` using Lua scripts. The message is routed to the True or False chain based on the script's return value. It can also load third-party Lua libraries to perform advanced operations such as encryption/decryption, I/O, networking, and file handling.
+
+> To enable advanced operations such as encryption/decryption, I/O, networking, and file handling in Lua scripts, the following configuration is required: `config.Properties.PutValue(luaEngine.LoadLuaLibs, "true")`
+
+> Lua scripts support Lua 5.1 syntax. For more details, refer to [gopher-lua](https://github.com/yuin/gopher-lua ).
+
+## Configuration
+
+| Field     | Type     | Description                          | Default Value |
+|----------|---------|-------------------------------------|--------------|
+| script   | string  | Lua script or file path of a Lua script with a `.lua` suffix | None         |
+
+- `script`: This can filter `msg`, `metadata`, and `msgType`. Only the function body content is required. If it is a file path, a complete script function must be provided:
+
+  ```lua
+      function Filter(msg, metadata, msgType, dataType) 
+          ${script} 
+       end
+  ```
+  - msg: Message content. If [dataType=JSON](/en/pages/rule-chain-message/), it can be accessed using `msg.temperature`. If dataType is of another type, the field type is `string`.
+  - metadata: Message metadata, type: `jsonObject`.
+  - msgType: Message type.
+  - dataType: Message data type (JSON, TEXT, BINARY, etc.), which needs to be used as a string in Lua.
+  - Return value type: `boolean`, which determines the connection to the next node (`Relation Type`).
+
+::: tip Data Type Handling
+- **JSON Type**: The `msg` parameter is a Lua table, and fields can be accessed directly, such as `msg.temperature`.
+- **BINARY Type**: The `msg` parameter is a Lua table (byte array), and the first byte can be accessed using `msg[1]` (1-based index).
+- **Other Types**: The `msg` parameter is a string.
+  :::
+
+## Relation Type
+
+- ***True:*** Send the message to the `True` chain.
+- ***False:*** Send the message to the `False` chain.
+- ***Failure:*** In case of execution failure, send the message to the `Failure` chain.
+
+## Execution Result
+
+This component does not modify the content of `msg`, `metadata`, and `msgType`.
+
+## Configuration Examples
+
+### Basic JSON Filtering Example
+```json
+  {
+    "id": "s1",
+    "type": "x/luaFilter",
+    "name": "Filter",
+    "configuration": {
+      "script": "return msg.temperature > 50"
+    }
+  }
+```
+
+### Data Type Detection Example
+```json
+  {
+    "id": "s2", 
+    "type": "x/luaFilter",
+    "name": "Data Type Filtering",
+    "configuration": {
+      "script": "if dataType == 'JSON' then return msg.temperature > 25 elseif dataType == 'BINARY' then return #msg > 10 else return string.len(msg) > 5 end"
+    }
+  }
+```
+
+### Binary Data Filtering Example
+```json
+  {
+    "id": "s3",
+    "type": "x/luaFilter", 
+    "name": "Binary Header Check",
+    "configuration": {
+      "script": "return dataType == 'BINARY' and #msg >= 2 and msg[1] == 255 and msg[2] == 254"
+    }
+  }
+```
+
+### Device Protocol Filtering Example
+```json
+  {
+    "id": "s4",
+    "type": "x/luaFilter",
+    "name": "Device Data Filtering", 
+    "configuration": {
+      "script": "if dataType == 'BINARY' and #msg >= 4 then local deviceId = msg[1] * 256 + msg[2]; local functionCode = msg[3] * 256 + msg[4]; return deviceId == 4097 and (functionCode == 1 or functionCode == 2) else return false end"
+    }
+  }
+```
+
+### Text Content Filtering Example
+```json
+  {
+    "id": "s5",
+    "type": "x/luaFilter",
+    "name": "Log Level Filtering",
+    "configuration": {
+      "script": "return dataType == 'TEXT' and (string.find(msg, 'ERROR') ~= nil or string.find(msg, 'WARN') ~= nil)"
+    }
+  }
+```
+
+## Custom Functions
+
+You can register golang functions with `config.RegisterUdf` and use them in Lua scripts. The registration method and usage are the same as Js. For details, refer to [Udf](/en/pages/config/#udf).
+
+## Loading Lua Modules
+
+You can extend Lua capabilities by loading Lua custom or third-party module libraries. Use the following method to register Lua modules to the engine:
+```go
+import luaEngine "github.com/rulego/rulego-components/pkg/lua_engine"
+
+luaEngine.Preloader.Register(func(state *lua.LState) {
+	//load module
+	//libs.Preload(state)
+})
+```
+[Creating a module by Go](https://github.com/yuin/gopher-lua#Usage)
+
+In addition, the framework has built-in a large number of Lua third-party library modules. Use the following method to enable them, which are not loaded by default:
+```go
+config.Properties.PutValue(luaEngine.LoadLuaLibs, "true")
+```
+After starting, you can perform advanced operations such as encryption/decryption, I/O, network, database, file, etc. The list of third-party libraries is:
+
+* [argparse](https://github.com/vadv/gopher-lua-libs/tree/master/argparse) argparse CLI parsing <https://github.com/luarocks/argparse>
+* [base64](https://github.com/vadv/gopher-lua-libs/tree/master/base64) [encoding/base64](https://pkg.go.dev/encoding/base64) api
+* [cloudwatch](https://github.com/vadv/gopher-lua-libs/tree/master/aws/cloudwatch) aws cloudwatch log access
+* [cert_util](https://github.com/vadv/gopher-lua-libs/tree/master/cert_util) monitoring ssl certs
+* [chef](https://github.com/vadv/gopher-lua-libs/tree/master/chef) chef client api
+* [cmd](https://github.com/vadv/gopher-lua-libs/tree/master/cmd) cmd port
+* [crypto](https://github.com/vadv/gopher-lua-libs/tree/master/crypto) calculate md5, sha256 hash for string
+* [db](https://github.com/vadv/gopher-lua-libs/tree/master/db) access to databases
+* [filepath](https://github.com/vadv/gopher-lua-libs/tree/master/filepath) path.filepath port
+* [goos](https://github.com/vadv/gopher-lua-libs/tree/master/goos) os port
+* [http](https://github.com/vadv/gopher-lua-libs/tree/master/http) http.client && http.server
+* [humanize](https://github.com/vadv/gopher-lua-libs/tree/master/humanize) humanize [github.com/dustin/go-humanize](https://github.com/dustin/go-humanize) port
+* [inspect](https://github.com/vadv/gopher-lua-libs/tree/master/inspect) pretty print [github.com/kikito/inspect.lua](https://github.com/kikito/inspect.lua)
+* [ioutil](https://github.com/vadv/gopher-lua-libs/tree/master/ioutil) io/ioutil port
+* [json](https://github.com/vadv/gopher-lua-libs/tree/master/json) json implementation
+* [log](https://github.com/vadv/gopher-lua-libs/tree/master/log) log port
+* [plugin](https://github.com/vadv/gopher-lua-libs/tree/master/plugin) run lua code in lua code
+* [pprof](https://github.com/vadv/gopher-lua-libs/tree/master/pprof) pprof http-server for golang from lua
+* [prometheus](https://github.com/vadv/gopher-lua-libs/tree/master/prometheus/client) prometheus exporter
+* [regexp](https://github.com/vadv/gopher-lua-libs/tree/master/regexp) regexp port
+* [runtime](https://github.com/vadv/gopher-lua-libs/tree/master/runtime) runtime port
+* [pb](https://github.com/vadv/gopher-lua-libs/tree/master/pb) [https://github.com/cheggaaa/pb](https://github.com/cheggaaa/pb) port (v3)
+* [shellescape](https://github.com/vadv/gopher-lua-libs/tree/master/shellescape) shellescape <https://github.com/alessio/shellescape> port
+* [stats](https://github.com/vadv/gopher-lua-libs/tree/master/stats) stats [https://github.com/montanaflynn/stats](https://github.com/montanaflynn/stats) port
+* [storage](https://github.com/vadv/gopher-lua-libs/tree/master/storage) package for store persist data and share values between lua states
+* [strings](https://github.com/vadv/gopher-lua-libs/tree/master/strings) strings port (utf supported)
+* [tac](https://github.com/vadv/gopher-lua-libs/tree/master/tac) tac line-by-line scanner (from end of file to up)
+* [tcp](https://github.com/vadv/gopher-lua-libs/tree/master/tcp) raw tcp client lib
+* [telegram](https://github.com/vadv/gopher-lua-libs/tree/master/telegram) telegram bot
+* [template](https://github.com/vadv/gopher-lua-libs/tree/master/template) template engines
+* [time](https://github.com/vadv/gopher-lua-libs/tree/master/time) time port
+* [xmlpath](https://github.com/vadv/gopher-lua-libs/tree/master/xmlpath) [gopkg.in/xmlpath.v2](https://gopkg.in/xmlpath.v2) port
+* [yaml](https://github.com/vadv/gopher-lua-libs/tree/master/yaml) [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2) port
+* [zabbix](https://github.com/vadv/gopher-lua-libs/tree/master/zabbix) zabbix bot

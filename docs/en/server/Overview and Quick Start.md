@@ -1,0 +1,91 @@
+---
+title: Overview and Quick Start
+permalink: /pages/rulego-server/
+---
+[RuleGo-Server](https://github.com/rulego/rulego/tree/main/server) is an **application development platform** built on the [RuleGo](https://github.com/rulego/rulego) rule engine core, providing out-of-the-box RESTful API, visual editor, multi-tenant management, and AI Agent capabilities.
+
+## Positioning and Role
+
+The RuleGo core library is a Go rule engine responsible for parsing, loading, and executing rule chains. RuleGo-Server wraps a complete application-layer capability on top of it:
+
+| Layer | Component | Responsibility |
+|------|------|------|
+| Core Engine | RuleGo | Rule chain DSL parsing, node execution, component registration |
+| Application Platform | RuleGo-Server | REST API, user authentication, multi-tenant, persistence, MCP service, visual editor |
+
+**Typical Use Cases:**
+
+- Run as a standalone server, manage and execute rule chains via API
+- Embed into existing Go web frameworks (Gin/Echo) to provide rule engine capabilities
+- Serve as an AI Agent platform, allowing AI tools to manage rule chains via the MCP protocol
+- Build IoT gateways, data processing pipelines, API orchestration, ETL workflows, and more
+
+## Features
+
+- **Lightweight**: Small memory footprint, high performance, easy deployment, out-of-the-box, no database required
+- **Rich Components**: 100+ built-in components covering AI, CI/CD, ETL, IoT, databases, message queues, and more
+- **Visual Editing**: Built-in [RuleGo-Editor](/en/pages/rulego-server-editor/) with drag-and-drop rule chain editing and debugging
+- **Zero-Code Deployment**: Load rule chain DSL files directly and run without writing any code
+- **Component-Based**: Compile on demand, load on demand, support dynamic installation from the component marketplace
+- **Hot Reload**: Rule chains support hot reload; changes take effect immediately
+- **Multi-Tenant**: Each user has an independent workspace, rule engine pool, and component configuration
+- **AI Native**: Built-in AI Agent, supports LLM components, MCP protocol, and Skill management
+- **Embeddable**: Embed into Go web frameworks like Gin/Echo via Bridge mode
+
+## Architecture
+
+![RuleGo Server backend architecture diagram](/img/rulego-server-architecture-en.png)
+
+## Quick Start
+
+### 1. Download
+
+Download the binary file for your platform from [Github Releases](https://github.com/rulego/rulego/releases/).
+
+Other versions can be compiled from the repository: [Source Code](https://github.com/rulego/rulego/tree/main/server)
+
+### 2. Start
+
+```shell
+./server -c="./config.conf"
+```
+
+Start in background:
+
+```shell
+nohup ./server -c="./config.conf" >> console.log &
+```
+
+After successful startup, the console outputs:
+
+```
+RuleGo-Server started on :9090
+```
+
+### 3. Access the Editor
+
+Open [http://localhost:9090/editor/](http://localhost:9090/editor/) in your browser to use the visual editor.
+
+## Documentation Navigation
+
+| Topic | Description |
+|------|------|
+| [Installation and Deployment](/en/pages/rulego-server-install/) | Configuration file details, Docker deployment, build tags |
+| [Authentication and Authorization](/en/pages/rulego-server-auth/) | JWT, API Key, permission system |
+| [REST API Reference](/en/pages/rulego-server-api/) | Rule chain management, execution debugging, component management, full API |
+| [MCP Service](/en/pages/rulego-server-mcp/) | MCP configuration, tool list, group control, custom MCP endpoints |
+| [AI Features](/en/pages/rulego-server-ai/) | AI Agent, Skill, MCP integration with AI programming tools |
+| [Component Marketplace](/en/pages/rulego-server-marketplace/) | Browse and install components/rule chain templates |
+| [Run Logs](/en/pages/rulego-server-runlog/) | Log storage, querying, cleanup |
+| [Internationalization](/en/pages/rulego-server-i18n/) | Language pack management |
+| [Custom Development](/en/pages/rulego-server-development/) | Module system, DI, custom storage, embedded mode |
+| [Deploying and Invoking Rule Chains](/en/pages/rulego-server-deploy-rule-chain/) | File-based and API deployment for third-party integration |
+
+### Visual Editor
+
+| Topic | Description |
+|------|------|
+| [Visual Editor](/en/pages/rulego-server-editor/) | Editor features, canvas operations |
+| [AI Assistant Tutorial](/en/pages/rulego-server-ai-tutorial/) | Create/modify rule chains via AI conversation |
+| [Debugging Rule Chains](/en/pages/rulego-server-debug/) | Debug console, single-node debugging, execution history |
+| [Creating an Agent Tutorial](/en/pages/rulego-server-create-agent/) | Visually create agents and call them via API |

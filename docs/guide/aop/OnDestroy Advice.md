@@ -1,0 +1,16 @@
+---
+title: OnDestroy 增强点
+permalink: /pages/on-destroy-advice/
+---
+销毁通知（OnDestroy Advice）：在规则引擎销毁执行完成之后执行。
+
+## 接口
+
+```go
+// Order 返回执行顺序，值越小，优先级越高
+Order() int
+// 规则链初始化时候会调用该方法创建新的实例，如果字段值需要继承，在这里处理
+New() Aspect
+// OnDestroy 规则引擎实例销毁执行之后增强点
+OnDestroy(chainCtx NodeCtx)
+```

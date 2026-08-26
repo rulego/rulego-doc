@@ -1,0 +1,61 @@
+---
+title: opengemini读客户端
+permalink: /pages/opengemini-query/
+---
+`x/opengeminiQuery`组件：<Badge text="v0.24.0+"/> OpenGemini查询客户端。用于从OpenGemini时序数据库服务器查询和读取数据。
+
+## 配置
+
+该组件支持通过`server`字段复用共享的连接客户端，避免重复创建连接。详见[组件连接复用](/pages/component-connection-reuse/)。
+
+| 字段       | 类型     | 必填 | 说明                                                          | 默认值 |
+|----------|--------|-----|-------------------------------------------------------------|-----|
+| server   | string | 是   | OpenGemini服务器地址，格式为host:port，多个服务器用逗号分隔                   | 无   |
+| database | string | 是   | 数据库名称，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                  | 无   |
+| command  | string | 是   | SQL查询语句，支持使用[组件配置变量](/pages/component-configuration-variables/)进行动态配置                | 无   |
+| username | string | 否   | 认证用户名                                                       | 无   |
+| password | string | 否   | 认证密码                                                        | 无   |
+| token    | string | 否   | 认证令牌，如果设置则优先使用token认证方式                                  | 无   |
+
+## 工作原理
+
+1. 组件初始化时会根据配置连接到OpenGemini服务器
+2. 接收到消息后，执行配置的SQL查询语句
+3. 查询成功后通过Success链路由，失败则通过Failure链路由
+4. 组件会自动管理连接的生命周期，包括重连等
+
+## Relation Type
+
+- ***Success:*** 查询成功执行时，查询结果封装到消息后发送到`Success`链路
+- ***Failure:*** 以下情况消息发送到`Failure`链路:
+  - 连接OpenGemini服务器失败
+  - 认证失败
+  - SQL语句执行失败
+  - 配置参数错误
+
+## 执行结果
+
+查询结果会被赋值到消息负荷并传递到下一个节点。结果格式示例：
+```json
+{
+  "results": [{
+    "series": [{
+      "name": "cpu_load",
+      "columns": ["time", "host", "region", "value"],
+      "values": [
+        [1434055562000000000, "server01", "us-west", 23.5],
+        [1725338686479394000, "server01", null, 98.6],
+        [1725338708995917800, "server01", null, 98.6],
+        [1725338983675575600, "server01", null, 98.6],
+        [1725339073875906000, "server01", null, 98.6],
+        [1725339073876347100, "server01", null, 98.6],
+        [1725342087314205200, "server01", null, 98.6],
+        [1725343857209643000, "server01", null, 98.6],
+        [1725343860480313900, "server01", null, 98.6],
+        [1725343860480851700, "server01", null, 98.6],
+        [1725345342428659500, "server01", null, 98.6]
+      ]
+    }]
+  }]
+}
+```

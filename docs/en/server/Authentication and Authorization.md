@@ -1,0 +1,161 @@
+---
+title: Authentication and Authorization
+permalink: /pages/rulego-server-auth/
+---
+RuleGo-Server provides a flexible user authentication and authorization system, supporting both JWT token and API Key authentication methods, and allows custom authenticators and authorizers through interfaces.
+
+## User Management
+
+Configure users in the `[users]` section of `config.conf`:
+
+```ini
+[users]
+# Format: username = password[,apiKey]
+# apiKey is optional
+admin = admin,ak-2af255ea5618467d914c67a8beeca31d
+user01 = user01
+user02 = user02,ak-another-key
+```
+
+Each user has an independent workspace; rule chains, components, configurations, and other data are isolated per user.
+
+Besides the configuration file, users can also be managed at runtime via the User Management API (only available to the `admin` role). See [User Management API](#user-management-api) below.
+
+## Role System
+
+Each user can be assigned one or more roles, which determine what the account can do:
+
+| Role | Description |
+|------|------|
+| `admin` | Full permissions, including user management |
+| `editor` | Full read/write within their own workspace, cannot manage users |
+| `viewer` | Read-only |
+
+> Anonymous access (`require_auth = false` with no credentials) and users without assigned roles are treated as `admin` by the default authorizer to preserve the out-of-the-box experience. In production, it is recommended to enable authentication and assign explicit roles to users.
+
+## Authentication Methods
+
+### Anonymous Mode (Default)
+
+When `require_auth = false` and the request does not carry authentication information, access is granted as `default_username` (default `admin`):
+
+```ini
+require_auth = false
+default_username = admin
+```
+
+### JWT Authentication
+
+Enable authentication:
+
+```ini
+require_auth = true
+jwt_secret_key = your-secret-key
+jwt_expire_time = 43200000
+jwt_issuer = rulego.cc
+```
+
+#### Login to Get Token
+
+```http
+POST /api/v1/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+```
+
+Response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresAt": 1719360000
+}
+```
+
+> `expiresAt` is a Unix timestamp (seconds). The login endpoint has rate limiting: a maximum of 10 requests per minute from the same IP; exceeding this returns 429.
+
+#### Using the Token
+
+Carry the token in subsequent requests via the `Authorization` header:
+
+```http
+GET /api/v1/rules
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+### API Key Authentication
+
+Once an apiKey is configured for a user, you can use the API Key directly instead of JWT:
+
+**Option 1: Authorization Header**
+
+```http
+GET /api/v1/rules
+Authorization: Bearer ak-2af255ea5618467d914c67a8beeca31d
+```
+
+**Option 2: X-API-Key Header**
+
+```http
+GET /api/v1/rules
+X-API-Key: ak-2af255ea5618467d914c67a8beeca31d
+```
+
+API Key is commonly used for MCP client integration, third-party system integration, and other scenarios that do not require a login flow.
+
+## Permission System
+
+### Permission Actions
+
+| Resource | Action | Description |
+|------|------|------|
+| `rule` | `read` / `write` / `delete` / `execute` / `operate` | Rule chain management |
+| `component` | `read` / `write` / `delete` | Component management |
+| `skill` | `read` / `write` / `delete` | Skill management |
+| `user` | `read` / `write` / `delete` | User management (`admin` only) |
+| `config` | `read` / `write` | System configuration |
+| `log` | `read` / `delete` | Run logs |
+| `locale` | `read` / `write` | Internationalization |
+| `marketplace` | `read` | Component marketplace |
+
+### Default Authorizer
+
+`DefaultAuthorizer` makes decisions based on roles:
+
+- Anonymous users and users without assigned roles: all operations allowed (out-of-the-box experience)
+- `admin`: all operations allowed
+- `user` resource: only `admin` can operate
+- Read-only actions such as `read` / `list`: allowed for all roles
+- Other write operations: allowed for `editor`, denied for `viewer`
+
+Data isolation is guaranteed by per-user storage (each request can only see data under its own username); the authorizer only controls "what actions are allowed".
+
+### Custom Authenticator/Authorizer
+
+RuleGo-Server's authentication and authorization are replaceable. Custom implementations can be injected through the service container:
+
+| Service Key | Interface | Description |
+|--------|------|------|
+| `module.user.authenticator` | `Authenticator` | Custom authentication logic (OAuth2, LDAP, etc.) |
+| `module.user.authorizer` | `Authorizer` | Custom authorization logic (RBAC, ABAC, etc.) |
+| `module.user.admin` | `UserAdmin` | Custom user storage and management |
+
+For custom development, see [Custom Development](/en/pages/rulego-server-development/).
+
+## User Management API
+
+The following endpoints require authentication; except for querying your own information, they are only available to the `admin` role:
+
+| Method | Path | Description |
+|------|------|------|
+| `GET` | `/api/v1/users/me` | Get current logged-in user information (username, roles, apiKey, etc.) |
+| `PATCH` | `/api/v1/users/me` | Modify current user information (e.g. password) |
+| `GET` | `/api/v1/users` | List all users (admin) |
+| `POST` | `/api/v1/users` | Create or update a user (admin); can specify roles, apiKey, disabled status |
+| `DELETE` | `/api/v1/users/:targetUsername` | Delete a user (admin); add `?purge=true` to also remove the user's data directory |
+
+Restrictions: you cannot delete the currently logged-in user yourself, nor the default user configured via `default_username`. Built-in accounts from the `[users]` section of the configuration file are not stored in the runtime user store and must be managed by editing the configuration file.

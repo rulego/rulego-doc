@@ -1,0 +1,102 @@
+---
+title: Run Logs
+permalink: /pages/rulego-server-runlog/
+---
+RuleGo-Server provides persistent storage and querying capabilities for rule chain execution logs, supporting multiple storage backends.
+
+## Configuration
+
+```ini
+# Run log level: off (no logging, default) / summary (summary only) / detail (full per-node logs)
+# Replaces the former save_run_log; per-chain additionalInfo.runLogMode can override this global setting
+run_log_mode = summary
+# Storage backend type: bbolt (default), file
+run_log_store_type = bbolt
+# Keep the most recent N log entries per rule chain, 0 means no limit
+run_log_retention_count = 500
+# Keep logs from the most recent N days, 0 means no limit
+run_log_retention_days = 7
+```
+
+Run log levels:
+
+| Level | Description |
+|------|-------------|
+| `off` | Do not record run logs (default) |
+| `summary` | Record execution summary only (start/end time, status, duration), no per-node logs collected, near-zero overhead |
+| `detail` | Record full per-node logs; the detailed execution steps of each node can be viewed in the execution history |
+
+The rule chain level `additionalInfo.runLogMode` (`off` / `summary` / `detail`) can override the global setting, enabling per-chain log policies.
+
+## Storage Backends
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `bbolt` | Embedded key-value database (default) | Production, good performance |
+| `file` | JSON Lines file storage | Debugging, log export |
+
+> When `run_log_mode = off`, a no-op store is used internally; no extra configuration is needed.
+
+## Query Execution History
+
+```http
+GET /api/v1/logs/runs?chainId={chainId}&page=1&size=20&startTime=&endTime=
+Authorization: Bearer {token}
+```
+
+Query parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `chainId` | string | Rule chain ID filter |
+| `id` | string | Specific run record ID |
+| `page` | int | Page number |
+| `size` | int | Items per page |
+| `startTime` | string | Start time filter |
+| `endTime` | string | End time filter |
+
+## Get a Single Record
+
+```http
+GET /api/v1/logs/runs?id={runId}
+Authorization: Bearer {token}
+```
+
+## Delete Records
+
+```http
+# Delete by rule chain
+DELETE /api/v1/logs/runs?chainId={chainId}
+
+# Delete by record ID
+DELETE /api/v1/logs/runs?id={runId}
+Authorization: Bearer {token}
+```
+
+## Node Debug Data
+
+Get debug logs for rule chain nodes:
+
+```http
+GET /api/v1/logs/debug?chainId={chainId}&nodeId={nodeId}
+Authorization: Bearer {token}
+```
+
+Node debug logging is controlled by the `debug` and `max_node_log_size` configuration:
+
+```ini
+# Whether to print node debug logs to the log file
+debug = true
+# Maximum log entries per node
+max_node_log_size = 40
+```
+
+## Viewing in the Editor
+
+- **Debug Console**: Bottom panel displays node IN/OUT data in real time
+- **Node Debug Panel**: Click a node to view historical debug logs
+- **Execution History**: View historical execution records in the run dialog
+
+## WebSocket Real-time Debugging
+
+See [REST API Reference - Real-time Debugging](/en/pages/rulego-server-api/#real-time-debugging).

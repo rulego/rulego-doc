@@ -1,0 +1,16 @@
+---
+title: OnChainBeforeInit Advice
+permalink: /pages/on-chain-before-init-advice/
+---
+OnChainBeforeInit Advice: Executes before the initialization of the rule engine. If an error is returned, creation fails.
+
+## 接口
+
+```go
+// Order returns the execution order, the smaller the value, the higher the priority
+Order() int
+// New creates a new instance
+New() Aspect
+// OnChainBeforeInit is the advice that executes before the rule engine initialization.
+OnChainBeforeInit(config types.Config,def *RuleChain) error
+```

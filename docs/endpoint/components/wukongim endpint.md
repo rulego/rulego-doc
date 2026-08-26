@@ -1,0 +1,120 @@
+---
+title: Wukongim Endpoint
+permalink: /pages/endpoint-wukongim/
+name: rulego
+link: https://github.com/rulego/rulego
+---
+***wukongim Endpoint*** <Badge text="v0.28.0+"/> 提供了基于Wukongim的频道消息订阅功能，订阅消息信传递下个节点处理。
+
+::: tip 
+1.该组件是扩展组件，需要引入额外的扩展库：[rulego-components](https://github.com/rulego/rulego-components)
+
+:::
+
+
+## Type
+
+endpoint/wukongim
+
+## 配置参数
+
+| 字段           | 类型   | 说明                       | 默认值                       |
+|----------------|--------|----------------------------|------------------------------|
+| server         | string | Wukongim服务器地址列表     | `tcp://175.27.245.108:15100` |
+| uid            | string | 用户UID                    | `test1`                      |
+| token          | string | 登录密码                   | `test1`                      |
+| connectTimeout | int64  | 连接超时（单位：秒）       | `5`                          |
+| protoVersion   | int    | Proto版本                  | `wkproto.LatestVersion`      |
+| pingInterval   | int64  | 心跳间隔（单位：秒）       | `30`                         |
+| reconnect      | bool   | 是否自动重连               | `true`                       |
+| autoAck        | bool   | 是否自动确认               | `true`                       |
+
+
+## 配置示例
+
+```json
+{
+"ruleChain": {
+"id": "wGhAZMxoSECp",
+"name": "悟空IM消息订阅",
+"debugMode": false,
+"root": true,
+"disabled": true,
+"additionalInfo": {
+"createTime": "2025/01/13 10:04:40",
+"description": "",
+"layoutX": "280",
+"layoutY": "280",
+"updateTime": "2025/01/13 10:11:24",
+"username": "admin"
+}
+},
+"metadata": {
+"endpoints": [
+{
+"id": "node_2",
+"additionalInfo": {
+"layoutX": 570,
+"layoutY": 440
+},
+"type": "endpoint/wukongim",
+"name": "订阅",
+"debugMode": false,
+"configuration": {
+"autoAck": true,
+"connectTimeout": 5,
+"pingInterval": 30,
+"protoVersion": 3,
+"reconnect": true,
+"server": "tcp://175.27.245.108:15100",
+"token": "test1",
+"uid": "group1"
+},
+"processors": null,
+"routers": [
+{
+"id": "peywKET4J7YD",
+"params": [],
+"from": {
+"path": "*",
+"configuration": null,
+"processors": []
+},
+"to": {
+"path": "wGhAZMxoSECp:node_4",
+"configuration": null,
+"wait": false,
+"processors": []
+}
+}
+]
+}
+],
+"nodes": [
+{
+"id": "node_4",
+"additionalInfo": {
+"layoutX": 790,
+"layoutY": 350
+},
+"type": "log",
+"name": "log",
+"debugMode": true,
+"configuration": {
+"jsScript": "return 'Incoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);"
+}
+}
+],
+"connections": []
+}
+}
+```
+
+
+## 输出参数
+
+从Wukongim服务器接收到的消息会被转换为 `RuleMsg` 格式并发送到规则链：
+
+- **data**：消息内容
+- **dataType**：JSON
+- **type**：默认为空

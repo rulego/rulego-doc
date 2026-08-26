@@ -1,0 +1,20 @@
+---
+title: Standard Components Overview
+permalink: /pages/standard-components/
+---
+Standard components are components that come with the core code, do not need additional settings, and can be used directly in the rule chain. The component library is divided into the following types:
+* **common:** Common components that provide rule chain flow control functions, such as node reference, group execution, loop iteration, branch control, parallel processing, result merging, and end control.
+* **filter:** Filter or route messages.
+* **transform:** Transform or enhance messages.
+* **action:** Perform some actions.
+* **external:** Integrate with third-party systems/protocols, such as: calling kafka, third-party api, third-party systems, etc.
+* **stats:** Data analysis and statistics, data aggregation and calculation.
+* **flow:** Sub-rule chain.
+
+## Contribute components
+
+One of RuleGo's core features is componentization, all business logic are components, and can be flexibly configured and reused. Currently, RuleGo has built-in a large number of commonly used components.     
+However, we know that these components are far from meeting the needs of all users, so we hope that more developers can contribute extension components to RuleGo, making RuleGo's ecology more rich and powerful.
+
+> If your submitted component code has no third-party dependencies or is a general-purpose component, please submit it to the standard component [components](https://github.com/rulego/rulego) under the main library,     
+> otherwise submit it to the extension component repository: [rulego-components](https://github.com/rulego/rulego-components).

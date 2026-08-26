@@ -1,0 +1,16 @@
+---
+title: OnChainBeforeInit 增强点
+permalink: /pages/on-chain-before-init-advice/
+---
+规则引擎初始化之前通知（OnChainBeforeInit Advice）：在规则引擎初始化之前执行执行，如果返回错误，则创建失败。
+
+## 接口
+
+```go
+// Order 返回执行顺序，值越小，优先级越高
+Order() int
+// 规则链初始化时候会调用该方法创建新的实例，如果字段值需要继承，在这里处理
+New() Aspect
+// OnChainBeforeInit 规则引擎初始化之前的增强点，如果返回错误，则创建失败
+OnChainBeforeInit(config types.Config,def *RuleChain) error
+```

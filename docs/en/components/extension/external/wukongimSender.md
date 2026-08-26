@@ -1,0 +1,82 @@
+---
+title: WukongimSender 
+permalink: /pages/x-wukongimSender/
+---
+`x/wukongimSender` component: <Badge text="v0.29.0+"/> Wukongim message sender.
+
+> Requires an additional extension library: [rulego-components](https://github.com/rulego/rulego-components)
+
+## Configuration
+
+| Field          | Type             | Description                     | Default Value                 |
+|----------------|------------------|---------------------------------|------------------------------|
+| server         | string           | Server address                  | `tcp://175.27.245.108:15100` |
+| uid            | string           | User UID                        | `test1`                      |
+| token          | string           | Login password                  | `test1`                      |
+| connectTimeout | int64            | Connection timeout (in seconds) | `5`                          |
+| protoVersion   | int              | Protocol version                | `wkproto.LatestVersion`      |
+| pingInterval   | int64            | Heartbeat interval (in seconds) | `30`                         |
+| reconnect      | bool             | Whether to reconnect automatically | `true`                       |
+| autoAck        | bool             | Whether to automatically acknowledge messages | `true`                       |
+| channelId      | string           | Channel ID (supports `${}` placeholders) | `${channelId}`               |
+| channelType    | string           | Channel type (supports `${}` placeholders) | `${channelType}`             |
+| noPersist      | bool             | Whether to persist messages     | `false`                      |
+| syncOnce       | bool             | Whether to synchronize once (write mode) | `false`                      |
+| redDot         | bool             | Whether to display a red dot    | `true`                       |
+| noEncrypt      | bool             | Whether to encrypt messages     | `false`                      |
+
+## Configuration Example
+
+```json
+{
+	"ruleChain": {
+		"id": "j-VTV0NZgtgA",
+		"name": "WukongIM Send Test",
+		"root": true,
+		"additionalInfo": {
+			"description": "",
+			"layoutX": "670",
+			"layoutY": "330"
+		},
+		"configuration": {},
+		"disabled": false
+	},
+	"metadata": {
+		"endpoints": [],
+		"nodes": [
+			{
+				"id": "node_2",
+				"type": "x/wukongimSender",
+				"name": "Send Node",
+				"configuration": {
+					"server": "tcp://127.0.0.1:5100",
+					"uid": "test1",
+					"token": "test1",
+					"connectTimeout": "50",
+					"protoVersion": 3,
+					"pingInterval": "300",
+					"reconnect": true,
+					"autoAck": true,
+					"channelId": "test2",
+					"channelType": 1,
+					"redDot": true
+				},
+				"debugMode": true,
+				"additionalInfo": {
+					"layoutX": 990,
+					"layoutY": 330
+				}
+			}
+		],
+		"connections": []
+	}
+}
+
+## Relation Type
+Success: Execution is successful, and the message is sent to the Success chain.
+Failure: Execution fails, and the message is sent to the Failure chain.
+## Execution Result
+Refer to the return value of Wukongim's SendMessage function, which is converted to the RuleMsg format and sent to the rule chain:
+data: Content returned by SendMessage.
+dataType: JSON.
+type: Default is empty.

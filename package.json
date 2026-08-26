@@ -10,13 +10,22 @@
     "editFm": "node utils/editFrontmatter.js",
     "baiduPush": "node utils/baiduPush.js https://www.rulego.cc && bash baiduPush.sh",
     "publish": "cd ./rulego-doc && npm publish && cd .. && yarn updateTheme",
-    "updateTheme": "yarn remove vuepress-theme-vdoing && rm -rf node_modules && yarn && yarn add vuepress-theme-vdoing -D"
+    "updateTheme": "yarn remove vuepress-theme-vdoing && rm -rf node_modules && yarn && yarn add vuepress-theme-vdoing -D",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs && node scripts/postbuild.mjs",
+    "docs:preview": "vitepress preview docs --port 4173",
+    "migrate": "node scripts/migrate.mjs"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "dayjs": "^1.9.7",
     "inquirer": "^7.1.0",
     "json2yaml": "^1.1.0",
+    "markdown-it-container": "^2.0.0",
+    "mermaid": "^11.17.2",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "vue": "^3.5.41",
     "vuepress": "1.9.9",
     "vuepress-plugin-baidu-autopush": "^1.0.1",
     "vuepress-plugin-baidu-tongji": "^1.0.1",

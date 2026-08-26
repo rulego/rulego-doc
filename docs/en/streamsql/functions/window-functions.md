@@ -1,0 +1,35 @@
+---
+title: Window Functions
+permalink: /pages/streamsql-window-functions/
+---
+# StreamSQL Window Functions
+
+Window functions provide window-related information.
+
+## WINDOW_START - Window Start Time
+**Syntax**: `window_start()`  
+**Description**: Returns the start time of the current window.  
+**Incremental Calculation**: ✅ Supported  
+**Example**:
+```sql
+SELECT device, window_start() as window_begin, avg(temperature) as avg_temp 
+FROM stream 
+GROUP BY device, TumblingWindow('10s')
+```
+
+## WINDOW_END - Window End Time
+**Syntax**: `window_end()`  
+**Description**: Returns the end time of the current window.  
+**Incremental Calculation**: ✅ Supported  
+**Example**:
+```sql
+SELECT device, window_end() as window_finish, avg(temperature) as avg_temp 
+FROM stream 
+GROUP BY device, TumblingWindow('10s')
+```
+
+## 📚 Related Documentation
+
+- [Aggregate Functions](/en/pages/streamsql-aggregate-functions/) - Learn detailed usage of aggregate functions
+- [Analytical Functions](/en/pages/streamsql-analytical-functions/) - Learn detailed usage of analytical functions
+- [SQL Reference](/en/pages/streamsql-sql/) - View complete SQL syntax reference

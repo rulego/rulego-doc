@@ -1,0 +1,166 @@
+---
+title: Get Component Configuration Forms
+permalink: /pages/get-component-form/
+---
+This API will scan all the components registered to the registrar, and get the component definition and form 
+configuration information according to [the agreed method](/en/pages/component-form-conventions/) . It is used for rule chain visual configuration, component material loading.
+
+## Component Configuration Form API
+Return a list of all registered component definitions and their form configuration information.
+
+```go
+rulego.Registry.GetComponentForms().Values()
+```
+
+Return type: `[]types.ComponentForm`
+
+Reference example: [examples/ui_api/](https://github.com/rulego/rulego/tree/main/examples/ui_api/ui_api.go)
+
+Example return result: [testdata/components.json](https://github.com/rulego/rulego/tree/main/doc/components.json)
+
+###  types.ComponentForm
+
+| Field         | Type                 | Description                                                                    | Default value                                                                                                                                                                                   |
+|---------------|----------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| type          | string               | Component type                                                                 | The value of the Type() function implemented by the component, globally unique                                                                                                                  |
+| category      | string               | Component category                                                             |                                                                                                                                                                                                 |
+| fields        | []ComponentFormField | Component configuration field list                                             | The default is to get the Config field of the component                                                                                                                                         |
+| label         | string               | Component display name                                                         | Empty                                                                                                                                                                                           |
+| desc          | string               | Component description                                                          | Empty                                                                                                                                                                                           |
+| icon          | string               | Icon                                                                           | Empty                                                                                                                                                                                           |
+| relationTypes | []string             | The list of connection names that can be generated with the next node          | The default for filter node types is: True/False/Failure; the default for other node types is Success/Failure, if it is empty, it means that the user can customize the connection relationship |
+| disabled      | bool                 | Whether to disable, if disabled, it will not be displayed in the rulego-editor | false                                                                                                                                                                                           |
+
+
+###  types.ComponentFormField
+
+| Field        | Type                 | Description                                                                                        | Default value                                                                                                                        |
+|--------------|----------------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| name         | string               | Field name                                                                                         |                                                                                                                                      |
+| type         | string               | Field type                                                                                         | Such as: string, int, bool, etc.                                                                                                     |
+| defaultValue | any                  | Default value                                                                                      | The default value of the corresponding field of the component implementation method node.New(), Config, will be filled in this value |
+| label        | string               | Field display name                                                                                 | Empty, can be specified by tag:Label                                                                                                 |
+| desc         | string               | Field description                                                                                  | Empty, can be specified by tag:Desc                                                                                                  |
+| rules        | []Object             | Front-end interface validation rules, example: {required: true, message: "This field is required"} | Empty                                                                                                                                |
+| fields       | []ComponentFormField | Nested fields, Type=struct, for nested fields                                                      | Empty                                                                                                                                |
+| component    | Object               | Form component configuration, example: {"type": "codeEditor"}                                      | Empty                                                                                                                                |
+
+
+**type**: Field type, currently provides the following types, the `rulego-editor` front-end will automatically select form components based on the type.
+
+- `string`
+- `bool`
+- `int`
+- `int8`
+- `int16`
+- `int32`
+- `int64`
+- `uint`
+- `uint8`
+- `uint16`
+- `uint32`
+- `uint64`
+- `float32`
+- `float64`
+- `array`: Slice type will also be converted to: array
+- `map`
+- `struct`: nested fields
+
+You can also explicitly specify the form component type through the **component** field:
+
+- `codeEditor`: Code Editor
+- `textarea`: Text Area
+- `select`: Dropdown box, example:
+```json
+{
+  "type": "select",
+  "filterable": true,
+  "allowCreate": false,
+  "multiple": false,
+  "options": [
+    {
+      "label": "TCP",
+      "value": "tcp"
+    },
+    {
+      "label": "UDP",
+      "value": "udp"
+    }
+  ]
+}
+```
+
+## Component Configuration Form Conventions
+[Component Configuration Form Conventions](/en/pages/component-form-conventions/)
+
+## Customize component form configuration information
+
+Custom components can implement the following optional interface to override the definitions from 
+the [Component Configuration Form Conventions](/en/pages/component-form-conventions/) :
+```go
+type ComponentDefGetter interface {
+Def() ComponentForm
+}
+```
+
+Example:
+```go
+// Configuration item, supports the following types
+type DefaultValueConfig struct {
+	Num    int
+	Url    string `label:"Server address" desc:"broker server address" validate:"required" `
+	IsSsl  bool
+	Params []string
+	A      int32
+	B      int64
+	C      float64
+	D      map[string]string
+	E      TestE
+	F      uint16
+}
+type TestE struct {
+	A string
+}
+//Custom Components
+type DefaultValueNode struct {
+	BaseNode
+	// Return form configuration item definition information based on the definition of this field
+	Config DefaultValueConfig
+}
+
+func (n *DefaultValueNode) Type() string {
+	return "test/defaultConfig"
+}
+
+func (n *DefaultValueNode) New() types.Node {
+	return &DefaultValueNode{
+		Config: DefaultValueConfig{
+			Url: "http://localhost:8080",
+			Num: 5,
+			E: TestE{
+				A: "Test",
+			},
+		},
+	}
+}
+//Implement the ComponentDefGetter interface to modify component names and descriptions
+func (n *DefaultValueNode) Def() types.ComponentForm {
+	relationTypes := &[]string{"aa", "bb"}
+	return types.ComponentForm{
+		Label:         "Default test component",
+		Desc:          "Usage xxxxx",
+		RelationTypes: relationTypes,
+	}
+}
+
+```
+
+You can also modify it and return it to the front end.
+Example:
+```go
+	items := Registry.GetComponentForms()
+	componentForm, ok := items.GetComponent("test/configHasPtr")
+	assert.Equal(t, true, ok)
+	componentForm.Label = "Chinese Label"
+	items[componentForm.Type] = componentForm
+```

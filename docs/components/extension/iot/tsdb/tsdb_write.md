@@ -1,0 +1,81 @@
+---
+title: 时序数据库写
+permalink: /pages/x-tsdb-write/
+---
+`x/tsdbWrite`组件：<Badge text="v0.37.0+"/>通用时序数据库写入节点，按 `driver` 配置委派到具体 TSDB 后端。
+
+> 需要额外引入扩展库： [rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## 配置
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| driver | string | TSDB 驱动：opengemini/influxdb/tdengine/timescaledb/promremote | 必填 |
+| measurement | string | 测点表名。配置后，输入为采集点数组（`iot_points.Data`）时自动透视为 SeriesPoint，输入为扁平 map/map 数组时逐行转换为 SeriesPoint；留空则输入须为已透视的 SeriesPoint 格式 | 空 |
+| tags | array | 落盘索引维度，见下表 | 空 |
+| fields | array | 落盘字段映射，见下表；留空=全量展开（采集点）或整行 map 作为 fields | 空 |
+| *(其余字段)* | — | 透传给对应 TSDB 写节点（dsn/url/token/database 等） | — |
+
+### tags
+
+每一项为一个键值对：
+
+| key | value |
+|-----|-------|
+| 索引维度名 | 索引值，支持 `${msg.xx}` 模板 |
+
+### fields
+
+每一项为一个字段映射：
+
+| key | source |
+|-----|--------|
+| 落盘字段名 | 来源键：采集点数组下为采集点 name，扁平 map 下为 map 的 key；留空=全量展开 |
+
+## 输入格式（msg.Data）
+
+输入有三种形态（配置了 `measurement` 时前两种自动转换，未配置时只认 SeriesPoint）：
+
+- **SeriesPoint**：已透视好的时序点（未配置 `measurement` 时必须为此格式），JSON 数组或单对象，原样透传。
+- **`iot_points.Data` 数组**：采集点原始数据（即 x/iotRead 的输出），自动**透视合并为 1 个** SeriesPoint——各点 name→value 展开为 fields，timestamp 取各点最大值。
+- **扁平 map / map 数组**：如 jsTransform、x/streamAggregator 窗口结果的输出，**逐行转换**——每行 map 生成 1 个 SeriesPoint，整个 map 作为 fields（配置了 `fields` 时按其筛选/重命名），timestamp 取当前时间。
+
+SeriesPoint 示例（JSON 数组或单对象）：
+
+```json
+[
+  {"measurement": "device1", "tags": {"site": "A"}, "fields": {"temp": 25.3, "humidity": 60}, "timestamp": 0}
+]
+```
+
+| 字段 | 说明 |
+|------|------|
+| measurement | 测点表/设备表名 |
+| tags | 索引维度（deviceId/位置等） |
+| fields | 数值/状态字段 |
+| timestamp | 纳秒时间戳（0=当前时间） |
+
+扁平 map 转换示例（配置 `measurement: device1`、`fields: [{key: temp, source: temperature}]`）：
+
+```
+输入: {"deviceId":"dev-07","temperature":25.3,"humidity":60}
+输出: [{"measurement":"device1","tags":{...},"fields":{"temp":25.3},"timestamp":now}]
+```
+
+map 数组则逐行生成多个 SeriesPoint。已经是 SeriesPoint 形状（含 measurement+fields 键）的输入不会被二次转换。
+
+非 JSON 时按 line protocol 文本解析。
+
+> 注意区分：配置节的 `measurement`/`tags`/`fields` 是节点的静态落盘配置；SeriesPoint 中的同名字段是每次输入的运行时数据，二者概念不同。输入为 `iot_points.Data` 数组时由配置项决定如何透视；输入为扁平 map 时整个 map（或经 `fields` 筛选后）作为 fields。
+
+## 支持的 driver
+
+| driver | 委派节点 | 连接配置 |
+|--------|----------|----------|
+| opengemini | x/opengeminiWrite | host/username/password/database |
+| influxdb | x/influxdbWrite | url/token/org/bucket |
+| tdengine | x/tdengineWrite | dsn (REST: root:taosdata@http(host:6041)/) |
+| timescaledb | x/timescaledbWrite | dsn (PostgreSQL: postgres://...) |
+| promremote | x/promremoteWrite | url (http://victoria:8428/api/v1/write) |
+
+> **建表约定差异**：opengemini/influxdb/promremote 为 schemaless，可直接写入；**tdengine** 需预建超级表（带 tags 时子表自动创建）或同名普通表（不带 tags 时），见 [x/tdengineWrite](/pages/x-tdengine-write/)；**timescaledb** 需预建与 measurement 同名的 hypertable，见 [x/timescaledbWrite](/pages/x-timescaledb-write/)。

@@ -1,0 +1,483 @@
+---
+title: Stream Aggregator
+permalink: /pages/x-stream-aggregator/
+---
+# streamAggregator
+
+**Node Type:** `x/streamAggregator`
+
+**Description:** Stream aggregator node, processes aggregate SQL queries (window aggregation, group aggregation, etc.) or CEP pattern recognition (MATCH_RECOGNIZE). Based on the StreamSQL engine; supports aggregation over various windows (Tumbling/Sliding/Counting) and pattern matching over event sequences. Supports single data and array data input.
+
+::: danger Upgrade Notice (v0.37.0)
+The aggregation result relation type was renamed from `window_event` to `stream_event`: change `"type": "window_event"` connections in your rule chain DSL to `"stream_event"`; the exported Go constants `RelationTypeWindowEvent`/`WindowEventMsgType` were renamed to `RelationTypeStreamEvent`/`StreamEventMsgType`.
+:::
+
+## Input Data Support
+
+This node supports two input data formats:
+
+### Single Data Input
+Directly process a single JSON object:
+```json
+{"deviceId": "sensor001", "temperature": 25.5, "humidity": 60.2}
+```
+
+### Array Data Input
+Automatically process JSON arrays, adding each element in the array to the aggregation stream one by one:
+```json
+[
+  {"deviceId": "sensor001", "temperature": 25.5, "humidity": 60.2},
+  {"deviceId": "sensor002", "temperature": 28.3, "humidity": 55.8},
+  {"deviceId": "sensor003", "temperature": 22.1, "humidity": 65.4}
+]
+```
+
+::: tip Array Processing Description
+- Each element in the array will be added to the aggregation stream one by one to participate in the aggregation calculation.
+- The original array message will continue to be passed through the Success chain, maintaining data flow continuity.
+- Aggregation results are still passed through the stream_event chain.
+:::
+
+### IoT Point Array Input (inputFormat)
+
+The point array output by the [IoT acquisition components](/en/pages/iot-overview/) (`x/iotRead`) can enter this node directly, with no transform node needed:
+
+```json
+[
+  {"name": "temperature", "value": 25.3, "timestamp": 1721900000000000000},
+  {"name": "humidity", "value": 60, "timestamp": 1721900000000000000}
+]
+```
+
+The `inputFormat` config decides how it enters the stream:
+
+| inputFormat | How it enters the stream | SQL style | Suited for |
+|---|---|---|---|
+| `auto` (default) | one row per point (long format), columns `name/value/timestamp` | `GROUP BY name` for per-point stats | per-point aggregation/alarms, dynamic point sets |
+| `columns` | the whole batch is pivoted into one wide row `{pointName:value}` (bad points skipped) | use point names directly as columns, cross-point math | cross-point calculations, no GROUP BY name needed |
+
+Long-format example (per-point 1-minute average):
+
+```sql
+SELECT name, AVG(value) AS value FROM stream WHERE error IS NULL GROUP BY name, TumblingWindow('1m')
+```
+
+Wide-format example (cross-point calculation):
+
+```sql
+SELECT AVG(temperature) AS avg_temp, AVG(humidity) AS avg_hum FROM stream GROUP BY TumblingWindow('1m')
+```
+
+::: tip Event-time windows & storage timestamp
+- The pivoted row carries `timestamp` (the acquisition time). To window by data time (replay/late-compensation), add a `WITH` clause: `GROUP BY TumblingWindow('1m') WITH (TIMESTAMP='timestamp', TIMEUNIT='ns')`.
+- Aggregation results auto-carry the window-end timestamp (injected from `window_id`), so `x/tsdbWrite` stores at the window time - **no need to project `window_end() AS timestamp` explicitly**. The pivoted `timestamp` is also extracted by tsdbWrite as a reserved key (not stored as a field).
+:::
+
+::: warning Don't use non-ASCII point names in wide format
+In wide format the point name is the SQL column name - don't use non-ASCII names (this currently causes SQL parse/eval issues). In auto mode the point name is just a data value and is unaffected.
+:::
+
+::: warning Long-format caveats
+- Count samples per point: only `COUNT(*)` within a `GROUP BY name` group equals that point's sample count (a bare `COUNT(*)` is "points × samples")
+- Always include `GROUP BY name` - otherwise all points mix into one statistic, producing a meaningless result that does not error
+- When the aggregation result keeps the `name/value` columns, `x/tsdbWrite` can pivot the result array into a single time-series record directly
+:::
+
+## Configuration
+
+| Field | Type | Description | Default Value |
+|----|------|----|------|
+| sql | string | Aggregate SQL query statement, must contain aggregation functions or window functions | None |
+| inputFormat | string | Array input mode: `auto` enters each element as a row (long format); `columns` pivots an IoT point array into one wide row before entering the stream | auto |
+| tables | array | Optional, metadata table configuration for stream-table JOIN enrichment (see [SQL Reference](/pages/streamsql-sql/)) | None |
+
+## SQL Syntax Support
+
+::: tip Detailed Syntax Reference
+For complete SQL syntax instructions, please refer to: [StreamSQL SQL Syntax Reference](/pages/streamsql-sql/)
+:::
+
+## Relation Types
+
+- **Success:** After the original message is successfully processed, the original message is passed through this relation chain.
+- **stream_event:** Results are passed through this relation chain — an aggregation window fires producing statistical rows, or a CEP pattern match producing match rows; the message body is a multi-column array.
+- **Failure:** When processing fails, error information is passed through this relation chain.
+
+## Execution Results
+
+### Success Chain Output
+The original message remains unchanged and continues to be passed to the next node.
+
+### stream_event Chain Output
+The aggregation result is passed as a new message, format:
+```json
+[
+  {
+    "field1": "value1",
+    "field2": "value2",
+    "count": 10,
+    "avg_temperature": 25.5
+  }
+]
+```
+
+### Failure Chain Output
+Error message, containing specific error descriptions.
+
+## Configuration Examples
+
+### Basic Group Aggregation
+```json
+{
+  "id": "s1",
+  "type": "x/streamAggregator",
+  "name": "Device Temperature Aggregation",
+  "configuration": {
+    "sql": "SELECT deviceId, AVG(temperature) as avg_temp, MAX(temperature) as max_temp, COUNT(*) as count FROM stream GROUP BY deviceId, TumblingWindow('2s')"
+  }
+}
+```
+
+### Sliding Window Aggregation
+```json
+{
+  "id": "s2",
+  "type": "x/streamAggregator",
+  "name": "Sliding Window Analysis",
+  "configuration": {
+    "sql": "SELECT AVG(temperature) as avg_temp, COUNT(*) as count FROM stream GROUP BY SlidingWindow('10s', '2s')"
+  }
+}
+```
+
+### Multi-field Aggregation
+```json
+{
+  "id": "s3",
+  "type": "x/streamAggregator",
+  "name": "Multi-dimensional Aggregation",
+  "configuration": {
+    "sql": "SELECT deviceType, location, AVG(temperature) as avg_temp, MIN(humidity) as min_humidity, MAX(pressure) as max_pressure FROM stream GROUP BY deviceType, location, TumblingWindow('5m')"
+  }
+}
+```
+
+## Windowed Analytic Functions
+
+Analytic functions (`lag`, `had_changed`, `changed_col`/`changed_cols`, `acc_*`) can be used in the SELECT of an aggregate SQL query. They are evaluated against the **window output rows**, and their state is **preserved across windows** (not cleared on window close). Their arguments must be aggregate functions or `GROUP BY` fields — they cannot reference raw columns.
+
+```sql
+-- Average every two events, output the window only when the average changes
+SELECT changed_cols("t", true, avg(temperature)) FROM stream GROUP BY CountingWindow(2)
+
+-- Accumulate window averages across windows
+SELECT acc_sum(avg(temperature)) AS total FROM stream GROUP BY CountingWindow(2)
+
+-- JOIN metadata to enrich, then group and aggregate by location
+SELECT m.location, AVG(temperature) AS avg_temp FROM stream JOIN meta m ON deviceId = m.deviceId
+GROUP BY m.location, TumblingWindow('5s')
+```
+
+For full syntax see [Analytic Functions](/pages/streamsql-analytical-functions/).
+
+## Application Examples
+
+### Example 1: Device Status Monitoring
+
+**Scenario:** Monitor IoT device temperature data, calculating the average and maximum temperature of each device every 2 seconds.
+
+**Rule Chain Configuration:**
+```json
+{
+  "ruleChain": {
+    "id": "device_monitoring",
+    "name": "Device Monitoring Rule Chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamAggregator",
+        "name": "Temperature Aggregation",
+        "configuration": {
+          "sql": "SELECT deviceId, AVG(temperature) as avg_temp, MAX(temperature) as max_temp, COUNT(*) as count FROM stream GROUP BY deviceId, TumblingWindow('2s')"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsTransform",
+        "name": "Result Processing",
+        "configuration": {
+          "jsScript": "msg.timestamp = new Date().toISOString(); return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "Aggregation Result Log",
+        "configuration": {
+          "jsScript": "return 'Aggregation Result: ' + JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "log",
+        "name": "Original Data Log",
+        "configuration": {
+          "jsScript": "return 'Original Data: ' + JSON.stringify(msg);"
+        }
+      }
+    ],
+    "connections": [
+      {"fromId": "s1", "toId": "s2", "type": "stream_event"},
+      {"fromId": "s1", "toId": "s4", "type": "Success"},
+      {"fromId": "s2", "toId": "s3", "type": "Success"}
+    ]
+  }
+}
+```
+
+**Input Data:**
+```json
+{"deviceId": "device001", "temperature": 25.5, "timestamp": "2023-09-13T10:00:00Z"}
+{"deviceId": "device001", "temperature": 26.2, "timestamp": "2023-09-13T10:00:01Z"}
+{"deviceId": "device002", "temperature": 24.8, "timestamp": "2023-09-13T10:00:01Z"}
+```
+
+**Aggregation Result Output:**
+```json
+{
+  "deviceId": "device001",
+  "avg_temp": 25.85,
+  "max_temp": 26.2,
+  "count": 2
+}
+```
+
+### Example 2: High Temperature Alarm System
+
+**Scenario:** Use a sliding window to monitor temperature changes and trigger an alarm when the average temperature within 3 seconds exceeds 30 degrees.
+
+**Rule Chain Configuration:**
+```json
+{
+  "ruleChain": {
+    "id": "temperature_alarm",
+    "name": "High Temperature Alarm Rule Chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamAggregator",
+        "name": "Temperature Sliding Window",
+        "configuration": {
+          "sql": "SELECT AVG(temperature) as avg_temp, MAX(temperature) as max_temp, COUNT(*) as count FROM stream GROUP BY SlidingWindow('3s', '1s')"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsFilter",
+        "name": "High Temperature Filter",
+        "configuration": {
+          "jsScript": "return msg.avg_temp > 30;"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "jsTransform",
+        "name": "Alarm Message",
+        "configuration": {
+          "jsScript": "msg.alert = 'High temperature detected!'; msg.level = 'WARNING'; return {'msg': msg, 'metadata': metadata, 'msgType': 'ALARM'};"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "log",
+        "name": "Alarm Log",
+        "configuration": {
+          "jsScript": "return 'ALARM: ' + JSON.stringify(msg);"
+        }
+      }
+    ],
+    "connections": [
+      {"fromId": "s1", "toId": "s2", "type": "stream_event"},
+      {"fromId": "s2", "toId": "s3", "type": "True"},
+      {"fromId": "s3", "toId": "s4", "type": "Success"}
+    ]
+  }
+}
+```
+
+### Example 3: Batch Aggregation of Array Data
+
+**Scenario:** Process an array message containing multiple devices' data for batch aggregation.
+
+**Input Data:**
+```json
+[
+  {"deviceId": "sensor001", "temperature": 25.5, "location": "room1"},
+  {"deviceId": "sensor002", "temperature": 28.3, "location": "room1"},
+  {"deviceId": "sensor003", "temperature": 22.1, "location": "room2"},
+  {"deviceId": "sensor004", "temperature": 30.8, "location": "room2"}
+]
+```
+
+**Rule Chain Configuration:**
+```json
+{
+  "ruleChain": {
+    "id": "batch_aggregation",
+    "name": "Batch Data Aggregation",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "x/streamAggregator",
+        "name": "Aggregate by Location",
+        "configuration": {
+          "sql": "SELECT location, AVG(temperature) as avg_temp, MAX(temperature) as max_temp, COUNT(*) as device_count FROM stream GROUP BY location, TumblingWindow('5s')"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "log",
+        "name": "Aggregation Result",
+        "configuration": {
+          "jsScript": "return 'Location Aggregation: ' + JSON.stringify(msg);"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "log",
+        "name": "Original Array",
+        "configuration": {
+          "jsScript": "return 'Original Array: ' + JSON.stringify(msg);"
+        }
+      }
+    ],
+    "connections": [
+      {"fromId": "s1", "toId": "s2", "type": "stream_event"},
+      {"fromId": "s1", "toId": "s3", "type": "Success"}
+    ]
+  }
+}
+```
+
+**Aggregation Result Output:**
+```json
+[
+  {"location": "room1", "avg_temp": 26.9, "max_temp": 28.3, "device_count": 2},
+  {"location": "room2", "avg_temp": 26.45, "max_temp": 30.8, "device_count": 2}
+]
+```
+
+### Example 4: Persistent Over-Threshold Alarm (Sliding Window + HAVING)
+
+**Scenario:** Trigger an alarm only when the current stays above 200A for 10 seconds — any dip in between cancels the alarm.
+
+**Node Configuration:**
+```json
+{
+  "id": "s4",
+  "type": "x/streamAggregator",
+  "configuration": {
+    "sql": "SELECT min(current) AS mn, count(*) AS c FROM stream GROUP BY SlidingWindow('10s', '1s') HAVING mn > 200"
+  }
+}
+```
+
+**How it works:** The sliding window aggregates **all** events in those 10 seconds (including dips below 200), and `HAVING mn > 200` filters out any window that contained a dip — the survivors are exactly the "always > 200" windows. When no window satisfies HAVING, that period produces **no output**.
+
+::: tip HAVING references the alias
+`HAVING` references the **alias** from SELECT (`mn`); you cannot restate the aggregate function (`HAVING min(current) > 200` does not work).
+:::
+
+### Example 5: Windowed Change Detection (Analytic Function)
+
+**Scenario:** Multiple devices in one stream; average every two samples and output only when a device's **window average changes**.
+
+**Node Configuration:**
+```json
+{
+  "id": "s5",
+  "type": "x/streamAggregator",
+  "configuration": {
+    "sql": "SELECT deviceId, changed_col(true, avg(temp)) AS chg FROM stream GROUP BY deviceId, CountingWindow(2)"
+  }
+}
+```
+
+**Input/Output** (A: 10,20,30,40; B: 5,5):
+```
+A window averages 15 (first→change), 35 (change)  → {deviceId:"A", chg:15} {deviceId:"A", chg:35}
+B window average 5 (first→change)                 → {deviceId:"B", chg:5}
+```
+
+The analytic function evaluates the average **after** the window emits; state is preserved across windows. It partitions by the `GROUP BY` key by default, so devices never cross-contaminate.
+
+### Example 6: Enrich then Aggregate (Stream-Table JOIN)
+
+**Scenario:** Devices report only `deviceId`; first enrich with `location` from a metadata table, then aggregate average temperature by location.
+
+`device_meta.json`: `[{"deviceId":"d1","location":"Plant A"},{"deviceId":"d2","location":"Plant B"}]`
+
+**Node Configuration:**
+```json
+{
+  "id": "s6",
+  "type": "x/streamAggregator",
+  "configuration": {
+    "sql": "SELECT m.location, AVG(temperature) AS avg_temp, COUNT(*) AS cnt FROM stream JOIN meta m ON deviceId = m.deviceId GROUP BY m.location, TumblingWindow('5s')",
+    "tables": [
+      {"name": "meta", "source": "file", "path": "/etc/rulego/device_meta.json", "format": "json", "refresh": "30s"}
+    ]
+  }
+}
+```
+
+**Output:**
+```json
+[
+  {"location": "Plant A", "avg_temp": 25.5, "cnt": 3},
+  {"location": "Plant B", "avg_temp": 22.1, "cnt": 2}
+]
+```
+
+## Notes
+
+1. **SQL Syntax Restriction:** Only aggregate queries are supported; non-aggregate SELECT statements are not allowed.
+2. **Window Type:** A window function must be specified in the GROUP BY clause.
+3. **Performance:** Window size and sliding interval affect memory usage and computation performance.
+4. **Data Type:** Ensure the data type of the aggregated field supports the corresponding aggregation function.
+5. **Array Processing:** Each element in the array is added to the aggregation stream one by one; the original array message is passed through the Success chain.
+6. **Window Event Callback:** The end callback triggered by window events must be set via `Config.OnEnd`, not via the `OnEnd` callback registered with `OnMsg`. This is because window events are triggered internally by the aggregator and do not go through the regular message processing flow.
+
+### Window Event Callback Example
+
+**Correct way - use Config.OnEnd:**
+```go
+// Set the global aggregation result handler
+config.OnEnd = func(ctx types.RuleContext, msg types.RuleMsg, err error, relationType string) {
+    if err == nil && msg.Type == StreamEventMsgType {
+        // Handle window aggregation result
+        var result map[string]interface{}
+        if jsonErr := json.Unmarshal([]byte(msg.Data.String()), &result); jsonErr == nil {
+            // Process the aggregation result
+            fmt.Printf("Aggregation result: %+v\n", result)
+        }
+    }
+}
+```
+
+**Wrong way - use OnMsg's OnEnd:**
+```go
+// This approach cannot capture window events
+ruleEngine.OnMsg(msg, types.WithOnEnd(func(ctx types.RuleContext, msg types.RuleMsg, err error, relationType string) {
+    // Window events do not trigger this callback
+}))
+```

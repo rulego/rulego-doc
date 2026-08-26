@@ -1,0 +1,248 @@
+---
+title: IoT Components Overview
+permalink: /pages/iot-overview/
+---
+# IoT Components Overview
+
+<Badge text="rulego-components-iot"/> provides industrial IoT protocol acquisition and time-series storage. **Compatible with 10+ industrial IoT protocols under one unified data format**: covering **10 protocols + 5 TSDB backends**, all protocols share the same point configuration structure and acquisition output format; switching protocols only requires changing the `driver` field.
+
+> Requires extension library: [rulego-components-iot](https://github.com/rulego/rulego-components-iot)
+
+## Two-Layer Abstraction
+
+| Layer | Package | Responsibility |
+|-------|---------|----------------|
+| Acquisition | `pkg/iot_points` | Unified Driver interface (ReadPoints/WritePoints), Point/Data model, template rendering |
+| Storage | `pkg/tsdb` | Unified Driver interface (WritePoints/Query/Close), SeriesPoint model |
+
+## Component List
+
+### Universal Nodes
+
+| Component | Description |
+|-----------|-------------|
+| `x/iotRead` | Universal read, delegates to protocol-specific read node by driver |
+| `x/iotWrite` | Universal write, delegates to protocol-specific write node by driver |
+| `x/tsdbWrite` | Universal TSDB write, delegates by driver |
+| `x/tsdbQuery` | Universal TSDB query, delegates by driver, results normalized to `{Columns, Rows}` |
+
+### Protocol Read/Write Nodes
+
+| Protocol | Read | Write | Address Format |
+|----------|------|-------|----------------|
+| Modbus | `x/modbusRead` | `x/modbusWrite` | Modicon: 40001/30001/00001/10001 |
+| S7 (Siemens) | `x/s7Read` | `x/s7Write` | DB1.DBD0, MW0, M0.1 |
+| EtherNet/IP | `x/eipRead` | `x/eipWrite` | Tag: MyDB.Temperature |
+| OPC UA | `x/opcuaRead` | `x/opcuaWrite` | ns=2;s=Temperature |
+| SNMP | `x/snmpRead` | `x/snmpWrite` | OID: 1.3.6.1.2.1.1.3.0 |
+| MC (Mitsubishi) | `x/mcRead` | `x/mcWrite` | D100, M10.1, W200 |
+| FINS (Omron) | `x/finsRead` | `x/finsWrite` | DM100, CIO10.0 |
+| DL/T 645 | `x/dlt645Read` | `x/dlt645Write` | DI: 00-01-00-00 |
+| IEC 104 | `x/iec104Read` | `x/iec104Write` | IOA: 100, 16385 |
+| BACnet/IP | `x/bacnetRead` | `x/bacnetWrite` | analog-input:0, ai:1, device:100:object-name |
+
+### Endpoints (Passive)
+
+| Endpoint | Description |
+|----------|-------------|
+| `endpoint/opcua` | OPC UA client polling |
+| `endpoint/snmp` | SNMP Trap receiver (UDP 162) |
+| `endpoint/hj212` | HJ 212 environmental protocol (TCP) |
+| `endpoint/modbusServer` | Modbus TCP slave (writes trigger rule chain) |
+
+### TSDB Write Nodes
+
+| Component | Backend |
+|-----------|---------|
+| `x/opengeminiWrite` | OpenGemini |
+| `x/influxdbWrite` | InfluxDB 2.x |
+| `x/tdengineWrite` | TDengine (REST) |
+| `x/timescaledbWrite` | TimescaleDB (PostgreSQL) |
+| `x/promremoteWrite` | Prometheus Remote Write |
+
+### Stream Aggregation/Transform (from rulego-components)
+
+| Component | Description |
+|-----------|-------------|
+| `x/streamTransform` | Stream transform: per-row SQL filter/compute/change detection, results travel on the `Success` chain |
+| `x/streamAggregator` | Stream aggregator: windowed aggregation (tumbling/sliding/count/session) and CEP pattern recognition, results travel on the `stream_event` chain |
+
+> These two components are provided by `stats/streamsql` in the [rulego-components](https://github.com/rulego/rulego-components) library (built on the [StreamSQL](/en/pages/streamsql-overview/) engine); the library must be imported separately. See [Stream Processing Components](/en/pages/stream-computing/).
+
+### Control Nodes
+
+| Component | Description |
+|-----------|-------------|
+| [x/control/timer](/en/pages/x-control-timer/) | Soft-PLC timer (TON on-delay / TOF off-delay), cancellable and re-triggerable |
+| [x/control/watchdog](/en/pages/x-control-watchdog/) | Watchdog: forwards messages and re-arms, emits a failsafe JSON payload on link-loss timeout |
+
+## Unified Data Contract
+
+### Acquisition Output (iotRead → msg.Data)
+
+```json
+[
+  {"name": "temperature", "value": 25.3, "timestamp": 1721900000000000000},
+  {"name": "humidity", "value": 60, "timestamp": 1721900000000000000, "error": ""}
+]
+```
+
+- `name`: point name
+- `value`: acquired value (type determined by protocol / point type)
+- `timestamp`: Unix nanosecond timestamp
+- `error`: per-point failure reason (empty/absent on success)
+
+### TSDB Input (tsdbWrite ← msg.Data)
+
+```json
+[
+  {"measurement": "device1", "tags": {"site": "A"}, "fields": {"temp": 25.3}, "timestamp": 0}
+]
+```
+
+- `measurement`: measurement / table name
+- `tags`: index dimensions
+- `fields`: value fields
+- `timestamp`: nanosecond timestamp (0 = current time)
+
+### Acquisition → TSDB Bridging
+
+With `measurement` configured, [x/tsdbWrite](/en/pages/x-tsdb-write/) accepts three input forms directly — no extra transform node needed:
+
+| Input form | Handling |
+|------------|----------|
+| SeriesPoint (pre-pivoted time-series points) | Passed through as-is |
+| Acquisition point array (`iot_points.Data`, the output of x/iotRead) | Automatically pivoted into SeriesPoint per the `measurement`/`tags`/`fields` configuration |
+| Flat map (single-level key/values from aggregation or scripts) | Converted row by row into SeriesPoint (`timestamp` is a reserved key: numeric value becomes the timestamp, not a field) |
+
+Typical pipeline:
+
+```
+x/iotRead → x/tsdbWrite (measurement configured)
+```
+
+When downsampling/statistics are needed before storage, insert a windowed aggregation stage in between (the point array connects **directly** — no transform node needed):
+
+```
+x/iotRead → x/streamAggregator(window) → x/tsdbWrite
+```
+
+Use `GROUP BY name` in the aggregation SQL for per-point stats; set `inputFormat: columns` on the aggregator for cross-point calculations (wide-table pivot). See [IoT Scenario Examples](/en/pages/iot-scenarios/) for a complete example.
+
+## Point Table Field Reference
+
+Acquisition points (`points`) share the unified structure `iot_points.Point`. Field meanings:
+
+| Field | Type | Description |
+|---|---|---|
+| name | string | Point name; used as `Data.name` in output (the key downstream reads from) |
+| addr | string | Protocol address string, parsed by each driver (see the Address Format table above) |
+| type | string | Data type, unified enum `BOOL/INT16/UINT16/INT32/UINT32/INT64/UINT64/FLOAT32/FLOAT64/STRING`, mapped by the driver to the protocol-native type |
+| scale | float64 | Engineering scaling factor, eng = raw × scale + offset; empty (0) means no scaling |
+| offset | float64 | Engineering offset; note that when scale=0 and offset≠0 the result is offset (use scale=1 for offset-only) |
+| endian | string | Byte order `ABCD/CDAB/BADC/DCBA`, only applies to multi-register types (INT32/FLOAT32, etc.) |
+| value | string | Write value (for write nodes, string form, parsed by the driver per type) |
+
+All fields support `${msg.xx}` / `${metadata.xx}` templates.
+
+**Per-protocol field support** (`name/addr/type` supported by all protocols; engineering-conversion fields are not effective on all protocols):
+
+| Protocol | scale/offset | endian |
+|---|---|---|
+| Modbus | ✅ | ✅ |
+| S7 / EtherNet/IP | ✅ | — |
+| MC (Mitsubishi) | ✅ | — (fixed MELSEC order) |
+| FINS (Omron) | ✅ | — (fixed big-endian) |
+| DL/T 645 | ✅ | — |
+| BACnet/IP | ✅ | — |
+| SNMP / OPC UA / IEC 104 | — (ignored if set) | — |
+
+> Configuring these fields on protocols that do not support scale/offset will not error but will have no effect; use as needed.
+
+## Advantages of the Unified Structure
+
+The core idea can be summarized as **one protocol framework, one unified data format** — 10+ IoT protocols share the same point configuration (`name/addr/type`) and data contract (`[{name, value, timestamp, error}]`):
+
+| Advantage | Description |
+|-----------|-------------|
+| **Downstream protocol-agnostic** | All 10 protocols output the identical `[{name, value, timestamp, error}]` — downstream transform/filter/storage nodes need not know which protocol the data came from |
+| **One topology, any backend** | Change only the `driver` field to switch protocol or TSDB; rule chain wiring stays the same |
+| **Per-point fault tolerance** | A failed point is marked with `error` and acquisition continues; one bad point does not break the whole batch |
+| **Template-driven** | All point fields support `${msg.xx}` / `${metadata.xx}`; dynamic acquisition/writing without changing topology |
+| **Point template reuse** | The unified `name/addr/type` structure works across protocols (scale/offset/endian supported by some, see table above); import once, use everywhere |
+| **Byte-order aware** | Modbus per-point Endian (ABCD/CDAB/BADC/DCBA) decodes multi-register types without external conversion |
+| **Connection pool reuse** | The same-chain `ref://` mechanism lets multiple read/write nodes share one connection, reducing PLC connection count |
+
+## Rule Chain DSL Examples
+
+### Acquisition → TSDB Pipeline
+
+```json
+{
+  "ruleChain": {"name": "iot-pipeline", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "n1", "type": "x/iotRead", "configuration": {
+        "driver": "modbus", "server": "tcp://192.168.1.100:502",
+        "points": [
+          {"name": "voltage", "addr": "40001", "type": "FLOAT32", "scale": 0.1},
+          {"name": "current", "addr": "40003", "type": "FLOAT32", "scale": 0.001}
+        ]
+      }},
+      {"id": "n2", "type": "x/tsdbWrite", "configuration": {
+        "driver": "timescaledb", "dsn": "postgres://user:pass@localhost:5432/iot?sslmode=disable",
+        "measurement": "power_meter",
+        "tags": [{"key": "deviceId", "value": "${metadata.deviceId}"}]
+      }}
+    ],
+    "connections": [
+      {"fromId": "n1", "toId": "n2", "type": "Success"}
+    ]
+  }
+}
+```
+
+> Swap protocol by changing n1's `driver` (s7/opcua/snmp/fins/mc/iec104...), n2 unchanged.
+
+### Remote Control
+
+```json
+{
+  "ruleChain": {"name": "iot-control", "root": false},
+  "metadata": {
+    "nodes": [
+      {"id": "w1", "type": "x/iotWrite", "configuration": {
+        "driver": "iec104", "server": "192.168.1.20:2404", "commonAddr": 1,
+        "points": [{"name": "breaker", "addr": "100", "type": "C_SC_NA_1", "value": "${msg.action}"}]
+      }}
+    ],
+    "connections": []
+  }
+}
+```
+
+### Modbus Server Endpoint
+
+```json
+{
+  "ruleChain": {"name": "modbus-bridge", "root": true},
+  "metadata": {
+    "nodes": [
+      {"id": "e1", "type": "endpoint/modbusServer", "configuration": {"server": "tcp://:5020", "unitId": 1}},
+      {"id": "w1", "type": "x/tsdbWrite", "configuration": {"driver": "influxdb", "url": "http://localhost:8086", "token": "t", "org": "o", "bucket": "b"}}
+    ],
+    "connections": [{"fromId": "e1", "toId": "w1", "type": "ip"}]
+  }
+}
+```
+
+More scenario examples: [IoT Scenarios](/en/pages/iot-scenarios/)
+
+## Build Tags
+
+- Default: **zero IoT dependency** (components not registered)
+- `with_iot` or `with_all`: registers all IoT components
+
+## Point Templates
+
+The server ships with 6 common device point templates (three-phase meter / temperature-humidity / OPC UA simulation / S7-1200 / IEC 104 / SNMP network device); the frontend imports them in one click via "From Template". Templates are stored in `data/iot/point-templates/` and can be added, removed, or modified by users.

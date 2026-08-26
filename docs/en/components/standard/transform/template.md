@@ -1,0 +1,96 @@
+---
+title: text/template
+permalink: /pages/template/
+---
+`text/template` component: Parse templates using [text/template](https://pkg.go.dev/text/template). It is used in scenarios such as message format transformation, content templating, and data adaptation. It supports a rich set of template syntax and custom function extensions.
+
+## Configuration
+
+| Field    | Type   | Description                                                                                                             | Default Value |
+|----------|--------|-------------------------------------------------------------------------------------------------------------------------|---------------|
+| template | string | Template content or template file path. Use the prefix `file:` to indicate a file path, such as `file:/path/to/tpl.txt` | None          |
+
+**Supported template variables:**
+- `.id` - Message ID
+- `.ts` - Message timestamp (in milliseconds)
+- `.data` - Raw message content
+- `.msg` - Message body object (when of JSON type, you can access fields with `.msg.field`)
+- `.metadata` - Message metadata object
+- `.msgType` - Message type
+- `.dataType` - Data type
+
+**Template example:**
+```text
+ {{ .msg.name }} - Retrieve the name field from the message
+ {{ .metadata.deviceType }} - Retrieve the device type from metadata
+ {{ .msgType }} - Retrieve the message type
+ {{ .ts }} - Retrieve the message timestamp
+ {{ if gt .msg.temperature 30 }}High Temperature{{ else }}Normal{{ end }} - Conditional judgment
+ {{ range .msg.items }}{{ .name }},{{ end }} - Iterate over an array
+ {{ printf "%.2f" .msg.value }} - Format a number
+ {{ .msg.name | upper }} - Convert to uppercase
+ {{ .msg.content | replace "old" "new" }} - Replace text
+```
+## Configuration example
+
+```json
+{
+  "id": "s1",
+  "type": "text/template",
+  "name": "Template Transformation",
+  "configuration": {
+    "template": "type:{{ .type}}"
+  }
+}
+```
+
+## Custom Functions
+
+The component is built on the Go standard library `text/template`. At node initialization it loads all registered functions from the global function table [`funcs.TemplateFunc`](https://github.com/rulego/rulego/blob/main/builtin/funcs/funcs.go) and binds them to the template engine. Upper-layer applications can register custom functions via the `github.com/rulego/rulego/builtin/funcs` package and use them in templates just like built-in functions.
+
+**Register functions:**
+
+```go
+import (
+	"strings"
+	"text/template"
+
+	"github.com/rulego/rulego/builtin/funcs"
+)
+
+// Register a single function
+funcs.TemplateFunc.Register("upper", strings.ToUpper)
+
+// Register multiple functions
+funcs.TemplateFunc.RegisterAll(template.FuncMap{
+	"upper":   strings.ToUpper,
+	"replace": strings.ReplaceAll,
+})
+
+// Unregister / lookup
+funcs.TemplateFunc.UnRegister("upper")
+f, ok := funcs.TemplateFunc.Get("upper")
+```
+
+**Use in templates:**
+
+```text
+{{ upper .msg.name }}                    {{/* Direct call */}}
+{{ .msg.name | upper }}                  {{/* Pipeline call */}}
+{{ replace .msg.content "old" "new" }}   {{/* Multiple arguments */}}
+```
+
+> **Built-in functions**: Only `escape` is registered by default (it escapes backslashes, double quotes, newlines, and other JSON special characters). The `upper`, `replace`, etc. appearing in the template examples above must be registered yourself.
+
+### Registration Timing
+
+The `text/template` function map (FuncMap) must be bound **before** the template is parsed, therefore:
+
+- ✅ Register **before** `rulego.New(...)` creates the rule chain — takes effect for all `text/template` nodes.
+- ❌ Registering after a node has been initialized **takes no effect**; you must reload the rule chain so the node re-runs Init to refresh the function snapshot.
+
+### Function Signatures & Naming
+
+- Return **1 value**, or **2 values** (the second must be of type `error`); when `error` is returned, an execution failure is propagated to the `Failure` branch.
+- The function name must be a valid Go identifier; the first letter can be either upper- or lowercase (the built-in `escape` is lowercase).
+- `TemplateFunc` is a process-wide **global** registry; registered functions are shared by all `text/template` nodes. Per-node function sets are not supported out of the box.

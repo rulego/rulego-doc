@@ -1,0 +1,50 @@
+---
+title: Support this project
+permalink: /pages/support/
+---
+## Support
+
+If you are using this project and feel good, or want to support us to continue developing, you can support us in any of the following ways:
+
+1. Star and recommend or share this project to your friends [Gitee](https://gitee.com/rulego/rulego) | [Github](https://github.com/rulego/rulego) ⭐️
+2. Become our sponsor 🎇
+3. Purchase the [RuleGo-Editor](https://app.rulego.cc/en/).
+4. Donate through the following QR code, and buy us a cup of coffee ☕️
+
+Thank you very much! ❤️
+
+::: center
+<img align="center" height="400px" src="/img/donate.png"/>
+:::
+
+## Become a sponsor
+
+Display your brand LOGO and slogan on both:
+
+- The bottom of the official website homepage
+- The top of the left sidebar of the official website document page
+
+Related contact information (please indicate the intention when adding):
+
+- QQ：[2215016127](tencent://message/?uin=2215016127&Site=&Menu=yes)
+- Wechat：`rulegoteam`
+- Email：[rulego@outlook.com](mailto:rulego@outlook.com)
+- Github：[https://github.com/rulego/rulego](https://github.com/rulego/rulego)
+- Gitee：[https://gitee.com/rulego/rulego](https://gitee.com/rulego/rulego)
+
+## Contributions
+
+We welcome contributions to the following RuleGo-related projects:
+
+- [rulego](https://github.com/rulego/rulego): The core RuleGo project, a lightweight, high-performance, embedded, next-generation component orchestration rule engine framework for Go.
+- [rulego-components](https://github.com/rulego/rulego-components): Extension component library for RuleGo, providing additional components.
+- [rulego-components-ai](https://github.com/rulego/rulego-components-ai): Components for AI scenarios.
+- [rulego-components-ci](https://github.com/rulego/rulego-components-ci): Components for CI/CD scenarios.
+- [rulego-components-iot](https://github.com/rulego/rulego-components-iot): Components for IoT scenarios.
+- [rulego-components-etl](https://github.com/rulego/rulego-components-etl): Components for ETL scenarios.
+- [streamsql](https://github.com/rulego/streamsql): A lightweight, SQL-based stream processing engine for IoT edge, enhancing edge computing aggregation capabilities.
+- [rulego-marketplace](https://github.com/rulego/rulego-marketplace): A marketplace for RuleGo components.
+
+## Acknowledgements
+
+Thank you to the friends who gave support, your support is our motivation to move forward 🎉

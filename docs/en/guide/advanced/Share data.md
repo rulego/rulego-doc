@@ -1,0 +1,32 @@
+---
+title: Share data
+permalink: /pages/share-data/
+---
+- Data Transmission Between Nodes
+
+It is recommended to use `Metadata` or `Data` of `msg` to transmit data between nodes. However, if you need to pass semaphores or pointer-like objects, `context.Context` is also supported. Example of usage:
+
+```go
+ruleEngine.OnMsg(msg, types.WithContext(context.WithValue(context.Background(), shareKey, shareValue)))
+```
+
+Component to obtain shared data:
+```go
+func (n *TimeNode) OnMsg(ctx types.RuleContext, msg types.RuleMsg)  {
+    // Obtain shared data via context
+    v1 := ctx.GetContext().Value(shareKey)
+    // Modify shared data via context
+    modifyCtx := context.WithValue(ctx.GetContext(), addShareKey, addShareValue)
+    ctx.SetContext(modifyCtx)
+    
+    // Obtain shared data via msg.Metadata
+    v2 := msg.Metadata.GetValue("timestamp")
+    // Modify shared data via msg.Metadata
+    msg.Metadata.PutValue("timestamp", time.Now().Format(time.RFC3339))
+    ctx.TellSuccess(msg)
+}
+```
+
+- Data Sharing Across Rule Chains or Nodes
+
+You can use [Cache][/pages/config/#cache] or [Cache Set component](/pages/cache-set/) [Cache Get component](/pages/cache-get/) [Cache Delete component](/pages/cache-delete/)

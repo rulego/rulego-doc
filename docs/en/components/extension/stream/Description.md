@@ -1,0 +1,112 @@
+---
+title: Stream Processing
+permalink: /pages/stream-computing/
+---
+# Stream Processing Components
+
+RuleGo provides stream processing components based on the [StreamSQL](/pages/streamsql-overview/) engine, supporting real-time data processing using SQL syntax.
+
+## Component List
+
+### [streamTransform](/pages/x-stream-transform/)
+**Node Type:** `x/streamTransform`
+
+Stream Transformer component, processes non-aggregate SQL queries synchronously per event (direct path, state preserved across events), supports:
+- Data filtering, field selection, renaming, and calculation
+- Conditional filtering and data validation
+- Single and batch data processing
+- [Analytic functions](/pages/streamsql-analytical-functions/): `lag`/`latest`, `had_changed`/`changed_col`/`changed_cols`, `acc_*` (change detection, lifetime accumulation)
+- [Stream-table JOIN](/pages/streamsql-sql/): enrich stream rows with metadata tables
+- 60+ built-in functions
+
+**Applicable Scenarios:** Real-time data cleaning, format conversion, change detection (CDC), lifetime accumulation
+
+### [streamAggregator](/pages/x-stream-aggregator/)
+**Node Type:** `x/streamAggregator`
+
+Stream Aggregator component, processes aggregate SQL queries with windows/grouping or CEP (MATCH_RECOGNIZE) pattern recognition (asynchronously triggered, results go through the `stream_event` chain), supports:
+- Window aggregation (Tumbling, Sliding, Counting, Session, Global windows)
+- Group aggregation and multi-dimensional statistics
+- Aggregation functions (COUNT, SUM, AVG, MAX, MIN, etc.)
+- CEP pattern recognition (PATTERN/DEFINE/MEASURES, event-sequence matching)
+- HAVING to filter aggregation results; [stream-table JOIN](/pages/streamsql-sql/) to enrich before aggregating
+- [Analytic functions](/pages/streamsql-analytical-functions/) usable inside windows for change detection/lookback/accumulation on window output
+
+**Applicable Scenarios:** Real-time statistical analysis, monitoring alarms, persistent over-threshold detection, data summarization
+
+::: tip How to choose
+- **Per event, immediate result** (filtering/transform/change detection/accumulation) → `streamTransform`
+- **Batch up, emit on window trigger** (statistics/persistent detection) → `streamAggregator`
+Analytic functions without a window go to transform; with a window (evaluated on window output) they go to aggregator.
+:::
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+go get github.com/rulego/rulego-components
+```
+
+### 2. Register Components
+
+```go
+import _ "github.com/rulego/rulego-components/stats/streamsql"
+
+```
+
+### 3. Usage Examples
+
+#### Data Transformation Example
+```json
+{
+  "id": "transform1",
+  "type": "x/streamTransform",
+  "name": "Temperature Conversion",
+  "configuration": {
+    "sql": "SELECT deviceId, temperature, temperature * 1.8 + 32 as temp_fahrenheit FROM stream WHERE temperature > 0"
+  }
+}
+```
+
+#### Data Aggregation Example
+```json
+{
+  "id": "aggregator1",
+  "type": "x/streamAggregator",
+  "name": "Temperature Statistics",
+  "configuration": {
+    "sql": "SELECT deviceId, AVG(temperature) as avg_temp, COUNT(*) as count FROM stream GROUP BY deviceId, TumblingWindow('5m')"
+  }
+}
+```
+
+#### Change Detection Example (Analytic Function)
+```json
+{
+  "id": "cdc1",
+  "type": "x/streamTransform",
+  "name": "Current Spike Detection",
+  "configuration": {
+    "sql": "SELECT current, deviceId FROM stream WHERE current > 300 AND lag(current) OVER (PARTITION BY deviceId) < 300"
+  }
+}
+```
+
+## Application Scenarios
+
+### IoT Data Processing
+- Sensor data cleaning and formatting
+- Real-time monitoring of indicators such as temperature and humidity
+- Device status statistics and alarms
+- Combined with the [IoT acquisition components](/en/pages/iot-overview/) into an acquisition → aggregation → storage pipeline: `x/iotRead → x/streamAggregator → x/tsdbWrite` (the acquisition point array connects directly, no transform node needed); full rule chains in [IoT Scenario Examples](/en/pages/iot-scenarios/)
+
+### Real-time Monitoring
+- System performance indicator aggregation
+- Anomaly detection and alerting
+- Real-time dashboard data processing
+
+### Data Analysis
+- Stream data preprocessing
+- Real-time statistical calculation
+- Multi-dimensional data analysis
