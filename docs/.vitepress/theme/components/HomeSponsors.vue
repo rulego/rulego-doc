@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import SectionHead from './SectionHead.vue'
 
-// 数据源自旧站首页 cardList（迁移保留）
+// 数据源自旧站首页 cardList（迁移保留）。expired 为续费提醒用字段，仅存于数据、不做任何展示逻辑。
 const sponsors = [
   {
     name: 'Sagoo IOT',
@@ -10,6 +10,7 @@ const sponsors = [
     link: 'https://iotdoc.sagoo.cn/?from=rulego',
     bgColor: '#f8c567',
     textColor: '#1f2328',
+    expired: '2026-11-07',
   },
   {
     name: 'Hummingbird',
@@ -18,6 +19,7 @@ const sponsors = [
     link: 'https://doc.hummingbird.winc-link.com/?from=rulego',
     bgColor: '#2196F3',
     textColor: '#1f2328',
+    expired: '2025-07-11',
   },
   {
     name: '联犀',
@@ -26,6 +28,7 @@ const sponsors = [
     link: 'https://doc.unitedrhino.com/',
     bgColor: '#A6A1F3',
     textColor: '#1f2328',
+    expired: '2026-04-05',
   },
 ]
 </script>

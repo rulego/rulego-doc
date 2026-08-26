@@ -28,11 +28,13 @@ function tokenize(text: string): string[] {
   return tokens
 }
 
+// 注意：VitePress 导航项「link 与 items 互斥」——带 link 的渲染为平铺链接，
+// 只有纯 items 的项才是下拉组。下拉组标题不可点击，靠 activeMatch 高亮。
 const zhNav = [
   { text: '首页', link: '/' },
   {
     text: '指南',
-    link: '/pages/introduction/',
+    activeMatch: '^/(pages/(introduction|rule-chain|standard-components|extension-overview|custom-components-overview|visualization-overview|rulego-server|aop-overview|trigger-overview|config|performance)/)?$',
     items: [
       { text: '快速入门', link: '/pages/introduction/' },
       { text: '规则链', link: '/pages/rule-chain/' },
@@ -49,7 +51,7 @@ const zhNav = [
   },
   {
     text: '组件',
-    link: '/pages/standard-components/',
+    activeMatch: '^/(pages/(standard-components|extension-overview|ai-agent|iot-overview|streamsql-overview|marketplace)/)?$',
     items: [
       { text: '标准组件', link: '/pages/standard-components/' },
       { text: '扩展组件', link: '/pages/extension-overview/' },
@@ -61,7 +63,7 @@ const zhNav = [
   },
   {
     text: 'Endpoint',
-    link: '/pages/endpoint-overview/',
+    activeMatch: '^/pages/endpoint-',
     items: [
       { text: '概述', link: '/pages/endpoint-overview/' },
       { text: '快速入门', link: '/pages/endpoint-quickstart/' },
@@ -75,7 +77,7 @@ const zhNav = [
   { text: '编辑器', link: 'https://app.rulego.cc/' },
   {
     text: '生态',
-    link: '/ecosystem/',
+    activeMatch: '^/(ecosystem/|pages/(streamsql-overview|ai-agent-overview)/)',
     items: [
       { text: '生态总览', link: '/ecosystem/' },
       { text: '🌊 StreamSQL', link: '/pages/streamsql-overview/' },
@@ -86,12 +88,12 @@ const zhNav = [
       { text: '更新日志', link: 'https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md' },
     ],
   },
+  { text: '社区', link: '/pages/community/' },
   {
     text: '支持',
-    link: '/pages/support/',
+    activeMatch: '^/pages/(support|faq)/',
     items: [
       { text: '支持 RuleGo', link: '/pages/support/' },
-      { text: '加入社区讨论', link: '/pages/community/' },
       { text: '常见问题', link: '/pages/faq/' },
     ],
   },
@@ -101,7 +103,7 @@ const enNav = [
   { text: 'Home', link: '/en/' },
   {
     text: 'Document',
-    link: '/en/pages/introduction/',
+    activeMatch: '^/en/pages/(introduction|rule-chain|standard-components|extension-overview|custom-components-overview|visualization-overview|rulego-server|aop-overview|trigger-overview|config|performance)/',
     items: [
       { text: 'Quick Start', link: '/en/pages/introduction/' },
       { text: 'Rule Chain', link: '/en/pages/rule-chain/' },
@@ -118,7 +120,7 @@ const enNav = [
   },
   {
     text: 'Components',
-    link: '/en/pages/standard-components/',
+    activeMatch: '^/en/pages/(standard-components|extension-overview|marketplace)/',
     items: [
       { text: 'Standard Components', link: '/en/pages/standard-components/' },
       { text: 'Extension Components', link: '/en/pages/extension-overview/' },
@@ -127,7 +129,7 @@ const enNav = [
   },
   {
     text: 'Endpoint',
-    link: '/en/pages/endpoint-overview/',
+    activeMatch: '^/en/pages/endpoint-',
     items: [
       { text: 'Overview', link: '/en/pages/endpoint-overview/' },
       { text: 'Quick Start', link: '/en/pages/endpoint-quickstart/' },
@@ -141,7 +143,7 @@ const enNav = [
   { text: 'Editor', link: 'https://app.rulego.cc/en' },
   {
     text: 'Ecosystem',
-    link: '/ecosystem/',
+    activeMatch: '^/(ecosystem/|en/pages/(streamsql-overview|ai-agent-overview)/)',
     items: [
       { text: 'Ecosystem Overview', link: '/ecosystem/' },
       { text: 'StreamSQL', link: '/en/pages/streamsql-overview/' },

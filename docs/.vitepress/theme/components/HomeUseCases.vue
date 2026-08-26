@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SectionHead from './SectionHead.vue'
+import EngineArchDiagram from './EngineArchDiagram.vue'
 
 type Tone = 'src' | 'filter' | 'transform' | 'action' | 'out'
 interface Step {
@@ -121,10 +122,10 @@ const useCases: UseCase[] = [
         </div>
       </div>
 
-      <!-- 官方架构图 -->
+      <!-- 引擎架构图（自绘 SVG，与站点设计系统一致） -->
       <div class="uc-arch">
-        <img src="/img/architecture_zh.png" alt="RuleGo 架构图" class="uc-arch-img" />
-        <p class="uc-arch-caption">RuleGo 整体架构：组件化核心 + 规则链编排 + Endpoint 接入</p>
+        <EngineArchDiagram />
+        <p class="uc-arch-caption">RuleGo 引擎架构：接入 → 规则链核心 → 100+ 组件，双形态交付</p>
       </div>
     </div>
   </section>
@@ -323,28 +324,14 @@ html.dark .uc-link {
   color: var(--rg-green-bright) !important;
 }
 
-/* 官方架构图 */
+/* 架构图 */
 .uc-arch {
-  margin-top: 40px;
-  text-align: center;
-}
-
-.uc-arch-img {
-  max-width: 760px;
-  width: 100%;
-  border: 1px solid var(--rg-line);
-  border-radius: 12px;
-  background: #fff;
-  padding: 8px;
-}
-
-html.dark .uc-arch-img {
-  border-color: var(--rg-line-dark);
-  background: rgba(255, 255, 255, 0.92);
+  margin-top: 44px;
 }
 
 .uc-arch-caption {
   margin-top: 12px;
+  text-align: center;
   font-size: 13px;
   color: var(--vp-c-text-2);
 }
