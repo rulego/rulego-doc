@@ -127,7 +127,7 @@ export const ecoItems: EcoItem[] = [
     emoji: '🛰️',
     tagline: '单二进制边缘采集网关：edge-first、cloud-optional',
     badge: 'wip',
-    badgeNote: '开源 · 建设中',
+    badgeNote: '开源',
     layer: 'platform',
     repo: 'https://github.com/rulego/rulego-edge',
   },

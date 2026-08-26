@@ -7,7 +7,6 @@ aside: false
 
 <script setup>
 import EcoMatrix from '../.vitepress/theme/components/EcoMatrix.vue'
-import EcoArchDiagram from '../.vitepress/theme/components/EcoArchDiagram.vue'
 </script>
 
 <div class="eco-page">
@@ -21,10 +20,6 @@ import EcoArchDiagram from '../.vitepress/theme/components/EcoArchDiagram.vue'
   </div>
 
   <EcoMatrix />
-
-  <section class="eco-arch-section">
-    <EcoArchDiagram />
-  </section>
 
   <section class="eco-note">
     <h2>说明</h2>
@@ -63,10 +58,6 @@ import EcoArchDiagram from '../.vitepress/theme/components/EcoArchDiagram.vue'
   color: var(--vp-c-text-2);
   max-width: 760px;
   margin: 0 0 40px;
-}
-
-.eco-arch-section {
-  margin-top: 56px;
 }
 
 .eco-note {

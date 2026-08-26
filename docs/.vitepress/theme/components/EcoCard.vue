@@ -16,9 +16,9 @@ const isInternal = (link: string) => link.startsWith('/')
     </div>
     <p class="eco-tagline">{{ props.item.tagline }}</p>
     <div class="eco-links">
-      <RouterLink v-if="props.item.doc" :to="props.item.doc" class="eco-link eco-link-doc">
+      <a v-if="props.item.doc" :href="props.item.doc" class="eco-link eco-link-doc">
         文档 →
-      </RouterLink>
+      </a>
       <a
         v-if="props.item.site"
         class="eco-link"

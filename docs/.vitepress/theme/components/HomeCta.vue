@@ -18,12 +18,12 @@ import SectionHead from './SectionHead.vue'
           <a class="rg-btn rg-btn-ghost" href="https://gitee.com/rulego/rulego" target="_blank" rel="noopener noreferrer">
             Gitee 仓库 ↗
           </a>
-          <RouterLink to="/pages/community/" class="rg-btn rg-btn-ghost">加入社区讨论</RouterLink>
-          <RouterLink to="/pages/support/" class="rg-btn rg-btn-ghost">支持我们</RouterLink>
+          <a href="/pages/community/" class="rg-btn rg-btn-ghost">加入社区讨论</a>
+          <a href="/pages/support/" class="rg-btn rg-btn-ghost">支持我们</a>
         </div>
         <p class="cta-note">
           生态里的每个产品——智能体框架、StreamSQL、gflow-engine、TPCLAW——都在
-          <RouterLink to="/ecosystem/">生态总览</RouterLink>
+          <a href="/ecosystem/">生态总览</a>
           里等你。
         </p>
       </div>

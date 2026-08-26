@@ -66,7 +66,7 @@ ruleEngine.OnMsg(msg, types.WithOnEnd(
       </div>
 
       <div class="qs-more">
-        <RouterLink to="/pages/quick-start/" class="rg-btn rg-btn-primary">阅读快速开始 →</RouterLink>
+        <a href="/pages/quick-start/" class="rg-btn rg-btn-primary">阅读快速开始 →</a>
       </div>
     </div>
   </section>
