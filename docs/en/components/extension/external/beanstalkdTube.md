@@ -1,6 +1,6 @@
 ---
 title: BeanstalkdTube
-permalink: /pages/x-beanstalkd-tube/
+permalink: /pages/beanstalkd-tube/
 ---
 `x/beanstalkdTube` component: <Badge text="v0.29.0+"/> Beanstalkd producer, supporting operations such as Put, PeekReady, PeekDelayed, PeekBuried, Kick, Stat, and Pause.
 

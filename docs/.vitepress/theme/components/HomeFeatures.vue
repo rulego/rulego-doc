@@ -1,42 +1,65 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
 import SectionHead from './SectionHead.vue'
+
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
+const t = (zh: string, en: string) => (isEn ? en : zh)
 
 const features = [
   {
     icon: '🪶',
-    title: '轻量级',
-    desc: '无外部中间件依赖，可下沉到边缘服务器实现物联网边缘计算，也可部署在云端作为规则引擎服务。',
-    tags: ['边缘计算', '资源占用低'],
+    title: t('轻量级', 'Lightweight'),
+    desc: t(
+      '无外部中间件依赖，可下沉到边缘服务器实现物联网边缘计算，也可部署在云端作为规则引擎服务。',
+      'No external middleware dependencies. Sink it onto edge servers for edge computing, or deploy it in the cloud as a rule-engine service.'
+    ),
+    tags: [t('边缘计算', 'Edge computing'), t('资源占用低', 'Low footprint')],
   },
   {
     icon: '⚡',
-    title: '高性能',
-    desc: '得益于 Go 的高性能特性，采用协程池、对象池等技术；可靠的上下文隔离机制，高并发下无数据串流。',
-    tags: ['协程池', '对象池'],
+    title: t('高性能', 'High Performance'),
+    desc: t(
+      '得益于 Go 的高性能特性，采用协程池、对象池等技术；可靠的上下文隔离机制，高并发下无数据串流。',
+      "Leans on Go's strengths: goroutine pools, object pools, and reliable context isolation — high concurrency never crosses message streams."
+    ),
+    tags: [t('协程池', 'Goroutine pool'), t('对象池', 'Object pool')],
   },
   {
     icon: '🎯',
-    title: '双模式',
-    desc: '嵌入式：作为内部组件嵌入现有应用；独立部署：作为中间件提供规则引擎与编排服务。',
+    title: t('双模式', 'Dual Mode'),
+    desc: t(
+      '嵌入式：作为内部组件嵌入现有应用；独立部署：作为中间件提供规则引擎与编排服务。',
+      'Embedded: ship it inside your existing application. Standalone: run it as middleware exposing rule-engine and orchestration services.'
+    ),
     tags: ['embed', 'standalone'],
   },
   {
     icon: '🧩',
-    title: '组件化',
-    desc: '所有业务逻辑都是组件，灵活配置与复用；自定义组件接口把业务封装成积木，应对高度变化的业务需求。',
-    tags: ['100+ 内置', '自定义扩展'],
+    title: t('组件化', 'Componentized'),
+    desc: t(
+      '所有业务逻辑都是组件，灵活配置与复用；自定义组件接口把业务封装成积木，应对高度变化的业务需求。',
+      'All business logic is a component you configure and reuse; wrap bespoke business into building blocks behind a small custom-component API.'
+    ),
+    tags: [t('100+ 内置', '100+ built-in'), t('自定义扩展', 'Custom extensions')],
   },
   {
     icon: '☘️',
-    title: '热更新',
-    desc: '规则链支持动态编排：不重启应用，实时替换或新增业务逻辑；支持 Go plugin 动态加载组件。',
-    tags: ['动态编排', 'plugin'],
+    title: t('热更新', 'Hot Updates'),
+    desc: t(
+      '规则链支持动态编排：不重启应用，实时替换或新增业务逻辑；支持 Go plugin 动态加载组件。',
+      'Chains re-orchestrate dynamically: swap or add business logic without restarting the app; load components at runtime via Go plugin.'
+    ),
+    tags: [t('动态编排', 'Dynamic orchestration'), 'plugin'],
   },
   {
     icon: '🔗',
-    title: '嵌套与 AOP',
-    desc: '子规则链嵌套实现流程复用；AOP 机制在不修改原逻辑的前提下为规则链执行添加行为或整体替换。',
-    tags: ['子规则链', 'AOP 切面'],
+    title: t('嵌套与 AOP', 'Nesting & AOP'),
+    desc: t(
+      '子规则链嵌套实现流程复用；AOP 机制在不修改原逻辑的前提下为规则链执行添加行为或整体替换。',
+      'Sub-chains reuse whole flows; AOP adds behavior around chain execution — or replaces it wholesale — without touching the original logic.'
+    ),
+    tags: [t('子规则链', 'Sub-chains'), t('AOP 切面', 'AOP aspects')],
   },
 ]
 </script>
@@ -46,8 +69,12 @@ const features = [
     <div class="home-inner">
       <SectionHead
         eyebrow="Features"
-        title="为变化而生的规则引擎"
-        desc="JSON 定义规则链，无需学习专门规则语言。组件编排、热更新、AOP——把高度定制的业务逻辑从代码里解耦出来。"
+        :title="isEn ? 'A rule engine built for change' : '为变化而生的规则引擎'"
+        :desc="
+          isEn
+            ? 'Define chains in JSON — no dedicated rule language to learn. Component orchestration, hot updates and AOP decouple highly bespoke business logic from your code.'
+            : 'JSON 定义规则链，无需学习专门规则语言。组件编排、热更新、AOP——把高度定制的业务逻辑从代码里解耦出来。'
+        "
       />
 
       <div class="feat-grid">

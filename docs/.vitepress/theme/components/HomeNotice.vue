@@ -4,8 +4,12 @@ import { useData } from 'vitepress'
 
 // 版本发布公告：右下角卡片（参考 tpclaw-doc 实现）。
 // 配置在首页 frontmatter notice 字段；本会话弹一次，可按版本永久静音。
-const { frontmatter } = useData()
+const { frontmatter, lang } = useData()
 const notice = computed(() => frontmatter.value.notice)
+// 弹卡 UI 词按站点语言切换；en 页此前会露出「展开全部/不再提示」中文按钮
+const ui = lang.value.startsWith('en')
+  ? { expand: 'Expand all', collapse: 'Collapse', items: '', mute: "Don't show again" }
+  : { expand: '展开全部', collapse: '收起', items: ' 条', mute: '不再提示' }
 
 const dateText = computed(() => {
   const d = notice.value?.date
@@ -24,6 +28,8 @@ const dateText = computed(() => {
 })
 
 const visible = ref(false)
+// 默认矮卡（不遮 Hero 视觉）；点击展开查看全部条目
+const expanded = ref(false)
 
 onMounted(() => {
   const n = notice.value
@@ -60,14 +66,24 @@ function mute() {
           <h3 class="notice-title">{{ notice.title }}</h3>
         </div>
         <span v-if="dateText" class="notice-date">{{ dateText }}</span>
-        <ul v-if="notice.items && notice.items.length" class="notice-items">
-          <li v-for="(item, i) in notice.items" :key="i">{{ item }}</li>
-        </ul>
+        <button
+          v-if="notice.items && notice.items.length > 1"
+          class="notice-expand"
+          :aria-expanded="expanded"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? ui.collapse + ' ▴' : `${ui.expand}（${notice.items.length}${ui.items}）▾` }}
+        </button>
+        <div class="notice-list-wrap" :class="{ 'is-collapsed': !expanded }">
+          <ul v-if="notice.items && notice.items.length" class="notice-items" :class="{ expanded }">
+            <li v-for="(item, i) in notice.items" :key="i">{{ item }}</li>
+          </ul>
+        </div>
         <div class="notice-footer">
           <a v-if="notice.link" :href="notice.link" class="notice-link">
             {{ notice.linkText || '查看详情' }} →
           </a>
-          <button class="notice-mute" @click="mute">不再提示</button>
+          <button class="notice-mute" @click="mute">{{ ui.mute }}</button>
         </div>
       </div>
     </div>
@@ -80,7 +96,7 @@ function mute() {
   right: 24px;
   bottom: 24px;
   z-index: 100;
-  width: 380px;
+  width: 352px;
   max-width: calc(100vw - 32px);
 }
 
@@ -149,12 +165,55 @@ function mute() {
   color: var(--vp-c-text-3);
 }
 
+.notice-expand {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.notice-expand:hover {
+  text-decoration: underline;
+}
+
+.notice-list-wrap {
+  position: relative;
+}
+
+/* 收起态列表底部渐隐，提示下方还有内容 */
+.notice-list-wrap.is-collapsed::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 34px;
+  background: linear-gradient(transparent, var(--vp-c-bg));
+  pointer-events: none;
+}
+
 .notice-items {
+  /* 卡片锚定右下向上生长：默认限高矮卡避免遮住 Hero 右侧视觉，点击「展开全部」后再长高看全部 */
+  max-height: 144px;
   margin: 12px 0 0;
   padding-left: 20px;
+  overflow-y: auto;
   list-style: disc;
   color: var(--vp-c-text-2);
   line-height: 1.85;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vp-c-divider) transparent;
+  overscroll-behavior: contain;
+  transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.notice-items.expanded {
+  max-height: min(62vh, 620px);
 }
 
 .notice-items ::marker {
@@ -163,6 +222,15 @@ function mute() {
 
 .notice-items li {
   font-size: 13px;
+}
+
+.notice-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notice-items::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 2px;
 }
 
 .notice-footer {
@@ -221,6 +289,10 @@ function mute() {
 @media (prefers-reduced-motion: reduce) {
   .notice-pop-enter-active,
   .notice-pop-leave-active {
+    transition: none;
+  }
+
+  .notice-items {
     transition: none;
   }
 }

@@ -1,62 +1,88 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
 import SectionHead from './SectionHead.vue'
+
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
+const t = (zh: string, en: string) => (isEn ? en : zh)
+// 站内链接在 en 下补前缀
+const p = (path: string) => (isEn ? '/en' + path : path)
 
 const families = [
   {
     icon: '⚙️',
-    name: '标准组件',
+    name: t('标准组件', 'Standard Components'),
     count: '38',
-    desc: '过滤器、转换器、动作、外部集成、流控制与公共节点',
-    link: '/pages/standard-components/',
+    desc: t(
+      '过滤器、转换器、动作、外部集成、流控制与公共节点',
+      'Filters, transformers, actions, external integrations, flow control and common nodes'
+    ),
+    link: p('/pages/standard-components/'),
   },
   {
     icon: '🧩',
-    name: '扩展组件',
+    name: t('扩展组件', 'Extension Components'),
     count: '85',
-    desc: 'MQTT/Kafka/DB 客户端、脚本、流式计算、服务发现、文件、CI',
-    link: '/pages/extension-overview/',
+    desc: t(
+      'MQTT/Kafka/DB 客户端、脚本、流式计算、服务发现、文件、CI',
+      'MQTT/Kafka/DB clients, scripts, stream processing, service discovery, files, CI'
+    ),
+    link: p('/pages/extension-overview/'),
   },
   {
     icon: '🤖',
-    name: 'AI 智能体组件',
+    name: t('AI 智能体组件', 'AI Agent Components'),
     count: '14',
-    desc: 'LLM 文本/图像生成、意图识别、MCP 客户端/服务端、Agent 编排',
-    link: '/pages/ai-agent/',
+    desc: t(
+      'LLM 文本/图像生成、意图识别、MCP 客户端/服务端、Agent 编排',
+      'LLM text/image generation, intent recognition, MCP client/server, agent orchestration'
+    ),
+    // zh 卡片原文指向 /pages/ai-agent/（智能体组件页），en 无对应细分页走 overview
+    link: p(isEn ? '/pages/ai-agent-overview/' : '/pages/ai-agent/'),
   },
   {
     icon: '🏭',
-    name: 'IoT 工业协议',
+    name: t('IoT 工业协议', 'Industrial Protocols'),
     count: '26',
     desc: 'modbus / s7 / opcua / eip / mc / fins / dlt645 / bacnet / snmp / iec104',
-    link: '/pages/iot-overview/',
+    link: p('/pages/iot-overview/'),
   },
   {
     icon: '🔌',
-    name: 'Endpoint 接入',
+    name: t('Endpoint 接入', 'Endpoints'),
     count: '20',
-    desc: '30+ 协议端点：HTTP/MQTT/WebSocket/TCP/UDP/Kafka…',
-    link: '/pages/endpoint-overview/',
+    desc: t('30+ 协议端点：HTTP/MQTT/WebSocket/TCP/UDP/Kafka…', '30+ protocol endpoints: HTTP/MQTT/WebSocket/TCP/UDP/Kafka…'),
+    link: p('/pages/endpoint-overview/'),
   },
   {
     icon: '🌊',
     name: 'StreamSQL',
     count: 'SQL',
-    desc: '用 SQL 处理无界流：窗口聚合、CEP 模式识别、流表 JOIN',
-    link: '/pages/streamsql-overview/',
+    desc: t(
+      '用 SQL 处理无界流：窗口聚合、CEP 模式识别、流表 JOIN',
+      'Query unbounded streams with SQL: windowed aggregation, CEP pattern matching, stream-table joins'
+    ),
+    link: p('/pages/streamsql-overview/'),
   },
   {
     icon: '🛒',
-    name: '组件市场',
+    name: t('组件市场', 'Marketplace'),
     count: '',
-    desc: '在线安装/更新扩展组件，也可发布你的组件到市场',
-    link: '/pages/marketplace/',
+    desc: t(
+      '在线安装/更新扩展组件，也可发布你的组件到市场',
+      'Install and update extension components online, or publish your own to the marketplace'
+    ),
+    link: p('/pages/marketplace/'),
   },
   {
     icon: '🛠️',
-    name: '自定义组件',
+    name: t('自定义组件', 'Custom Components'),
     count: '',
-    desc: '实现 Node 接口即成组件；支持 Go plugin 动态加载',
-    link: '/pages/custom-components-overview/',
+    desc: t(
+      '实现 Node 接口即成组件；支持 Go plugin 动态加载',
+      'Implement the Node interface and it is a component; dynamic loading via Go plugin supported'
+    ),
+    link: p('/pages/custom-components-overview/'),
   },
 ]
 </script>
@@ -66,8 +92,12 @@ const families = [
     <div class="home-inner">
       <SectionHead
         eyebrow="Components"
-        title="100+ 组件，覆盖数据处理的每个环节"
-        desc="从消息过滤、格式转换到工业协议采集和大模型调用——组件即积木，按需组合成规则链。不够用？自定义组件接口随时扩展。"
+        :title="isEn ? '100+ components covering every step of data handling' : '100+ 组件，覆盖数据处理的每个环节'"
+        :desc="
+          isEn
+            ? 'From message filtering and format conversion to industrial protocol collection and LLM calls — components are building blocks you compose into chains. Need more? Extend via the custom-component API.'
+            : '从消息过滤、格式转换到工业协议采集和大模型调用——组件即积木，按需组合成规则链。不够用？自定义组件接口随时扩展。'
+        "
       />
 
       <div class="comp-grid">

@@ -1,6 +1,6 @@
 ---
 title: Server Metrics Monitoring
-permalink: /pages/ci-ps/
+permalink: /pages/ci-server-monitoring/
 ---
 `ci/ps` component: <Badge text="v0.23.0+"/> Server metrics monitoring, used for monitoring server information such as CPU, memory, disk, and more.
 

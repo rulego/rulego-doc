@@ -22,3 +22,11 @@ We provide RuleGo-Editor as a tool for rule chain visualization. For details, re
 ### 5. What is the difference between endpoint components and node components?
 Endpoint components are used to receive external data or generate data and forward it to the rule engine. Node components are components within the rule engine used to process data within the rule engine.
 Endpoint components do not allow inputs and only have outputs.
+
+### 6. How to build approval workflows (leave requests, contract sign-offs) with RuleGo?
+For approval scenarios, use GFlow — process definitions reuse the RuleGo rule chain JSON DSL directly:
+
+- [gflow-engine](https://github.com/rulego/gflow-engine): an embeddable approval workflow engine (pure Go library). Tasks, instances and history are persisted automatically in just 7 tables — ideal for embedding into your own system.
+- [GFlow](https://gflow.rulego.cc/): an out-of-the-box approval platform built on gflow-engine, with a visual process designer.
+
+Official site and demo: <https://gflow.rulego.cc/>

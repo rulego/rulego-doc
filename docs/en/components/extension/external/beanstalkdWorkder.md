@@ -1,6 +1,6 @@
 ---
 title: BeanstalkdWorker
-permalink: /pages/x-beanstalkd-worker/
+permalink: /pages/beanstalkd-worker/
 ---
 `x/beanstalkdWorker` component: <Badge text="v0.29.0+"/> Beanstalkd consumer, supporting operations such as Delete, Release, Bury, KickJob, Touch, Peek, ReserveJob, StatsJob, Stats, and ListTubes.
 

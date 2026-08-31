@@ -1,6 +1,6 @@
 ---
 title: Redis Publisher
-permalink: /pages/x_redis_pub/
+permalink: /pages/redis-pub/
 ---
 `x/redisPub` Component: Redis publishing component. Publish data to a specified channel.
 

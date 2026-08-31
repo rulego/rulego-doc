@@ -1529,7 +1529,7 @@ export const enSidebar: DefaultTheme.Sidebar = [
         "items": [
           {
             "text": "Python Script Node",
-            "link": "/en/pages/en/python-node/"
+            "link": "/en/pages/python-node/"
           }
         ]
       },
@@ -1577,7 +1577,7 @@ export const enSidebar: DefaultTheme.Sidebar = [
           },
           {
             "text": "Redis Publisher",
-            "link": "/en/pages/x_redis_pub/"
+            "link": "/en/pages/redis-pub/"
           },
           {
             "text": "grpcClient",
@@ -1585,19 +1585,19 @@ export const enSidebar: DefaultTheme.Sidebar = [
           },
           {
             "text": "OpenTelemetry",
-            "link": "/en/pages/x-otel/"
+            "link": "/en/pages/open-telemetry/"
           },
           {
             "text": "BeanstalkdWorker",
-            "link": "/en/pages/x-beanstalkd-worker/"
+            "link": "/en/pages/beanstalkd-worker/"
           },
           {
             "text": "BeanstalkdTube",
-            "link": "/en/pages/x-beanstalkd-tube/"
+            "link": "/en/pages/beanstalkd-tube/"
           },
           {
             "text": "WukongimSender",
-            "link": "/en/pages/x-wukongimSender/"
+            "link": "/en/pages/wukongim-sender/"
           },
           {
             "text": "NSQ Client",
@@ -1618,12 +1618,32 @@ export const enSidebar: DefaultTheme.Sidebar = [
         "collapsed": true,
         "items": [
           {
+            "text": "Agent",
+            "link": "/en/pages/ai-agent/"
+          },
+          {
             "text": "LLM",
             "link": "/en/pages/llm/"
           },
           {
-            "text": "generate-image",
-            "link": "/en/pages/createImage/"
+            "text": "Create Image",
+            "link": "/en/pages/create-image/"
+          },
+          {
+            "text": "Intent Recognition",
+            "link": "/en/pages/ai-intent/"
+          },
+          {
+            "text": "Local Intent Recognition",
+            "link": "/en/pages/ai-local-intent/"
+          },
+          {
+            "text": "MCP Client",
+            "link": "/en/pages/ai-mcp-client/"
+          },
+          {
+            "text": "MCP Server",
+            "link": "/en/pages/ai-mcp-server/"
           }
         ]
       },
@@ -1653,7 +1673,7 @@ export const enSidebar: DefaultTheme.Sidebar = [
           },
           {
             "text": "Server Metrics Monitoring",
-            "link": "/en/pages/ci-ps/"
+            "link": "/en/pages/ci-server-monitoring/"
           }
         ]
       },
@@ -1682,6 +1702,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
             "link": "/en/pages/x-control-timer/"
           },
           {
+            "text": "HJ212 Endpoint",
+            "link": "/en/pages/endpoint-hj212/"
+          },
+          {
             "text": "SNMP Trap Endpoint",
             "link": "/en/pages/endpoint-snmp/"
           },
@@ -1692,6 +1716,34 @@ export const enSidebar: DefaultTheme.Sidebar = [
           {
             "text": "TSDB Query Node",
             "link": "/en/pages/x-tsdb-query/"
+          },
+          {
+            "text": "InfluxDB Write",
+            "link": "/en/pages/x-influxdb-write/"
+          },
+          {
+            "text": "InfluxDB Query",
+            "link": "/en/pages/x-influxdb-query/"
+          },
+          {
+            "text": "TDengine Write",
+            "link": "/en/pages/x-tdengine-write/"
+          },
+          {
+            "text": "TDengine Query",
+            "link": "/en/pages/x-tdengine-query/"
+          },
+          {
+            "text": "TimescaleDB Write",
+            "link": "/en/pages/x-timescaledb-write/"
+          },
+          {
+            "text": "TimescaleDB Query",
+            "link": "/en/pages/x-timescaledb-query/"
+          },
+          {
+            "text": "Prometheus Remote Write",
+            "link": "/en/pages/x-promremote-write/"
           },
           {
             "text": "Control Watchdog",
@@ -1756,10 +1808,6 @@ export const enSidebar: DefaultTheme.Sidebar = [
           {
             "text": "IEC 104 Write",
             "link": "/en/pages/x-iec104-write/"
-          },
-          {
-            "text": "FINS Node",
-            "link": "/en/pages/x-fins/"
           },
           {
             "text": "FINS Read",
@@ -2175,16 +2223,20 @@ export const enSidebar: DefaultTheme.Sidebar = [
       }
     ]
   },
-  {
-    "text": "FAQ",
-    "collapsed": true,
-    "items": [
       {
         "text": "FAQ",
-        "link": "/en/pages/faq/"
-      }
-    ]
-  },
+        "collapsed": true,
+        "items": [
+          {
+            "text": "FAQ",
+            "link": "/en/pages/faq/"
+          },
+          {
+            "text": "Registering a gRPC Reflection Service",
+            "link": "/en/pages/grpc-reflection-example/"
+          }
+        ]
+      },
   {
     "text": "Endpoint",
     "collapsed": true,
@@ -2290,8 +2342,8 @@ export const enSidebar: DefaultTheme.Sidebar = [
             "link": "/en/pages/endpoint-pulsar/"
           },
           {
-            "text": "net client endpint",
-            "link": "/en/pages/c686d7/"
+            "text": "Net Client Endpoint",
+            "link": "/en/pages/endpoint-net-client/"
           },
           {
             "text": "Websocket Client Endpoint",
@@ -2325,13 +2377,21 @@ export const enSidebar: DefaultTheme.Sidebar = [
         "text": "API Reference",
         "link": "/en/pages/streamsql-api/"
       },
-      {
-        "text": "RuleGo Integration",
-        "link": "/en/pages/streamsql-rulego/"
-      },
+          {
+            "text": "RuleGo Integration",
+            "link": "/en/pages/streamsql-rulego/"
+          },
+          {
+            "text": "Join the Community",
+            "link": "/en/pages/streamsql-community/"
+          },
       {
         "text": "Schema Validation",
         "link": "/en/pages/streamsql-schema/"
+      },
+      {
+        "text": "Analytic Functions",
+        "link": "/en/pages/streamsql-analytic/"
       },
       {
         "text": "Advanced Examples",

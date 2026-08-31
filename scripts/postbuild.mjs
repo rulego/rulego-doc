@@ -134,8 +134,13 @@ function addStub(url, target) {
   stubs.push(url)
 }
 
-// 4.1 旧 vdoing 英文首页
+// 4.1 旧 vdoing 英文首页；以及 en 侧 slug 统一到 zh 规范前的历史 URL（2026-08 统一）
 addStub('/en/pages/home/', '/en/')
+addStub('/en/pages/x-otel/', '/en/pages/open-telemetry/')
+addStub('/en/pages/x-beanstalkd-worker/', '/en/pages/beanstalkd-worker/')
+addStub('/en/pages/x-beanstalkd-tube/', '/en/pages/beanstalkd-tube/')
+addStub('/en/pages/x-wukongimSender/', '/en/pages/wukongim-sender/')
+addStub('/en/pages/ci-ps/', '/en/pages/ci-server-monitoring/')
 
 // 4.2 扫描产物内未命中的内部链接，生成对侧重定向
 const htmlFilesList = []

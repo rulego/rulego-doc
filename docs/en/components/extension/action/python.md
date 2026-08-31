@@ -1,6 +1,6 @@
 ---
 title: Python Script Node
-permalink: /pages/en/python-node/
+permalink: /pages/python-node/
 ---
 The `x/python` component is a Python script action node. It executes Python scripts via subprocess to transform, filter, or enrich messages. Supports both inline script and external `.py` file modes.
 

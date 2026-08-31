@@ -1,6 +1,6 @@
 ---
 title: OpenTelemetry 
-permalink: /pages/x-otel/
+permalink: /pages/open-telemetry/
 ---
 `x/otel` component: <Badge text="v0.28.0+"/> OpenTelemetry client component, used for recording various metric data and sending it to backend systems (such as: Prometheus, Datadog, InfluxDB, etc.) via the OTLP protocol.
 

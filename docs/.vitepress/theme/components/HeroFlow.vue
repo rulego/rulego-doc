@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
+
 // Hero 右侧流程 mockup：体现规则链的核心语义——多源输入、条件分支(True/False)、转换、扇出分发。
 // 纯 SVG 手绘（同 EcoArchDiagram 手法），CJK 全宽 / ASCII 0.62 倍估算文本宽度。
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
+const t = (zh: string, en: string) => (isEn ? en : zh)
+
 const W = 560
 const H = 368
 
@@ -34,18 +40,19 @@ function cy(n: Node): number {
 }
 
 const sources: Node[] = [
-  { t: 'MQTT 设备', x: 18, y: 44, tone: 'src' },
+  { t: t('MQTT 设备', 'MQTT Device'), x: 18, y: 44, tone: 'src' },
   { t: 'HTTP API', x: 18, y: 100, tone: 'src' },
   { t: 'Kafka', x: 18, y: 156, tone: 'src' },
 ]
 
-const root: Node = { t: 'jsFilter 过滤', x: 196, y: 100, tone: 'filter' }
-const transform: Node = { t: 'jsTransform 转换', x: 186, y: 212, tone: 'transform' }
-const drop: Node = { t: 'log 记录', x: 366, y: 100, tone: 'drop' }
+// 英文标签比中文长，转换节点左移避免与扇出列的连线肘部过窄
+const root: Node = { t: t('jsFilter 过滤', 'jsFilter Filter'), x: 196, y: 100, tone: 'filter' }
+const transform: Node = { t: t('jsTransform 转换', 'jsTransform Transform'), x: isEn ? 156 : 186, y: 212, tone: 'transform' }
+const drop: Node = { t: t('log 记录', 'log Record'), x: 366, y: 100, tone: 'drop' }
 const actions: Node[] = [
-  { t: 'restApiCall 推送', x: 366, y: 176, tone: 'action' },
-  { t: 'mqttClient 推送', x: 366, y: 224, tone: 'action' },
-  { t: 'x/iot 写时序库', x: 366, y: 272, tone: 'action' },
+  { t: t('restApiCall 推送', 'restApiCall Push'), x: 366, y: 176, tone: 'action' },
+  { t: t('mqttClient 推送', 'mqttClient Publish'), x: 366, y: 224, tone: 'action' },
+  { t: t('x/iot 写时序库', 'x/iot TSDB Write'), x: 366, y: 272, tone: 'action' },
 ]
 
 // 肘形连线：源 → 汇聚 → root
@@ -59,11 +66,19 @@ function elbow(from: { x: number; y: number }, to: { x: number; y: number }): st
   <div class="hero-visual">
     <div class="chain-card">
       <div class="chain-head">
-        <div class="chain-title">规则链示例 · 温度数据处理</div>
-        <div class="chain-no">chain_telemetry · <span class="running">● 运行中</span> · 改链不重启</div>
+        <div class="chain-title">{{ t('规则链示例 · 温度数据处理', 'Rule Chain Example · Temperature Processing') }}</div>
+        <div class="chain-no">
+          chain_telemetry · <span class="running">● {{ t('运行中', 'running') }}</span> · {{ t('改链不重启', 'no restart needed') }}
+        </div>
       </div>
 
-      <svg class="flow-svg" :viewBox="`0 0 ${W} ${H}`" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="规则链流程图：多源输入经过滤分支后扇出分发">
+      <svg
+        class="flow-svg"
+        :viewBox="`0 0 ${W} ${H}`"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        :aria-label="t('规则链流程图：多源输入经过滤分支后扇出分发', 'Rule chain diagram: multiple inputs branch through a filter and fan out')"
+      >
         <defs>
           <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
             <path d="M0,0 L7,3.5 L0,7 z" fill="#6f8377" />
@@ -74,9 +89,9 @@ function elbow(from: { x: number; y: number }, to: { x: number; y: number }): st
         </defs>
 
         <!-- 分区标注 -->
-        <text class="zone-t" x="18" y="26">输入源</text>
-        <text class="zone-t" x="196" y="26">规则链编排</text>
-        <text class="zone-t" x="366" y="26">分发目标</text>
+        <text class="zone-t" x="18" y="26">{{ t('输入源', 'SOURCES') }}</text>
+        <text class="zone-t" x="196" y="26">{{ t('规则链编排', 'RULE CHAIN') }}</text>
+        <text class="zone-t" x="366" y="26">{{ t('分发目标', 'TARGETS') }}</text>
 
         <!-- 源节点 -->
         <g v-for="s in sources" :key="s.t">
@@ -130,7 +145,8 @@ function elbow(from: { x: number; y: number }, to: { x: number; y: number }): st
         </g>
 
         <!-- 底部 DSL 提示 -->
-        <text class="dsl-t" x="18" y="352">connections: [ {fromId: "s1", toId: "s2", type: "True"}, … ] · JSON 定义 · 动态热更新</text>
+        <text v-if="!isEn" class="dsl-t" x="18" y="352">connections: [ {fromId: "s1", toId: "s2", type: "True"}, … ] · JSON 定义 · 动态热更新</text>
+        <text v-else class="dsl-t" x="18" y="352">connections: [{fromId: "s1", toId: "s2", type: "True"}, …] · JSON DSL · hot-reload</text>
       </svg>
     </div>
   </div>

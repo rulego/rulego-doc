@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
+
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
+
 const links = [
   { name: 'MybatisPlus', url: 'https://baomidou.com', logo: '/img/links/mybatis-plus-logo.png' },
   { name: 'liteflow', url: 'https://liteflow.cc', logo: '/img/links/liteflow-logo.png' },
@@ -7,7 +12,7 @@ const links = [
 
 <template>
   <div class="home-links">
-    <span class="links-label">友情链接</span>
+    <span class="links-label">{{ isEn ? 'Friend Links' : '友情链接' }}</span>
     <a v-for="l in links" :key="l.name" class="link-item" :href="l.url" target="_blank" rel="noopener noreferrer" :title="l.name">
       <img :src="l.logo" :alt="l.name" />
     </a>
@@ -47,5 +52,9 @@ const links = [
   height: 1.7em;
   max-width: 150px;
   display: block;
+  /* logo 多为透明底 PNG，暗色主题下会融入背景，垫白保证两种外观都可读 */
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 </style>

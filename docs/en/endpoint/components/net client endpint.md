@@ -1,4 +1,4 @@
 ---
-title: net client endpint
-permalink: /pages/c686d7/
+title: Net Client Endpoint
+permalink: /pages/endpoint-net-client/
 ---

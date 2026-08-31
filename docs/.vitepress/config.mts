@@ -82,9 +82,7 @@ const zhNav = [
       { text: '生态总览', link: '/ecosystem/' },
       { text: '🌊 StreamSQL', link: '/pages/streamsql-overview/' },
       { text: '🤖 智能体框架', link: '/pages/ai-agent-overview/' },
-      { text: '🦀 TPCLAW 智能体平台', link: 'https://tpclaw.teambuf.com/' },
-      { text: '🀄 GFlow 审批工作流', link: 'https://gflow.rulego.cc/' },
-      { text: '🎨 可视化编辑器', link: 'https://editor.rulego.cc/' },
+      // 商业产品（TPCLAW/GFlow/编辑器）不做全局导航直链，出口收敛到 /ecosystem/
       { text: '更新日志', link: 'https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md' },
     ],
   },
@@ -120,10 +118,13 @@ const enNav = [
   },
   {
     text: 'Components',
-    activeMatch: '^/en/pages/(standard-components|extension-overview|marketplace)/',
+    activeMatch: '^/en/pages/(standard-components|extension-overview|ai-agent-overview|iot-overview|streamsql-overview|marketplace)/',
     items: [
       { text: 'Standard Components', link: '/en/pages/standard-components/' },
       { text: 'Extension Components', link: '/en/pages/extension-overview/' },
+      { text: 'AI Agent Components', link: '/en/pages/ai-agent-overview/' },
+      { text: 'Industrial Protocols', link: '/en/pages/iot-overview/' },
+      { text: 'StreamSQL', link: '/en/pages/streamsql-overview/' },
       { text: 'Components Marketplace', link: '/en/pages/marketplace/' },
     ],
   },
@@ -143,16 +144,27 @@ const enNav = [
   { text: 'Editor', link: 'https://app.rulego.cc/en' },
   {
     text: 'Ecosystem',
-    activeMatch: '^/(ecosystem/|en/pages/(streamsql-overview|ai-agent-overview)/)',
+    activeMatch: '^/(en/ecosystem/|en/pages/(streamsql-overview|ai-agent-overview)/)',
     items: [
-      { text: 'Ecosystem Overview', link: '/ecosystem/' },
+      { text: 'Ecosystem Overview', link: '/en/ecosystem/' },
       { text: 'StreamSQL', link: '/en/pages/streamsql-overview/' },
       { text: 'AI Agent Framework', link: '/en/pages/ai-agent-overview/' },
-      { text: 'TPCLAW Agent Platform', link: 'https://tpclaw.teambuf.com/' },
+      // 商业产品（TPCLAW/GFlow/编辑器）不做全局导航直链，出口收敛到 /en/ecosystem/（同中文导航策略）
       { text: 'Changelog', link: 'https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md' },
     ],
   },
-  { text: 'Support', link: '/en/pages/support/' },
+  {
+    text: 'Community',
+    link: '/en/pages/community/',
+  },
+  {
+    text: 'Support',
+    activeMatch: '^/en/pages/(support|faq)/',
+    items: [
+      { text: 'Support RuleGo', link: '/en/pages/support/' },
+      { text: 'FAQ', link: '/en/pages/faq/' },
+    ],
+  },
 ]
 
 export default withMermaid(
@@ -241,7 +253,7 @@ export default withMermaid(
         { icon: 'github', link: 'https://github.com/rulego/rulego' },
         {
           icon: {
-            svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.58 2 2.25 6.58 2.25 12s4.33 10 9.75 10 9.75-4.58 9.75-10S17.42 2 12 2m4.94 14.22c-.2.5-.84.96-1.36 1.08-.36.08-.82.12-1.34-.06-.3-.1-.7-.22-1.2-.44-2.12-.92-3.5-3.04-3.6-3.18-.1-.14-.86-1.14-.86-2.18 0-1.04.54-1.56.74-1.76.2-.2.42-.26.56-.26h.4c.14 0 .3 0 .46.36.18.42.6 1.46.66 1.56.06.1.1.22.02.36-.08.14-.14.24-.28.38-.14.14-.28.3-.4.4-.14.14-.28.28-.12.56.16.28.72 1.18 1.54 1.92 1.06.94 1.96 1.24 2.24 1.38.28.14.44.12.6-.08.16-.2.7-.8.88-1.08.18-.28.36-.24.62-.14.24.08 1.5.7 1.76.84.26.12.44.2.5.3.06.12.06.6-.14 1.1"/></svg>',
+            svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12a12 12 0 0 0 12-12A12 12 0 0 0 12 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.59.59 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>',
           },
           link: 'https://gitee.com/rulego/rulego',
           ariaLabel: 'Gitee',
@@ -288,6 +300,15 @@ export default withMermaid(
     mermaid: {
       // 两种外观下都可读的中性主题；深色模式由客户端 Mermaid 组件处理
       theme: 'default',
+    },
+
+    vite: {
+      optimizeDeps: {
+        // 依赖扫描器不解析 .vue，进不去 Mermaid.vue 的导入链，"mermaid" 不会被自动发现；
+        // 不预打包时 mermaid 全图经 /@fs 裸源码直出，它对 CJS 依赖 fastdom-promised 的默认导入
+        // 无互操作，浏览器报 "doesn't provide an export named 'default'"，整页白屏
+        include: ['mermaid', 'fastdom', 'fastdom/extensions/fastdom-promised.js'],
+      },
     },
   }),
 )

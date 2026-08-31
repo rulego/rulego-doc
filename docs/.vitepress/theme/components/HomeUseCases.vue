@@ -1,6 +1,13 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
 import SectionHead from './SectionHead.vue'
 import EngineArchDiagram from './EngineArchDiagram.vue'
+
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
+const t = (zh: string, en: string) => (isEn ? en : zh)
+// 站内链接在 en 下补前缀
+const p = (path: string) => (isEn ? '/en' + path : path)
 
 type Tone = 'src' | 'filter' | 'transform' | 'action' | 'out'
 interface Step {
@@ -23,70 +30,82 @@ interface UseCase {
 const useCases: UseCase[] = [
   {
     icon: '📡',
-    title: '物联网 / 边缘计算',
-    desc: '设备数据在边缘侧过滤、聚合、格式化后再上报云端；处理规则动态可改，无需重启系统。',
+    title: t('物联网 / 边缘计算', 'IoT / Edge Computing'),
+    desc: t(
+      '设备数据在边缘侧过滤、聚合、格式化后再上报云端；处理规则动态可改，无需重启系统。',
+      'Device data is filtered, aggregated and formatted at the edge before upload; rules change on the fly, no restart.'
+    ),
     lanes: [
       {
         steps: [
-          { t: '设备 · modbus/MQTT', tone: 'src' },
-          { t: '点位采集', tone: 'filter' },
-          { t: '过滤 · 聚合', tone: 'transform' },
-          { t: '时序库 / 告警', tone: 'out' },
+          { t: t('设备 · modbus/MQTT', 'Devices · modbus/MQTT'), tone: 'src' },
+          { t: t('点位采集', 'Point Read'), tone: 'filter' },
+          { t: t('过滤 · 聚合', 'Filter · Aggregate'), tone: 'transform' },
+          { t: t('时序库 / 告警', 'TSDB / Alerts'), tone: 'out' },
         ],
       },
     ],
-    link: '/pages/iot-overview/',
-    linkText: 'IoT 组件',
+    link: p('/pages/iot-overview/'),
+    linkText: t('IoT 组件', 'IoT Components'),
   },
   {
     icon: '🔀',
-    title: '数据分发 / 应用集成',
-    desc: '把 RuleGo 当胶水：任意协议进、任意系统出，一路数据按规则分发到多个目的地。',
+    title: t('数据分发 / 应用集成', 'Data Distribution / Integration'),
+    desc: t(
+      '把 RuleGo 当胶水：任意协议进、任意系统出，一路数据按规则分发到多个目的地。',
+      'RuleGo as glue: any protocol in, any system out — one stream fans out to multiple destinations by rule.'
+    ),
     lanes: [
       {
         steps: [
           { t: 'HTTP / MQTT / Kafka', tone: 'src' },
-          { t: '格式转换', tone: 'transform' },
+          { t: t('格式转换', 'Format Conversion'), tone: 'transform' },
           { t: 'Kafka · DB · ES · Webhook', tone: 'out' },
         ],
       },
     ],
-    link: '/pages/endpoint-overview/',
-    linkText: 'Endpoint 接入',
+    link: p('/pages/endpoint-overview/'),
+    linkText: t('Endpoint 接入', 'Endpoints'),
   },
   {
     icon: '🤖',
-    title: 'AI 智能体',
-    desc: '规则链即智能体：LLM 意图识别 + 工具调用 + 业务动作，JSON 定义、修改即生效。',
+    title: t('AI 智能体', 'AI Agents'),
+    desc: t(
+      '规则链即智能体：LLM 意图识别 + 工具调用 + 业务动作，JSON 定义、修改即生效。',
+      'A rule chain is an agent: LLM intent recognition plus tool calls plus business actions — defined in JSON, effective the moment you change it.'
+    ),
     lanes: [
       {
         steps: [
-          { t: '用户消息', tone: 'src' },
-          { t: 'ai/llm 意图', tone: 'filter' },
-          { t: '工具 / 子链', tone: 'transform' },
-          { t: '业务动作', tone: 'out' },
+          { t: t('用户消息', 'User Message'), tone: 'src' },
+          { t: t('ai/llm 意图', 'ai/llm Intent'), tone: 'filter' },
+          { t: t('工具 / 子链', 'Tools / Sub-chains'), tone: 'transform' },
+          { t: t('业务动作', 'Business Actions'), tone: 'out' },
         ],
       },
     ],
-    link: '/pages/ai-agent-overview/',
-    linkText: '智能体框架',
+    link: p('/pages/ai-agent-overview/'),
+    linkText: t('智能体框架', 'Agent Framework'),
   },
   {
     icon: '⚙️',
-    title: '自动化编排',
-    desc: '定时器、消息、Webhook 皆可为触发器；业务逻辑解耦成规则链，随时替换与回滚。',
+    title: t('自动化编排', 'Automation'),
+    desc: t(
+      '定时器、消息、Webhook 皆可为触发器；业务逻辑解耦成规则链，随时替换与回滚。',
+      'Timers, messages, webhooks — anything can trigger; business logic decoupled into chains, replaceable and rollback-safe anytime.'
+    ),
     lanes: [
       {
         steps: [
-          { t: '定时 / 触发器', tone: 'src' },
-          { t: '规则链编排', tone: 'transform' },
-          { t: '调用服务', tone: 'action' },
-          { t: '通知 / 回写', tone: 'out' },
+          { t: t('定时 / 触发器', 'Timer / Trigger'), tone: 'src' },
+          { t: t('规则链编排', 'Chain Orchestration'), tone: 'transform' },
+          { t: t('调用服务', 'Call Services'), tone: 'action' },
+          { t: t('通知 / 回写', 'Notify / Write-back'), tone: 'out' },
         ],
       },
     ],
-    link: '/pages/use-cases/',
-    linkText: '更多场景',
+    link: p('/pages/use-cases/'),
+    linkText: t('更多场景', 'More Use Cases'),
   },
 ]
 </script>
@@ -96,8 +115,12 @@ const useCases: UseCase[] = [
     <div class="home-inner">
       <SectionHead
         eyebrow="Use Cases"
-        title="RuleGo 能干什么？"
-        desc="凡是「数据进来 → 按规则处理 → 分发到别处」的场景，都是规则链的主场。下面是四个典型链路。"
+        :title="isEn ? 'What can RuleGo do?' : 'RuleGo 能干什么？'"
+        :desc="
+          isEn
+            ? 'Wherever data comes in, gets processed by rules, and lands somewhere else is home turf for rule chains. Four typical pipelines below.'
+            : '凡是「数据进来 → 按规则处理 → 分发到别处」的场景，都是规则链的主场。下面是四个典型链路。'
+        "
       />
 
       <div class="uc-grid">
@@ -125,7 +148,13 @@ const useCases: UseCase[] = [
       <!-- 引擎架构图（自绘 SVG，与站点设计系统一致） -->
       <div class="uc-arch">
         <EngineArchDiagram />
-        <p class="uc-arch-caption">RuleGo 引擎架构：接入 → 规则链核心 → 100+ 组件，双形态交付</p>
+        <p class="uc-arch-caption">
+          {{
+            isEn
+              ? 'RuleGo engine architecture: access → rule-chain core → 100+ components, two delivery modes'
+              : 'RuleGo 引擎架构：接入 → 规则链核心 → 100+ 组件，双形态交付'
+          }}
+        </p>
       </div>
     </div>
   </section>
@@ -326,7 +355,7 @@ html.dark .uc-link {
 
 /* 架构图 */
 .uc-arch {
-  margin-top: 44px;
+  margin-top: 34px;
 }
 
 .uc-arch-caption {

@@ -1,6 +1,6 @@
 ---
-title: generate-image
-permalink: /pages/createImage/
+title: Create Image
+permalink: /pages/create-image/
 ---
 `ai/createImage` Component: <Badge text="v0.29.0+"/> AI image generation.
 

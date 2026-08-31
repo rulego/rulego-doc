@@ -1,6 +1,6 @@
 ---
 title: WukongimSender 
-permalink: /pages/x-wukongimSender/
+permalink: /pages/wukongim-sender/
 ---
 `x/wukongimSender` component: <Badge text="v0.29.0+"/> Wukongim message sender.
 

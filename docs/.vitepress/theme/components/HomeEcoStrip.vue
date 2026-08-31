@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { useData } from 'vitepress'
 import { ecoItems } from '../ecosystem.mts'
 import EcoBadge from './EcoBadge.vue'
 
 // 首页生态条：平铺呈现，不做分层叙事；徽章 + 出口链接，商业呈现克制
-const items = ecoItems.filter((i) => i.id !== 'rulego') // 首页本身就是 RuleGo
+const { lang } = useData()
+const isEn = lang.value.startsWith('en')
 
-const primary = (item: (typeof items)[number]) => item.doc || item.site || item.repo || ''
+const all = ecoItems.filter((i) => i.id !== 'rulego') // 首页本身就是 RuleGo
+const primary = (item: (typeof all)[number]) => {
+  const link = item.doc || item.site || item.repo || ''
+  // 站内文档链接在 en 下补 /en 前缀
+  return isEn && link.startsWith('/') ? '/en' + link : link
+}
 </script>
 
 <template>
@@ -14,20 +21,24 @@ const primary = (item: (typeof items)[number]) => item.doc || item.site || item.
       <div class="eco-strip-head">
         <div>
           <span class="eco-strip-eyebrow">FAMILY</span>
-          <h2 class="eco-strip-title">RuleGo 家族</h2>
+          <h2 class="eco-strip-title">{{ isEn ? 'The RuleGo Family' : 'RuleGo 家族' }}</h2>
           <p class="eco-strip-desc">
-            同一套规则链底座之上的产品与框架——从智能体、流处理到边缘网关与可视化编辑器。
+            {{
+              isEn
+                ? 'Products and frameworks on the same rule-chain foundation — agents, stream processing, edge gateways and a visual editor.'
+                : '同一套规则链底座之上的产品与框架——从智能体、流处理到边缘网关与可视化编辑器。'
+            }}
           </p>
         </div>
-        <a href="/ecosystem/" class="rg-btn rg-btn-ghost ghost-light eco-strip-more">
-          生态总览 →
+        <a :href="isEn ? '/en/ecosystem/' : '/ecosystem/'" class="rg-btn rg-btn-ghost ghost-light eco-strip-more">
+          {{ isEn ? 'Ecosystem Overview →' : '生态总览 →' }}
         </a>
       </div>
 
       <div class="eco-strip">
         <!-- 统一用 <a>：站内链接由 VitePress 全局点击拦截走 SPA，SSR 下无需解析 RouterLink -->
         <a
-          v-for="item in items"
+          v-for="item in all"
           :key="item.id"
           class="eco-chip"
           :href="primary(item)"
@@ -35,7 +46,7 @@ const primary = (item: (typeof items)[number]) => item.doc || item.site || item.
           :rel="primary(item).startsWith('/') ? undefined : 'noopener noreferrer'"
         >
           <span class="eco-emoji">{{ item.emoji }}</span>
-          <span class="eco-chip-name">{{ item.name }}</span>
+          <span class="eco-chip-name">{{ (isEn ? item.nameEn : undefined) || item.name }}</span>
           <EcoBadge :type="item.badge" />
         </a>
       </div>
