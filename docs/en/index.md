@@ -40,6 +40,33 @@ permalink: /pages/home/
 
 <Notice :data="$frontmatter.notices"/>
 
+### 🌍Ecosystem Products
+
+Upper-layer products built on RuleGo:
+
+::: cardList 3
+```yaml
+- name: GFlow Approval Workflow
+  desc: 'An enterprise approval workflow platform built on RuleGo and GFlow Engine. Approve, then automate: AI reviews first, humans sign next, and actions execute automatically — rule chains and agents are natively orchestrated into approval flows.'
+  avatar: img/links/gflow-logo.svg
+  link: https://gflow.rulego.cc/
+  bgColor: '#FDEEEC'
+  textColor: '#1f2328'
+- name: TPCLAW Agent Platform
+  desc: 'An autonomous agent product that can work on its own, with memory and collaboration, ready to use out of the box with full Feishu/WeCom integration.'
+  avatar: img/links/tpclaw-logo.png
+  link: https://tpclaw.teambuf.com/
+  bgColor: '#FFF7E6'
+  textColor: '#1f2328'
+- name: RuleGo-Server
+  desc: 'An application development scaffold based on RuleGo for quickly building agent, IoT and workflow apps — run standalone, import as a package, or embed into Gin/Echo via Bridge.'
+  avatar: img/logo.png
+  link: http://8.134.32.225:9090/editor/
+  bgColor: '#E8F3FF'
+  textColor: '#1f2328'
+```
+:::
+
 ### 🏆Special Users
 
 ::: cardList

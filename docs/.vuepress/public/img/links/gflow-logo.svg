@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RuleGo-BPM / gflow 标志">
+  <!--
+    gflow / RuleGo-BPM 品牌主标
+    概念：印章 × 流程 —— 朱红方章内嵌一条审批流
+    发起(圆) → 并行分支(fork) → 汇聚(join) → 结束(方)
+  -->
+  <!-- 印章方章 -->
+  <rect x="3" y="3" width="58" height="58" rx="13" fill="#C2372F"/>
+
+  <!-- 公章内细框 -->
+  <rect x="8.5" y="8.5" width="47" height="47" rx="8.5" fill="none"
+        stroke="#FFF3EC" stroke-width="1.6" opacity="0.5"/>
+
+  <!-- 流程连线：主干 → 分叉 → 双分支 → 汇聚 → 收尾 -->
+  <g stroke="#FFF6EE" stroke-width="3" fill="none"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 18 V26"/>
+    <path d="M21 26 H43"/>
+    <path d="M21 26 V40"/>
+    <path d="M43 26 V40"/>
+    <path d="M21 40 H43"/>
+    <path d="M32 40 V45"/>
+  </g>
+
+  <!-- 节点：发起（圆）· 双审批任务（圆）· 结束（方） -->
+  <circle cx="32" cy="15" r="3.4" fill="#FFF6EE"/>
+  <circle cx="21" cy="33" r="3.6" fill="#FFF6EE"/>
+  <circle cx="43" cy="33" r="3.6" fill="#FFF6EE"/>
+  <rect x="28.2" y="45.2" width="7.6" height="7.6" rx="2" fill="#FFF6EE"/>
+</svg>

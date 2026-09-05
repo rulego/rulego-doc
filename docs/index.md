@@ -56,6 +56,33 @@ notices: # 可选的
 
 <br/>
 
+### 🌍生态产品
+
+基于 RuleGo 构建的上层产品：
+
+::: cardList 3
+```yaml
+- name: GFlow 审批工作流
+  desc: '基于 RuleGo 与 GFlow Engine 的企业级审批工作流平台。批完，自动办：AI 先审、人再签、签完自动执行，规则链与智能体原生编排进审批流。'
+  avatar: img/links/gflow-logo.svg
+  link: https://gflow.rulego.cc/
+  bgColor: '#FDEEEC'
+  textColor: '#1f2328'
+- name: TPCLAW 智能助手平台
+  desc: '可自主工作、有记忆、能协作的自主智能体产品，开箱即用，飞书/企业微信全通道接入。'
+  avatar: img/links/tpclaw-logo.png
+  link: https://tpclaw.teambuf.com/
+  bgColor: '#FFF7E6'
+  textColor: '#1f2328'
+- name: RuleGo-Server
+  desc: '基于 RuleGo 的应用开发脚手架，快速构建智能体、IoT、工作流等应用，可独立运行、引用包开发或 Bridge 嵌入 Gin/Echo。'
+  avatar: img/logo.png
+  link: http://8.134.32.225:9090/editor/
+  bgColor: '#E8F3FF'
+  textColor: '#1f2328'
+```
+:::
+
 ### 🏆特别用户
 
 ::: cardList

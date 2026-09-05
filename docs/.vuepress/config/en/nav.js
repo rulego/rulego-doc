@@ -49,6 +49,7 @@ module.exports = [
             { text: "RuleGo Server", link: "https://github.com/rulego/rulego/tree/main/server" },
             { text: "StreamSQL", link: "/en/pages/streamsql-overview/" },
             { text: "AI Agent Framework", link: "/en/pages/ai-agent-overview/" },
+            { text: "GFlow Approval Workflow", link: "https://gflow.rulego.cc/" },
             { text: "TPCLAW Agent Platform", link: "https://tpclaw.teambuf.com/" }
         ]
     },
