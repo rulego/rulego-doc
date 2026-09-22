@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useData } from 'vitepress'
 import type { EcoItem } from '../ecosystem.mts'
-import EcoBadge from './EcoBadge.vue'
 
 const props = defineProps<{ item: EcoItem }>()
 
@@ -15,17 +14,15 @@ const text = {
   doc: ['文档 →', 'Docs →'],
   site: ['官网 ↗', 'Website ↗'],
   demo: ['在线体验 ↗', 'Live Demo ↗'],
-  commercial: ['了解商业版 →', 'Learn More →'],
 }
 const label = (key: keyof typeof text) => text[key][isEn ? 1 : 0]
 </script>
 
 <template>
-  <div class="eco-card" :class="'eco-card--' + props.item.badge">
+  <div class="eco-card">
     <div class="eco-card-head">
       <span class="eco-emoji">{{ props.item.emoji }}</span>
       <span class="eco-name">{{ (isEn ? props.item.nameEn : undefined) || props.item.name }}</span>
-      <EcoBadge :type="props.item.badge" :note="props.item.badgeNote" :note-en="props.item.badgeNoteEn" />
     </div>
     <p class="eco-tagline">{{ (isEn ? props.item.taglineEn : undefined) || props.item.tagline }}</p>
     <div class="eco-links">
@@ -58,15 +55,6 @@ const label = (key: keyof typeof text) => text[key][isEn ? 1 : 0]
         rel="noopener noreferrer"
       >
         {{ label('demo') }}
-      </a>
-      <a
-        v-if="props.item.commercial"
-        class="eco-link eco-link-commercial"
-        :href="props.item.commercial"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {{ label('commercial') }}
       </a>
     </div>
   </div>

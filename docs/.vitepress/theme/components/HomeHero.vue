@@ -14,9 +14,9 @@ const stats = [
   { num: '30', unit: '+', label: t('Endpoint 接入协议', 'endpoint access protocols') },
   { num: '0', unit: '', label: t('外部中间件依赖', 'external middleware dependencies') },
   {
-    num: '2',
-    unit: isEn ? '' : '种',
-    label: t('运行形态：嵌入式 / 独立部署', 'runtime modes: embedded / standalone'),
+    num: '5',
+    unit: '+',
+    label: t('长在同一底座上的场景应用', 'scenario applications on one base'),
   },
 ]
 </script>

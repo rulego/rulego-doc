@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useData } from 'vitepress'
 import { ecoItems } from '../ecosystem.mts'
-import EcoBadge from './EcoBadge.vue'
 
 // 首页生态条：平铺呈现，不做分层叙事；徽章 + 出口链接，商业呈现克制
 const { lang } = useData()
@@ -25,8 +24,8 @@ const primary = (item: (typeof all)[number]) => {
           <p class="eco-strip-desc">
             {{
               isEn
-                ? 'Products and frameworks on the same rule-chain foundation — agents, stream processing, edge gateways and a visual editor.'
-                : '同一套规则链底座之上的产品与框架——从智能体、流处理到边缘网关与可视化编辑器。'
+                ? 'One powerful base for every scenario — application platforms, agents, edge gateways, workflow and a visual editor, all built on the same engine.'
+                : '一个底座，长出各种场景的应用——应用开发平台、智能体、边缘网关、工作流与可视化编辑器。'
             }}
           </p>
         </div>
@@ -47,7 +46,6 @@ const primary = (item: (typeof all)[number]) => {
         >
           <span class="eco-emoji">{{ item.emoji }}</span>
           <span class="eco-chip-name">{{ (isEn ? item.nameEn : undefined) || item.name }}</span>
-          <EcoBadge :type="item.badge" />
         </a>
       </div>
     </div>

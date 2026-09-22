@@ -12,11 +12,12 @@ import EcoMatrix from '../../.vitepress/theme/components/EcoMatrix.vue'
 <div class="eco-page">
   <div class="eco-page-head">
     <span class="eco-page-eyebrow">ECOSYSTEM</span>
-    <h1>The RuleGo Ecosystem</h1>
+    <h1>One Base, Every Scenario</h1>
     <p>
-      One family on a shared core. The engine &amp; framework layers provide open-source capabilities — rule chains,
-      agents, stream processing and protocol access; the platform layer assembles them into ready-to-run
-      applications; commercial products keep their full details on their own sites.
+      RuleGo is a powerful engine for building scenario applications: the component-based rule-chain kernel handles
+      orchestration, while frameworks on top of it provide protocol access, industrial data collection, stream
+      processing, agents and workflow. The application layer assembles these capabilities into ready-to-run products —
+      from an application development platform to an industrial edge gateway — all on the same base.
     </p>
   </div>
 
@@ -25,9 +26,9 @@ import EcoMatrix from '../../.vitepress/theme/components/EcoMatrix.vue'
   <section class="eco-note">
     <h2>Notes</h2>
     <ul>
-      <li>Items marked "Open Source" are Apache-2.0 licensed or under their stated license — free to embed and build upon.</li>
-      <li>Pricing, licensing and demo information for commercial products lives on their own sites (gflow.rulego.cc, editor.rulego.cc); this site does not expand on it.</li>
-      <li>rulego-edge is under construction; progress is public in its repository for now.</li>
+      <li>Documentation for the base engine lives on this site: guide, components, Endpoint, StreamSQL, agents and IoT sections.</li>
+      <li>Applications are independently evolving products with their own sites and docs (edge.rulego.cc, gflow.rulego.cc, editor.rulego.cc); this page only links to them.</li>
+      <li>Want to build your own scenario on the base? Start with the <a href="/en/pages/introduction/">engine docs</a>. Want a ready-made product? Visit each product's site.</li>
     </ul>
   </section>
 </div>

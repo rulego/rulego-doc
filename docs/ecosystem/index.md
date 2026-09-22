@@ -12,10 +12,10 @@ import EcoMatrix from '../.vitepress/theme/components/EcoMatrix.vue'
 <div class="eco-page">
   <div class="eco-page-head">
     <span class="eco-page-eyebrow">ECOSYSTEM</span>
-    <h1>RuleGo 生态总览</h1>
+    <h1>一个底座，长出所有场景</h1>
     <p>
-      一个家族（RuleGo 底座），分层产品。引擎与框架层提供规则链、智能体、流处理与协议接入等开源能力；
-      平台层把它们组装成开箱即用的应用；商业产品在各自的站点提供完整细节。
+      RuleGo 是一个可以开发各种场景应用的强大引擎：组件化的规则链内核负责编排，长在其上的框架提供协议接入、工业采集、流式计算、智能体与工作流能力。
+      场景应用层则把这些能力组装成开箱即用的产品——从应用开发平台、工业边缘网关到审批工作流，都构建在同一个底座之上。
     </p>
   </div>
 
@@ -24,9 +24,9 @@ import EcoMatrix from '../.vitepress/theme/components/EcoMatrix.vue'
   <section class="eco-note">
     <h2>说明</h2>
     <ul>
-      <li>标注「开源」的项目遵循 Apache-2.0 或对应开源许可，可自由嵌入与二次开发。</li>
-      <li>商业产品的定价、授权与演示信息在它们自己的站点（gflow.rulego.cc、editor.rulego.cc），本站不做展开。</li>
-      <li>rulego-edge 处于建设中，先以仓库形式公开进展，文档区暂不开放。</li>
+      <li>底座引擎的文档就在本站：指南、组件、Endpoint、StreamSQL、智能体、IoT 各区。</li>
+      <li>场景应用是独立演进的产品，各有自己的站点与文档（如 edge.rulego.cc、gflow.rulego.cc、editor.rulego.cc），本站只做导航。</li>
+      <li>想用底座做自己的场景？从 <a href="/pages/introduction/">引擎文档</a> 开始；想直接拿到成品？进各产品站点了解。</li>
     </ul>
   </section>
 </div>
