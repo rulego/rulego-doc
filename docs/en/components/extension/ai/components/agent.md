@@ -1,72 +1,89 @@
 ---
-title: AI Agent
+title: Agent
+
 permalink: /pages/ai-agent/
 ---
-`ai/agent` component: <Badge text="v0.36.0+"/> an AI agent node based on the ReAct (Reasoning + Acting) pattern. It completes user tasks autonomously through a loop of multi-turn reasoning and tool calls. Both synchronous and streaming execution modes are supported.
 
-As a rule chain node, the agent can be freely combined with other RuleGo nodes to build complex AI workflows.
+The `ai/agent` component: <Badge text="v0.36.0+"/> an AI agent node based on the ReAct (Reasoning + Acting) pattern. It autonomously completes user tasks through multi-round reasoning and tool-calling loops, in both synchronous and streaming modes.
+
+As a rule chain node, the agent can be freely composed with other RuleGo nodes to build complex AI workflows.
+
+## Two Implementations <Badge text="v0.38.0+"/>
+
+`ai/agent` has two implementations sharing the same type name, with an identical chain DSL:
+
+| | Full (`agent` package) | Lite (`agent/lite` package) |
+|---|---|---|
+| Dependencies | eino (via sonic) | stdlib only, compiles on 32-bit platforms (386/armv7) |
+| Tools | Self-assembles builtin/rule chain/sub-agent/MCP (incl. remote) | Host-injected `types.MCPToolProvider`, filtered by a string allowlist |
+| Exclusive fields | messages preset, streamRetryMode, streamToolCallCheck, full params | skillsDir/skills (prompt-injection skills) |
+| failover | Includes per-endpoint params override | url/key/model + circuitCooldownSec |
+
+Both share identical I/O contracts (request messages, SSE frames, metadata), and the fields implemented in both align in name, behavior, and defaults. When both packages are imported into the same binary, **the first one to register wins** — the `all` bundle imports the full version first; importing only the lite package (or building for 32-bit) lets the lite version take over, and existing `ai/agent` chains keep running. Fields exclusive to the full version are silently ignored by the lite version; the **string form of `tools` works on both** (see [Tool System · String Shorthand](/en/pages/ai-agent-tools/#string-shorthand)), while object descriptors are supported by the full version only.
 
 ## Configuration
 
 | Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| url | string | OpenAI API compatible request URL. Supports `${global.xxx}` variables | |
+|------|------|------|--------|
+| url | string | OpenAI API-compatible endpoint. Supports `${global.xxx}` variables | |
 | key | string | API key. Supports `${global.xxx}` variables | |
 | model | string | Model name, e.g. `deepseek-chat`, `qwen-plus`. Supports `${global.xxx}` variables | |
 | systemPrompt | string | System prompt defining the agent's behavior and role. Supports `${}` placeholders and `${include("path")}` file inclusion | |
-| messages | []ChatMessage | Predefined context message list | |
-| images | []string | Input image list; requires a vision-capable model | |
-| maxStep | int | Maximum number of ReAct loop steps (one reasoning + tool call counts as one step) | 150 |
-| maxToolOutputLength | int | Maximum truncation length of tool output (bytes) | 50000 |
-| maxRetries | int | Maximum retries when an LLM call fails (429/5xx/network errors/timeouts handled automatically) | 3 |
-| streamRetryMode | string | Streaming mid-stream retry mode: `off` (default, retries only within the probe window, keeps real-time output) / `full` (fully buffers and replays, trading real-time output for mid-stream retryability) | off |
-| streamToolCallCheck | string | Streaming tool-call detection mode: empty = auto (default); `firstContent` = decide on first text; `drain` = read the whole stream before deciding. See [Streaming tool-call detection](#streaming-tool-call-detection-streamtoolcallcheck) | |
-| failover | []FailoverEndpoint | Failover backup endpoint list, ordered by priority; switched in order after primary-endpoint retries are exhausted. Empty = failover disabled | |
-| circuitCooldownSec | int | Circuit breaker cooldown seconds for the primary endpoint, 0 = default 60. The breaker trips as soon as primary retries are exhausted; during cooldown the primary is skipped and backups used directly; under persistent failure the probe cooldown doubles each time, capped at 10 minutes | 60 |
-| params | ModelParams | Model parameters | |
-| tools | []Tool | Tool list configuration. See [Tool system](/en/pages/ai-agent-tools/) | |
+| messages | []ChatMessage | Preset context messages (full version only) | |
+| images | []string | Input images: URL, base64, or local file path; requires a vision-capable model | |
+| maxStep | int | Maximum ReAct loop steps (one reasoning + tool call = one step) | 50 |
+| maxToolOutputLength | int | Maximum tool output length before truncation (by character, no multi-byte breakage) | 50000 |
+| maxRetries | int | Maximum retries for LLM calls (automatically handles 429/5xx/network errors/timeouts) | 3 |
+| streamRetryMode | string | Streaming mid-stream retry mode: `off` (default, retry within the probe window only, keeps real-time) / `full` (full buffered replay, trades real-time for mid-stream retry). Full version only | off |
+| streamToolCallCheck | string | Streaming tool-call detection mode: empty=auto (default); `firstContent`=decide on first text; `drain`=read the whole stream before deciding. See [Streaming Tool Call Detection](#streaming-tool-call-detection-streamtoolcallcheck). Full version only | |
+| failover | []FailoverEndpoint | Failover endpoints by priority; the primary endpoint is failed over after retries are exhausted. Empty = failover disabled | |
+| circuitCooldownSec | int | Primary endpoint circuit-breaker cooldown in seconds, 0=default 60. The primary is tripped once its retries are exhausted; while cooling down, requests skip straight to backups. Sustained failures double the cooldown, capped at 10 minutes | 60 |
+| params | ModelParams | LLM parameters | |
+| tools | []Tool / []string | Tool list; object descriptors and string shorthand can be mixed. See [Tool System](/en/pages/ai-agent-tools/) | |
+| skillsDir | string | Skills directory (`*/SKILL.md` layout); the skill catalog is injected into the systemPrompt. Lite version only | |
+| skills | []string | Skill-name allowlist; empty = all enabled skills in the directory. Lite version only | |
 
-### Model parameters (Params)
+### LLM Parameters (params)
 
 | Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| temperature | float32 | Sampling temperature, controls output randomness. Range [0.0, 2.0] | 0.7 |
-| topP | float32 | Nucleus sampling probability threshold. Range [0.0, 1.0] | 0.9 |
-| frequencyPenalty | float32 | Frequency penalty, suppresses repeated content. Range [0.0, 1.0] | 0.5 |
+|------|------|------|--------|
+| temperature | float32 | Sampling temperature, controls randomness. Range [0.0, 2.0] | 0.7 |
+| topP | float32 | Nucleus sampling threshold. Range [0.0, 1.0] | 0.9 |
+| frequencyPenalty | float32 | Frequency penalty, suppresses repetition. Range [0.0, 1.0] | 0.5 |
 | presencePenalty | float32 | Presence penalty, encourages topic diversity. Range [0.0, 1.0] | 0.5 |
-| maxTokens | int | Maximum output tokens, 0 means the model default | 0 |
-| stop | []string | List of stop sequences | |
+| maxTokens | int | Maximum output tokens, 0 = model default. Mapped to OpenAI's `max_completion_tokens` on the wire | 0 |
+| stop | []string | Stop sequences | |
 | responseFormat | string | Output format: `text`, `json_object`, `json_schema` | text |
 | jsonSchema | string | JSON Schema (used when responseFormat is `json_schema`) | |
-| keepThink | bool | Whether to keep the reasoning process (only effective for text format) | false |
-| extraFields | map | Extra fields for passing model-specific parameters, such as `thinking_type`, `thinking_budget_tokens`, `reasoning_effort` | |
+| keepThink | bool | Keep the reasoning process (text format only) | false |
+| extraFields | map | Extra fields for model-specific parameters such as `thinking_type`, `thinking_budget_tokens`, `reasoning_effort` | |
 
-### ChatMessage structure
+### ChatMessage Structure
 
 | Field | Type | Description |
-|-------|------|-------------|
+|------|------|------|
 | role | string | Message role: `user`, `assistant`, `system` |
-| content | string/array | Message content. A string or an OpenAI multimodal ContentPart array |
+| content | string/array | Message content: a string or an OpenAI multimodal ContentPart array |
 
-### Failover and circuit breaking
+### Failover and Circuit Breaking
 
-With `failover` backup endpoints configured, when the primary endpoint (same model) still fails after retries are exhausted, the node switches to backup endpoints in priority order to improve availability. Combined with the circuit breaker, a primary endpoint that stays down is skipped automatically, so requests do not wait for primary retries to be exhausted every time.
+With `failover` endpoints configured, when the primary endpoint (same model) still fails after exhausting retries, requests switch to backup endpoints by priority. Combined with the circuit breaker, a long-failing primary is skipped automatically instead of every request waiting for its retries to exhaust.
 
 **FailoverEndpoint structure**
 
 | Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| url | string | Backup request URL | |
+|------|------|------|--------|
+| url | string | Backup endpoint URL | |
 | key | string | Backup API key | |
-| model | string | Backup model name; if empty, the primary endpoint's model is reused | |
-| params | ModelParams | Optional; overrides the primary endpoint's parameters; inherits the primary Params when unset | |
+| model | string | Backup model name; empty = inherit the primary model | |
+| params | ModelParams | Optional, overrides primary params; omitted = inherit primary Params | |
 
-**Circuit breaking and probe backoff** (only effective when `failover` is enabled):
+**Circuit breaking and probe backoff** (effective only when `failover` is enabled):
 
-- The breaker trips once primary-endpoint retries are exhausted; during cooldown the primary is skipped and backup endpoints used directly
-- When the cooldown expires, the circuit enters half-open state and lets exactly one request probe the primary: success restores the primary, failure trips the breaker again
-- While the primary keeps failing, the probe cooldown doubles each time (60s → 120s → 240s …), capped at 10 minutes, reducing wasted probes against the failed primary; after a successful probe it resets to the base cooldown
-- The cooldown duration is controlled by `circuitCooldownSec` (default 60s)
+- The primary trips once its retries are exhausted; while cooling down, requests skip straight to backups
+- When the cooldown expires it enters half-open: exactly one request probes the primary — success restores it, failure re-trips the breaker
+- Sustained primary failures double the probe cooldown each time (60s → 120s → 240s …), capped at 10 minutes; a successful probe resets it to the base cooldown
+- The cooldown is controlled by `circuitCooldownSec` (default 60s)
 
 **Failover configuration example**
 
@@ -84,48 +101,50 @@ With `failover` backup endpoints configured, when the primary endpoint (same mod
 }
 ```
 
-### Streaming tool-call detection (streamToolCallCheck)
+### Streaming Tool Call Detection (streamToolCallCheck)
 
-In streaming output, the agent must determine whether the model initiated a tool call, to decide between executing tools and emitting text directly. The difficulty: in the OpenAI-compatible streaming protocol, a plain-text answer and "a text segment followed by a tool call" cannot be told apart before they happen—no mid-stream marker announces whether `tool_calls` will appear later.
+In streaming output, the agent must decide whether the model is making tool calls, to either execute tools or stream text straight through. The difficulty: in the OpenAI-compatible streaming protocol, a "plain text answer" and "some text followed by tool calls" are indistinguishable until they happen — no mid-stream marker announces whether `tool_calls` will appear later.
 
 | Mode | Behavior | Use case |
-|------|----------|----------|
-| Auto (default, empty) | No tools configured: the first text decides plain text, streamed in real time. Tools configured: keeps observing for 500ms after the first text chunk—if a tool call appears within the window, execute the tool; if it remains plain text, let the stream pass through | Vast majority of scenarios |
-| `firstContent` | The first non-empty text decides plain text immediately, no observation window | Models whose tool calls precede text (OpenAI-family convention), for the lowest first-token latency |
-| `drain` | Reads the entire stream before deciding | Models that emit long text before initiating tool calls; never misjudges, but text comes out in batches and first-token latency equals the full stream generation time |
+|------|------|------|
+| Auto (default, empty) | No tools configured: first text decides plain text, real-time streaming. Tools configured: keep watching 500ms after the first text — tool calls within the window execute tools, continuous plain text is released to the stream | Most scenarios |
+| `firstContent` | First non-empty text decides plain text, no observation | Models whose tool calls precede text (OpenAI-style), lowest first-token latency |
+| `drain` | Read the entire stream before deciding | Models that emit long text before tool calls; never misjudges, but text is batched — first-token latency equals the full stream duration |
 
-Behavior differences across models:
+Model behavior differences:
 
-- **OpenAI-family convention** (GPT series, deepseek, most compatible gateways): tool-call deltas (`delta.tool_calls`) appear before text or without accompanying text, so `firstContent` is safe
-- **GLM / Claude native style** (some compatibility layers): may emit a short lead-in explanation before initiating a tool call. Such lead-in text is usually very short (e.g. "Let me check...") and covered by auto mode's observation window; `drain` is only needed when lead-in text exceeds the window and is still followed by a tool call
+- **OpenAI-style** (gpt series, deepseek, most compatible gateways): tool-call deltas (`delta.tool_calls`) precede or accompany no text — `firstContent` is safe
+- **GLM / Claude native style** (some compatibility layers): may emit explanatory text before tool calls. Such preamble is usually short (e.g. "Let me check…"), covered by the auto-mode observation window; longer preamble followed by tool calls self-heals in auto mode (below)
 
-Troubleshooting: if streamed answers look normal but **tools never execute**, and logs show `model emitted tool calls after content`, the model's lead-in text exceeded the observation window—set `streamToolCallCheck` to `drain`.
+Self-healing: if the preamble exceeds the observation window, tool calls get skipped. The streaming executor detects this misjudgment (log keyword `routed as plain text`), automatically upgrades the detection mode to `drain` and re-runs the current round; the agent instance then stays in `drain` (a restart restores the configured value). The upgrade overrides an explicit `firstContent` — the trigger occurs only when tools were actually skipped, so it never fires spuriously.
 
-This option only applies to agents with tools configured; pure conversational agents always stream in real time and need not care about it.
+Troubleshooting: if streaming answers work but **tools never execute**, and the log shows `routed as plain text and not executed` (upgraded but the current stream exceeded the chunk limit, or an agent with no tools configured), the misjudgment wasn't covered by the re-run — set `streamToolCallCheck` to `drain`.
+
+This applies only to agents with tools configured; pure-conversation agents always stream in real time and can ignore it.
 
 ## Execution Result
 
-- **Sync mode**: the execution result is written to `msg.Data` and routed to the next node via the `Success` relation
-- **Streaming mode**: intermediate results are emitted chunk by chunk, each chunk routed via the `Stream` relation; at the end an extra `Success` message is sent (`full_content=true` in Metadata) containing the complete merged content
-- **Failure**: the error is written to `msg.Data` and routed via the `Failure` relation
+- **Synchronous mode**: the result is written to `msg.Data` and flows to the next node via the `Success` relation
+- **Streaming mode**: intermediate results are emitted chunk by chunk via the `Stream` relation; a final `Success` message (metadata `full_content=true`) carries the complete merged content
+- **Failure**: the error is written to `msg.Data` and flows via the `Failure` relation
 
-## Relation Type
+## Relation Types
 
-| Relation Type | Description |
-|---------------|-------------|
-| Success | Sync-mode execution succeeded |
-| Stream | Streaming-mode output |
+| Relation | Description |
+|----------|------|
+| Success | Synchronous execution succeeded |
+| Stream | Streaming output |
 | Failure | Execution failed |
 
-## Configuration Example
+## Configuration Examples
 
-### Basic conversational agent
+### Basic Conversational Agent
 
 ```json
 {
   "id": "node_agent",
   "type": "ai/agent",
-  "name": "AI Assistant",
+  "name": "Assistant",
   "configuration": {
     "url": "https://ai.gitee.com/v1",
     "key": "sk-xxx",
@@ -136,24 +155,22 @@ This option only applies to agents with tools configured; pure conversational ag
       "temperature": 0.7,
       "topP": 0.9
     },
-    "tools": [
-      {"type": "builtin", "name": "bash"},
-      {"type": "builtin", "name": "read"},
-      {"type": "builtin", "name": "write"}
-    ]
+    "tools": ["bash", "read", "write"]
   }
 }
 ```
 
-### Agent with a workspace
+Writing tool names as strings in `tools` (the string shorthand) is the portable form shared by both implementations; use object descriptors when you need custom tool configuration (e.g. a workDir) or rule chain/sub-agent/MCP tools — the two forms can be mixed.
 
-The system prompt is loaded dynamically from workspace files, allowing personalized configuration:
+### Agent with a Workspace
+
+The system prompt loads dynamically from workspace files, supporting per-agent customization:
 
 ```json
 {
   "id": "node_agent",
   "type": "ai/agent",
-  "name": "Main Agent",
+  "name": "main-agent",
   "configuration": {
     "url": "${global.models.providers.default.base_url}",
     "key": "${global.models.providers.default.api_key}",
@@ -181,15 +198,15 @@ The system prompt is loaded dynamically from workspace files, allowing personali
 }
 ```
 
-### Multi-tool collaborative agent
+### Multi-Tool Collaborative Agent
 
-Combines built-in tools, MCP tools, and sub-agents:
+Combining builtin tools, MCP tools, and sub-agents:
 
 ```json
 {
   "id": "node_agent",
   "type": "ai/agent",
-  "name": "Full-stack Assistant",
+  "name": "full-stack-assistant",
   "configuration": {
     "url": "${global.models.providers.default.base_url}",
     "key": "${global.models.providers.default.api_key}",
@@ -208,10 +225,10 @@ Combines built-in tools, MCP tools, and sub-agents:
 }
 ```
 
-## Related Documents
+## Related Documentation
 
-- [Agent node](/en/pages/ai-agent-node/) — ReAct loop, system prompt templates, dynamic model switching, advanced features
+- [Agent Node](/en/pages/ai-agent-node/) — ReAct loop, system prompt templates, dynamic model switching, advanced features
 - [Overview](/en/pages/ai-agent-overview/) — framework positioning and core concepts
-- [Tool system](/en/pages/ai-agent-tools/) — tool types, built-in tools, MCP integration
-- [Aspect framework](/en/pages/ai-agent-aspect/) — AOP aspect system and custom extensions
-- [Development guide](/en/pages/ai-agent-guide/) — end-to-end workflow for building agent applications on the framework
+- [Tool System](/en/pages/ai-agent-tools/) — tool types, builtin tools, MCP integration
+- [Aspect Framework](/en/pages/ai-agent-aspect/) — the AOP aspect system and custom extensions
+- [Development Guide](/en/pages/ai-agent-guide/) — the complete workflow for building agent applications on the framework

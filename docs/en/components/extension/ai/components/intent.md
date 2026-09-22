@@ -1,37 +1,39 @@
 ---
 title: Intent Recognition
+
 permalink: /pages/ai-intent/
 ---
-`ai/intent` component: <Badge text="v0.36.0+"/> uses an LLM to classify user input into predefined intents, then routes the recognition result as a Relation Type to matching downstream nodes, enabling AI-based intelligent routing.
 
-For scenarios sensitive to latency and cost, use [local intent recognition](/en/pages/ai-local-intent/) instead.
+The `ai/intent` component: <Badge text="v0.36.0+"/> classifies user input into intents using an LLM, and routes the result to matching downstream nodes as a Relation Type — AI-based smart routing.
+
+For latency- and cost-sensitive scenarios, use [Local Intent Recognition](/en/pages/ai-local-intent/) instead.
 
 ## Configuration
 
 | Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| url | string | OpenAI API compatible request URL | `https://ai.gitee.com/v1` |
+|------|------|------|--------|
+| url | string | OpenAI API-compatible endpoint | `https://ai.gitee.com/v1` |
 | key | string | API key | |
 | model | string | Model name | `Qwen2.5-72B-Instruct` |
-| input | string | User input expression, supports `${msg.key}` and `${metadata.key}`. When empty, `msg.GetData()` is used | |
+| input | string | User input expression, supports `${msg.key}` and `${metadata.key}`. Empty = `msg.GetData()` | |
 | intents | []Intent | Predefined intent list (at least one required) | |
-| defaultIntent | string | Default intent (used when nothing can be recognized) | `default` |
-| systemPrompt | string | Custom system prompt, supports `${include()}` file inclusion. When empty, the built-in default prompt is used | |
-| temperature | float32 | Model temperature parameter | 0.1 |
-| maxTokens | int | Maximum output length, 0 means the model default | 0 |
+| defaultIntent | string | Default intent (used when recognition fails) | `default` |
+| systemPrompt | string | Custom system prompt, supports `${include()}` file references. Empty = built-in default prompt | |
+| temperature | float32 | Model temperature | 0.1 |
+| maxTokens | int | Maximum output length, 0 = model default | 0 |
 
-### Intent structure
+### Intent Structure
 
 | Field | Type | Description |
-|-------|------|-------------|
-| name | string | Intent name (used as the routing Relation Type) |
+|------|------|------|
+| name | string | Intent name (used as the Relation Type for routing) |
 | description | string | Intent description (helps the LLM distinguish intents) |
 
 ## Execution Result
 
-- The recognition result is written to `msg.Metadata["intent"]`; `msg.Data` is not modified (the original message passes through downstream)
+- The recognized intent is written to `msg.Metadata["intent"]`; `msg.Data` is left untouched (the original message passes through)
 - Routed via `TellNext(msg, intentName)` to the matching connection type
-- When the result is not in the predefined list, `defaultIntent` is used
+- If the result is not in the predefined list, `defaultIntent` is used
 
 ## Configuration Example
 
@@ -46,10 +48,10 @@ For scenarios sensitive to latency and cost, use [local intent recognition](/en/
     "model": "Qwen2.5-72B-Instruct",
     "temperature": 0.1,
     "intents": [
-      {"name": "query", "description": "User queries information or asks a question"},
-      {"name": "action", "description": "User requests some action to be executed"},
-      {"name": "complaint", "description": "User complains or expresses dissatisfaction"},
-      {"name": "greeting", "description": "User greets or says hello"}
+      {"name": "query", "description": "The user asks for information or a question"},
+      {"name": "action", "description": "The user requests an operation"},
+      {"name": "complaint", "description": "The user complains or expresses dissatisfaction"},
+      {"name": "greeting", "description": "The user greets"}
     ],
     "defaultIntent": "unknown"
   }
@@ -72,18 +74,18 @@ For scenarios sensitive to latency and cost, use [local intent recognition](/en/
           "url": "https://ai.gitee.com/v1", "key": "sk-xxx",
           "model": "Qwen2.5-72B-Instruct", "temperature": 0.1,
           "intents": [
-            {"name": "query", "description": "Query information"},
-            {"name": "action", "description": "Execute an action"},
-            {"name": "complaint", "description": "Complaint feedback"}
+            {"name": "query", "description": "Ask for information"},
+            {"name": "action", "description": "Perform an operation"},
+            {"name": "complaint", "description": "File a complaint"}
           ],
           "defaultIntent": "unknown"
         }
       },
-      {"id": "node_query", "type": "ai/llm", "name": "Answer Queries",
-        "configuration": {"url": "...", "key": "...", "model": "...", "systemPrompt": "Answer user questions"}},
+      {"id": "node_query", "type": "ai/llm", "name": "Answer Query",
+        "configuration": {"url": "...", "key": "...", "model": "...", "systemPrompt": "Answer the user's question"}},
       {"id": "node_action", "type": "restApiCall", "name": "Execute Action",
         "configuration": {"url": "http://api/action", "requestMethod": "POST"}},
-      {"id": "node_complaint", "type": "restApiCall", "name": "Transfer to Human Agent",
+      {"id": "node_complaint", "type": "restApiCall", "name": "Escalate to Human",
         "configuration": {"url": "http://api/ticket", "requestMethod": "POST"}}
     ],
     "connections": [

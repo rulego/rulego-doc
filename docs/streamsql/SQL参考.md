@@ -59,7 +59,7 @@ FROM stream_name
 | ORDER BY | 否 | 排序（有限支持） |
 | LIMIT | 否 | 限制结果数量 |
 | WITH | 否 | 配置选项 |
-| MATCH_RECOGNIZE | 否 | 模式识别（CEP），识别事件序列——见[模式识别](./15.模式识别.md) |
+| MATCH_RECOGNIZE | 否 | 模式识别（CEP），识别事件序列——见[模式识别](/pages/streamsql-cep/) |
 
 ## SELECT 子句
 
@@ -1162,7 +1162,7 @@ MATCH_RECOGNIZE (
 - **贪婪量词**（`A*`/`A+`）没有自然终点时，匹配延伸到下一个不满足的行、或 `Stop` 时 `Flush` 才产出。
 :::
 
-完整语法（`SUBSET`、`FINAL`/`RUNNING`、`AFTER MATCH SKIP` 全策略、贪婪/懒惰、有界四道闸、已知限制）见 [模式识别](./15.模式识别.md)；业务场景见 [设备故障模式识别案例](./31.案例集锦/07.设备故障模式识别.md)。
+完整语法（`SUBSET`、`FINAL`/`RUNNING`、`AFTER MATCH SKIP` 全策略、贪婪/懒惰、有界四道闸、已知限制）见 [模式识别](/pages/streamsql-cep/)；业务场景见 [设备故障模式识别案例](/pages/streamsql-case-cep/)。
 
 
 ## 数据类型和常量
@@ -1285,7 +1285,7 @@ FROM stream
 
 ### 分析函数
 
-分析函数在连续事件流上做跨事件状态计算（变化检测、上下文回溯、累积），每条事件到达即求值，可用在 `SELECT` 和 `WHERE`。详见 [分析函数](./13.分析函数.md)。
+分析函数在连续事件流上做跨事件状态计算（变化检测、上下文回溯、累积），每条事件到达即求值，可用在 `SELECT` 和 `WHERE`。详见 [分析函数](/pages/streamsql-analytic/)。
 
 | 函数 | 说明 | 示例 |
 |------|------|------|

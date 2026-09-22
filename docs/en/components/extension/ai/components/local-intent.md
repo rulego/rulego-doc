@@ -1,130 +1,134 @@
 ---
 title: Local Intent Recognition
+
 permalink: /pages/ai-local-intent/
 ---
-`ai/localIntent` component: <Badge text="v0.36.0+"/> local intent classification based on embedding vectors. Without calling an LLM, it matches user input to predefined intents by semantic similarity and routes the recognition result as a Relation Type to matching downstream nodes.
 
-Suited to scenarios with few intents, large semantic gaps, and sensitivity to latency and cost. With many intents or blurry semantic boundaries, [LLM-based intent recognition](/en/pages/ai-intent/) is recommended.
+The `ai/localIntent` component: <Badge text="v0.36.0+"/> local intent classification based on embedding vectors — no LLM calls. It matches user input to predefined intents via semantic similarity and routes the result to matching downstream nodes as a Relation Type.
+
+Suited to scenarios with few intents, well-separated semantics, and sensitivity to latency and cost. With many intents or fuzzy semantic boundaries, prefer [LLM Intent Recognition](/en/pages/ai-intent/).
 
 ## Configuration
 
 | Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| url | string | Embedding model API URL | |
-| key | string | Embedding model API key; can be empty for private deployments | |
+|------|------|------|--------|
+| url | string | Embedding model API endpoint | |
+| key | string | Embedding model API key; may be empty for private deployments | |
 | model | string | Embedding model name | |
-| input | string | User input expression, supports `${msg.key}` and `${metadata.key}`. When empty, `msg.GetData()` is used | |
-| intents | []LocalIntent | Predefined intent list (at least one required) | 3 built-in example intents |
-| intentsFile | string | Path to an external intent configuration file; YAML and JSON formats are supported | |
-| threshold | float64 | Minimum similarity threshold for a match; below it the default intent is used | 0.65 |
-| minGap | float64 | Minimum gap between the top score and the runner-up; below it the default intent is used | 0.05 |
-| defaultIntent | string | Default intent (used when nothing can be recognized) | Default |
+| input | string | User input expression, supports `${msg.key}` and `${metadata.key}`. Empty = `msg.GetData()` | |
+| intents | []LocalIntent | Predefined intent list (at least one required) | 3 built-in sample intents |
+| intentsFile | string | External intent file path, YAML or JSON | |
+| threshold | float64 | Minimum similarity; below it the default intent is used | 0.65 |
+| minGap | float64 | Minimum gap between the top and second score; below it the default intent is used | 0.05 |
+| defaultIntent | string | Default intent (used when recognition fails) | Default |
 
-### LocalIntent structure
+### LocalIntent Structure
 
 | Field | Type | Description |
-|-------|------|-------------|
-| name | string | Intent name (used as the routing Relation Type) |
+|------|------|------|
+| name | string | Intent name (used as the Relation Type for routing) |
 | description | string | Intent description (participates in semantic matching) |
-| examples | []string | Typical example utterances for this intent; 8-10 entries recommended |
+| examples | []string | Typical utterances for the intent; 8-10 recommended |
 
-### Intent file format
+### Intent File Format
 
-Both YAML and JSON formats are supported:
+Both YAML and JSON are supported:
 
-**YAML format:**
+**YAML:**
 ```yaml
 intents:
   - name: createRule
-    description: "Create automation linkage rules triggered by conditions"
+    description: "创建条件触发的自动化联动规则"
     examples:
-      - "Turn on the light when someone is present"
-      - "Turn on the AC when the temperature exceeds 30 degrees"
-      - "Start the fan when water leakage is detected"
-      - "Close the windows automatically on rainy days"
-      - "Turn off all appliances when leaving home"
-      - "Open the curtains at 7 AM every day"
-      - "Turn on the purifier when air quality is poor"
-      - "Close the gas valve immediately on gas leakage"
+      - "有人就开灯"
+      - "温度大于30度开空调"
+      - "水浸时开风机"
+      - "下雨天自动关窗"
+      - "离开家的时候关掉所有电器"
+      - "每天早上7点开窗帘"
+      - "空气质量差就开净化器"
+      - "燃气泄漏立刻关阀门"
   - name: control
-    description: "Control device on/off state or adjust parameters"
+    description: "控制设备开关或调节参数"
     examples:
-      - "Turn on the light"
-      - "Turn off the fan"
-      - "Turn off the living room light"
-      - "Set the AC to 26 degrees"
-      - "Pull the curtains down"
-      - "Lock the door"
-      - "Turn up the TV volume"
-      - "Turn off all lights"
-      - "Start the robot vacuum"
+      - "打开灯光"
+      - "把风机关闭"
+      - "关闭客厅灯"
+      - "空调调到26度"
+      - "让窗帘拉下来"
+      - "把门锁上"
+      - "电视声音大一点"
+      - "关掉所有灯"
+      - "启动扫地机器人"
   - name: query
-    description: "Query current device status or readings"
+    description: "查询设备当前状态或数值"
     examples:
-      - "What is the current temperature"
-      - "Is the light on"
-      - "How is the fan doing"
-      - "What temperature is the AC set to"
-      - "Are the curtains open"
-      - "Is the door locked"
-      - "What is the humidity now"
-      - "Is the water heater still heating"
+      - "当前温度多少"
+      - "灯是不是开着的"
+      - "风机状态怎么样"
+      - "空调现在几度"
+      - "窗帘拉开着吗"
+      - "门锁了没"
+      - "现在湿度多少"
+      - "热水器还在加热吗"
 ```
 
-**JSON format:**
+> The sample utterances above are in Chinese because the example uses a Chinese embedding model — write your examples in the language your users speak.
+
+**JSON:**
 ```json
 {
   "intents": [
     {
       "name": "createRule",
-      "description": "Create automation linkage rules triggered by conditions",
-      "examples": ["Turn on the light when someone is present", "Turn on the AC when the temperature exceeds 30 degrees", "Start the fan when water leakage is detected", "Close the windows automatically on rainy days"]
+      "description": "创建条件触发的自动化联动规则",
+      "examples": ["有人就开灯", "温度大于30度开空调", "水浸时开风机", "下雨天自动关窗"]
     }
   ]
 }
 ```
 
-## Matching Principle
+## How Matching Works
 
-1. At initialization, vectors are generated for all intents' `description` and `examples` through the embedding model (API called internally in batches of 10)
-2. At runtime, the user input is embedded into a vector with the same embedding model
-3. Cosine similarity between the user input vector and all intent vectors is computed
-4. If the top score is below `threshold`, or the gap between the top score and the runner-up is below `minGap`, `defaultIntent` is used
-5. Otherwise, the intent with the highest score is the recognition result
+1. At initialization, the `description` and `examples` of every intent are vectorized by the embedding model (API called in batches of 10)
+2. At runtime, the user input is vectorized by the same model
+3. Cosine similarity is computed between the input vector and every intent vector
+4. If the top score is below `threshold`, or the gap between the top two scores is below `minGap`, `defaultIntent` is used
+5. Otherwise the top-scoring intent wins
 
 ## Execution Result
 
-- The recognition result is written to `msg.Metadata["intent"]`; `msg.Data` is not modified (the original message passes through downstream)
+- The recognized intent is written to `msg.Metadata["intent"]`; `msg.Data` is left untouched (the original message passes through)
 - Routed via `TellNext(msg, intentName)` to the matching connection type
-- When the threshold checks fail, `defaultIntent` is used
+- `defaultIntent` is used when the thresholds are not met
 
 ## Best Practices
 
-### Description guidelines
+### Writing Descriptions
 
-The `description` participates directly in vector computation; its quality caps matching accuracy:
+`description` participates directly in the vector computation — its quality caps the matching quality:
 
-- **Describe the intent semantics precisely**, avoid vagueness: `"Control device on/off state or adjust parameters"` beats `"Control devices"`
-- **Highlight differences from other intents**: `"Create automation linkage rules triggered by conditions"` beats `"Create linkage rules"`
-- Do not include the intent name itself; the description should convey the semantics independently
+- **Describe the intent semantics precisely**, avoid vagueness: "control device on/off or adjust parameters" beats "control devices"
+- **Emphasize distinctions from other intents**: "create condition-triggered automation linkage rules" beats "create linkage rules"
+- Do not include the intent name itself; the description should carry the semantics on its own
 
-### Examples guidelines
+### Writing Examples
 
-examples drive generalization and directly determine whether the model recognizes expressions it has never seen:
+Examples are the core of generalization — they determine whether the model recognizes utterances it has never seen:
 
-- **Cover different devices**: do not limit yourself to lights and fans—include curtains, door locks, AC units, robots, etc.
-- **Cover different sentence patterns**: imperatives ("Turn on the light"), colloquial ("Is the light on"), questions ("Is the AC running"), negatives ("Stop the washing machine")
-- **Cover different action words**: "turn on", "turn off", "set to", "start", "pull down", etc.
-- **8-10 entries per intent**: too few gives insufficient generalization (testing shows a 0% generalization rate with only 2), too many adds noise
+- **Cover different devices**: don't use only lights and fans; add curtains, locks, air conditioners, robots, etc.
+- **Cover different sentence patterns**: imperative ("turn on the light"), colloquial ("is the light on"), interrogative ("is the AC running?"), negative ("stop the washing machine")
+- **Cover different action verbs**: "turn on", "switch off", "set to", "start", "pull down", etc.
+- **8-10 examples per intent**: fewer under-generalizes (tests showed a 0% generalization rate with only 2), more adds noise
 - Avoid semantic overlap between examples of different intents
 
-### Threshold tuning
+### Tuning the Threshold
 
-- `0.65` (default): suits large semantic gaps between intents; few false matches but some valid inputs may be rejected
-- `0.50-0.60`: suits somewhat similar intents; improves recall but raises the risk of false matches
-- Keep `minGap` at `0.05` in general, to block ambiguous inputs scoring close to the runner-up
-- Tune against real business data: collect typical inputs, lower the threshold step by step until false matches appear, then back off by 0.05
-- Different embedding models have different vector spaces; re-tune the threshold after switching models
+- `0.65` (default): for scenarios with well-separated intents — few mis-matches, but may reject some valid inputs
+- `0.50-0.60`: for intents with some mutual similarity — higher recall at the cost of more mis-matches
+- Keep `minGap` at `0.05` to catch ambiguous inputs whose top-two scores are close
+- Tune with real business data: collect typical utterances, lower the threshold step by step until mis-matches appear, then back off by 0.05
+- Vector spaces differ across embedding models — re-tune the threshold after switching models
 
 ## Configuration Example
 
@@ -142,29 +146,29 @@ examples drive generalization and directly determine whether the model recognize
     "intents": [
       {
         "name": "createRule",
-        "description": "Create automation linkage rules triggered by conditions",
+        "description": "创建条件触发的自动化联动规则",
         "examples": [
-          "Turn on the light when someone is present", "Turn on the AC when the temperature exceeds 30 degrees", "Start the fan when water leakage is detected",
-          "Close the windows automatically on rainy days", "Turn off all appliances when leaving home", "Open the curtains at 7 AM every day",
-          "Turn on the purifier when air quality is poor", "Close the gas valve immediately on gas leakage"
+          "有人就开灯", "温度大于30度开空调", "水浸时开风机",
+          "下雨天自动关窗", "离开家的时候关掉所有电器", "每天早上7点开窗帘",
+          "空气质量差就开净化器", "燃气泄漏立刻关阀门"
         ]
       },
       {
         "name": "control",
-        "description": "Control device on/off state or adjust parameters",
+        "description": "控制设备开关或调节参数",
         "examples": [
-          "Turn on the light", "Turn off the fan", "Turn off the living room light",
-          "Set the AC to 26 degrees", "Pull the curtains down", "Lock the door",
-          "Turn up the TV volume", "Turn off all lights", "Start the robot vacuum"
+          "打开灯光", "把风机关闭", "关闭客厅灯",
+          "空调调到26度", "让窗帘拉下来", "把门锁上",
+          "电视声音大一点", "关掉所有灯", "启动扫地机器人"
         ]
       },
       {
         "name": "query",
-        "description": "Query current device status or readings",
+        "description": "查询设备当前状态或数值",
         "examples": [
-          "What is the current temperature", "Is the light on", "How is the fan doing",
-          "What temperature is the AC set to", "Are the curtains open", "Is the door locked",
-          "What is the humidity now", "Is the water heater still heating"
+          "当前温度多少", "灯是不是开着的", "风机状态怎么样",
+          "空调现在几度", "窗帘拉开着吗", "门锁了没",
+          "现在湿度多少", "热水器还在加热吗"
         ]
       }
     ],
@@ -173,9 +177,9 @@ examples drive generalization and directly determine whether the model recognize
 }
 ```
 
-## Application Examples
+## Application Example
 
-**IoT device smart routing (cloud embedding API):**
+**IoT smart routing (cloud embedding API):**
 
 ```json
 {
@@ -184,7 +188,7 @@ examples drive generalization and directly determine whether the model recognize
     "firstNodeIndex": 0,
     "nodes": [
       {
-        "id": "node_local_intent", "type": "ai/localIntent", "name": "Local Intent Recognition",
+        "id": "node_local_intent", "type": "ai/localIntent", "name": "Local Intent",
         "configuration": {
           "url": "https://ai.gitee.com/v1/embeddings",
           "key": "sk-xxx",
@@ -194,29 +198,29 @@ examples drive generalization and directly determine whether the model recognize
           "intents": [
             {
               "name": "createRule",
-              "description": "Create automation linkage rules triggered by conditions",
+              "description": "创建条件触发的自动化联动规则",
               "examples": [
-                "Turn on the light when someone is present", "Turn on the AC when the temperature exceeds 30 degrees", "Start the fan when water leakage is detected",
-                "Close the windows automatically on rainy days", "Turn off all appliances when leaving home", "Open the curtains at 7 AM every day",
-                "Turn on the purifier when air quality is poor", "Close the gas valve immediately on gas leakage"
+                "有人就开灯", "温度大于30度开空调", "水浸时开风机",
+                "下雨天自动关窗", "离开家的时候关掉所有电器", "每天早上7点开窗帘",
+                "空气质量差就开净化器", "燃气泄漏立刻关阀门"
               ]
             },
             {
               "name": "control",
-              "description": "Control device on/off state or adjust parameters",
+              "description": "控制设备开关或调节参数",
               "examples": [
-                "Turn on the light", "Turn off the fan", "Turn off the living room light",
-                "Set the AC to 26 degrees", "Pull the curtains down", "Lock the door",
-                "Turn up the TV volume", "Turn off all lights", "Start the robot vacuum"
+                "打开灯光", "把风机关闭", "关闭客厅灯",
+                "空调调到26度", "让窗帘拉下来", "把门锁上",
+                "电视声音大一点", "关掉所有灯", "启动扫地机器人"
               ]
             },
             {
               "name": "query",
-              "description": "Query current device status or readings",
+              "description": "查询设备当前状态或数值",
               "examples": [
-                "What is the current temperature", "Is the light on", "How is the fan doing",
-                "What temperature is the AC set to", "Are the curtains open", "Is the door locked",
-                "What is the humidity now", "Is the water heater still heating"
+                "当前温度多少", "灯是不是开着的", "风机状态怎么样",
+                "空调现在几度", "窗帘拉开着吗", "门锁了没",
+                "现在湿度多少", "热水器还在加热吗"
               ]
             }
           ],
@@ -230,7 +234,7 @@ examples drive generalization and directly determine whether the model recognize
       {"id": "node_query", "type": "restApiCall", "name": "Query Status",
         "configuration": {"url": "http://api/query", "requestMethod": "POST"}},
       {"id": "node_unknown", "type": "ai/llm", "name": "Fallback Reply",
-        "configuration": {"url": "https://ai.gitee.com/v1", "key": "sk-xxx", "model": "Qwen2-7B-Instruct", "systemPrompt": "You are an IoT assistant that helps users answer questions"}}
+        "configuration": {"url": "https://ai.gitee.com/v1", "key": "sk-xxx", "model": "Qwen2-7B-Instruct", "systemPrompt": "你是一个IoT助手，帮助用户解答问题"}}
     ],
     "connections": [
       {"fromId": "node_local_intent", "toId": "node_create", "type": "createRule"},
@@ -242,13 +246,13 @@ examples drive generalization and directly determine whether the model recognize
 }
 ```
 
-**On-premises deployment (runs offline, no internet required):**
+**Private local deployment (offline, no internet required):**
 
 ```json
 {
   "id": "node_local_intent",
   "type": "ai/localIntent",
-  "name": "Offline Intent Recognition",
+  "name": "Offline Intent",
   "configuration": {
     "url": "http://localhost:8080/v1/embeddings",
     "model": "BAAI/bge-small-zh-v1.5",
@@ -264,7 +268,7 @@ examples drive generalization and directly determine whether the model recognize
 {
   "id": "node_local_intent",
   "type": "ai/localIntent",
-  "name": "Multilingual Intent Classification",
+  "name": "Multilingual Intent",
   "configuration": {
     "url": "https://ai.gitee.com/v1/embeddings",
     "key": "sk-xxx",
@@ -275,8 +279,8 @@ examples drive generalization and directly determine whether the model recognize
         "name": "control",
         "description": "Control device on/off or adjust parameters",
         "examples": [
-          "Turn on the light", "Turn on the light please", "Switch off the fan",
-          "Close the curtain", "Set the AC to 26 degrees", "Lock the door"
+          "打开灯光", "Turn on the light", "把风机关闭",
+          "Close the curtain", "空调调到26度", "Lock the door"
         ]
       }
     ]
@@ -284,24 +288,24 @@ examples drive generalization and directly determine whether the model recognize
 }
 ```
 
-## Private Embedding Model Deployment
+## Self-Hosting an Embedding Model
 
-Local intent recognition relies on an embedding model to compute semantic vectors. Besides cloud APIs, you can deploy an embedding service locally with HuggingFace [Text Embeddings Inference (TEI)](https://github.com/huggingface/text-embeddings-inference) for fully offline operation.
+Local intent recognition relies on an embedding model. Besides cloud APIs, you can self-host with HuggingFace [Text Embeddings Inference (TEI)](https://github.com/huggingface/text-embeddings-inference) for fully offline operation.
 
-### Recommended models
+### Recommended Models
 
-| Model | Params | Dim | Notes | Use case |
-|-------|--------|-----|-------|----------|
-| BAAI/bge-small-zh-v1.5 | 33M | 512 | Lightweight and fast, strong performance on Chinese | Edge gateways, resource-constrained devices |
-| BAAI/bge-base-zh-v1.5 | 102M | 768 | Balanced quality and speed | General server-side deployment |
+| Model | Parameters | Dimensions | Strengths | Use case |
+|------|--------|------|------|----------|
+| BAAI/bge-small-zh-v1.5 | 33M | 512 | Light and fast, good Chinese quality | Edge gateways, constrained devices |
+| BAAI/bge-base-zh-v1.5 | 102M | 768 | Quality/speed balance | General server deployment |
 | BAAI/bge-large-zh-v1.5 | 326M | 1024 | Highest accuracy | Accuracy-critical scenarios |
-| Qwen/Qwen3-Embedding-0.6B | 600M | 1024 | Multilingual support | Chinese-English mixed or multilingual scenarios |
+| Qwen/Qwen3-Embedding-0.6B | 600M | 1024 | Multilingual | Mixed Chinese/English or multilingual |
 
-> Selection principle: start testing with a small model (bge-small-zh) and scale up only if accuracy falls short.
+> Model selection: start small (bge-small-zh); upgrade only if accuracy is insufficient.
 
 ### Deploying TEI with Docker
 
-**GPU deployment (recommended):**
+**GPU (recommended):**
 
 ```bash
 model=BAAI/bge-small-zh-v1.5
@@ -314,7 +318,7 @@ docker run -d --gpus all -p 8080:80 \
   --model-id $model
 ```
 
-**CPU deployment:**
+**CPU:**
 
 ```bash
 model=BAAI/bge-small-zh-v1.5
@@ -327,17 +331,17 @@ docker run -d -p 8080:80 \
   --model-id $model
 ```
 
-> The first startup downloads model weights from HuggingFace automatically. A volume mount is recommended to avoid repeated downloads.
+> The first start downloads model weights from HuggingFace automatically. Mount a volume to avoid re-downloading.
 
-### Mirror registry acceleration
+### Mirror Acceleration (China)
 
-If `ghcr.io` is unreachable, use a mirror registry:
+If `ghcr.io` is unreachable, use a mirror:
 
 ```bash
 # Pull the image
 docker pull docker.aityp.com/ghcr.io/huggingface/text-embeddings-inference:latest
 
-# Run using the local image
+# Run with the local image
 docker run -d -p 8080:80 \
   -v $PWD/data:/data \
   --name tei-server \
@@ -345,18 +349,18 @@ docker run -d -p 8080:80 \
   --model-id BAAI/bge-small-zh-v1.5
 ```
 
-### Offline deployment (no network)
+### Offline Deployment (No Network)
 
-Pre-download the model weights, then load them in the offline environment:
+Download the weights in advance, then load them in the offline environment:
 
 ```bash
-# 1. Download the model on a machine with internet access (git-lfs required)
+# 1. Download the model on a networked machine (requires git-lfs)
 git lfs install
 git clone https://huggingface.co/BAAI/bge-small-zh-v1.5 models/bge-small-zh-v1.5
 
 # 2. Copy the models directory to the offline machine
 
-# 3. Start on the offline machine with the local model mounted
+# 3. Start with the local model mounted
 docker run -d -p 8080:80 \
   -v $PWD/models:/data \
   --name tei-server \
@@ -364,22 +368,20 @@ docker run -d -p 8080:80 \
   --model-id /data/bge-small-zh-v1.5
 ```
 
-### Verifying the deployment
-
-After startup, verify that the service works:
+### Verifying the Deployment
 
 ```bash
-# Test the embeddings endpoint
+# Test the embedding endpoint
 curl http://localhost:8080/v1/embeddings \
   -H "Content-Type: application/json" \
-  -d '{"input": "Turn on the light", "model": "BAAI/bge-small-zh-v1.5"}'
+  -d '{"input": "打开灯光", "model": "BAAI/bge-small-zh-v1.5"}'
 
-# A JSON response containing embedding vectors should be returned
+# Should return a JSON response containing the embedding vector
 ```
 
-### Integrating with LocalIntentNode
+### Connecting LocalIntentNode
 
-Once deployed, TEI serves an OpenAI-compatible `/v1/embeddings` endpoint; just set `url` to that address:
+TEI exposes an OpenAI-compatible `/v1/embeddings` endpoint — just point `url` at it:
 
 ```json
 {
@@ -389,4 +391,4 @@ Once deployed, TEI serves an OpenAI-compatible `/v1/embeddings` endpoint; just s
 }
 ```
 
-> Locally deployed TEI requires no API key; leave `key` empty.
+> A local TEI deployment needs no API key; leave `key` empty.
