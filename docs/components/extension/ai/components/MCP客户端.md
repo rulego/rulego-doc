@@ -2,7 +2,8 @@
 title: MCP 客户端
 permalink: /pages/ai-mcp-client/
 ---
-`x/mcpClient` 组件：<Badge text="v0.36.0+"/> MCP（Model Context Protocol）客户端节点，连接远程 MCP 服务器并调用指定工具，将结果写入消息体传递给下游节点。同时可作为 `MCPToolProvider` 注册到 RuleConfig UDF，供 `ai/agent` 智能体的 `self` 模式调用远程工具。
+
+`ai/mcpClient` 组件：<Badge text="v0.36.0+"/> MCP（Model Context Protocol）客户端节点，连接远程 MCP 服务器并调用指定工具，将结果写入消息体传递给下游节点。同时可作为 `MCPToolProvider` 注册到 RuleConfig UDF，供 `ai/agent` 智能体的 `self` 模式调用远程工具。
 
 ## 双重角色
 
@@ -32,7 +33,7 @@ MCP 客户端在规则链中有两种使用方式：
 ```json
 {
   "id": "s1",
-  "type": "x/mcpClient",
+  "type": "ai/mcpClient",
   "name": "获取天气",
   "configuration": {
     "server": "http://localhost:8080/mcp",
@@ -47,7 +48,7 @@ MCP 客户端在规则链中有两种使用方式：
 ```json
 {
   "id": "s1",
-  "type": "x/mcpClient",
+  "type": "ai/mcpClient",
   "name": "MCP工具调用",
   "configuration": {
     "server": "http://localhost:8080/mcp",
@@ -64,7 +65,7 @@ MCP 客户端在规则链中有两种使用方式：
 ```json
 {
   "id": "s1",
-  "type": "x/mcpClient",
+  "type": "ai/mcpClient",
   "name": "本地MCP工具",
   "configuration": {
     "server": "mcp-server --port 8080",
@@ -116,7 +117,7 @@ MCP 客户端启动时（`Start()`）自动连接远程服务器、发现工具�
     "nodes": [
       {
         "id": "node_mcp",
-        "type": "x/mcpClient",
+        "type": "ai/mcpClient",
         "name": "调用远程工具",
         "configuration": {
           "server": "http://localhost:8080/mcp",

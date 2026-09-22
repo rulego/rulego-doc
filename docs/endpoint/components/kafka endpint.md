@@ -37,6 +37,27 @@ endpoint/kafka
 | enable              | bool | 否    | 是否启用TLS    | false |
 | insecureSkipVerify  | bool | 否    | 是否跳过证书验证   | false |
 
+## 连接共享
+
+<Badge text="rulego-components"/> `server` 支持 `ref://{资源ID}` 复用共享的 Kafka 连接：把连接信息（brokers、SASL/TLS）保存为[共享节点](/pages/component-connection-reuse/)后，多条规则链的 Kafka 端点与 `x/kafkaProducer` 发布节点可以共用同一个连接，避免重复建连，在编辑器中可通过「共享连接」下拉直接选择。
+
+```json
+{
+  "id": "shared_kafka",
+  "type": "endpoint/kafka",
+  "name": "kafka连接池",
+  "configuration": {
+    "server": "127.0.0.1:9092"
+  }
+}
+```
+
+其他端点或发布节点配置 `"server": "ref://shared_kafka"` 即复用该连接。
+
+::: warning 消费组不可共享
+受 sarama 客户端约束（一个 client 不允许被多个 consumer group 共享），每个端点的消费组仍使用共享连接的连接信息（brokers、SASL/TLS）独立建连，`groupId` 等消费侧配置保持各端点独立。
+:::
+
 ## 响应
 
 `exchange.Out.SetBody`响应之前，需要通过`exchange.Out.Headers()`或者`exchange.Out.Msg.Metadata`指定`responseTopic`参数，组件就会往指定的主题发送数据：

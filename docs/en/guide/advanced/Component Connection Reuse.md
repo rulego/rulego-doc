@@ -132,6 +132,23 @@ Example of a global shared node pool rule chain file:
 }
 ```
 
+**Programmatic Registration (non-DSL)**
+
+<Badge text="v0.37.3+"/>Shared nodes can also be registered directly in code, without `node_pool.json`:
+
+```go
+mqttEp, _ := endpoint.Registry.New("endpoint/mqtt", config, types.Configuration{
+	"server": "127.0.0.1:1883",
+})
+// The pool key is the node's own Id (the server address for endpoint components): ref://127.0.0.1:1883
+node_pool.DefaultNodePool.AddNode(mqttEp)
+
+// Bind a stable alias: ref://gateway_mqtt keeps working even if the address changes
+node_pool.DefaultNodePool.AddNodeWithAlias("gateway_mqtt", mqttEp)
+```
+
+The alias is only an extra lookup key: it never changes the node's primary key and is not written into DSL; `ref://gateway_mqtt` and `ref://127.0.0.1:1883` resolve to the same instance. Use `AddAlias(id, aliases...)` to bind more aliases to a registered node; `Del` removes the node by primary id or alias and cleans up its aliases.
+
 ### Chain-Scoped Connection Reuse
 
 <Badge text="v0.37.0+"/>Connection-holding components support **chain-scoped connection reuse**: define connection nodes directly in a rule chain's `metadata`, and other nodes in the same chain reuse their connections via `ref://{sourceNodeId}`, with no need for a global `node_pool.json`. This fits scenarios where a connection is shared only by several nodes within one chain.
@@ -144,11 +161,13 @@ Example of a global shared node pool rule chain file:
 **Supported components** (embed `base.SharedNode[T]` and have chain-scoped registration enabled):
 
 - Core: `dbClient`, `mqttClient`, `net`, `ws`
-- IoT (rulego-components-iot): `modbus`, plus `x/s7Read`/`x/s7Write`, `x/eipRead`/`x/eipWrite`, `x/snmpRead`/`x/snmpWrite`, `x/opcuaRead`/`x/opcuaWrite`
+- IoT (rulego-components-iot): `x/modbus` and the point-table nodes `x/modbusRead`/`x/modbusWrite`; PLC/meter read-write `x/s7Read`/`x/s7Write`, `x/eipRead`/`x/eipWrite`, `x/mcRead`/`x/mcWrite`, `x/finsRead`/`x/finsWrite`, `x/iec104Read`/`x/iec104Write`, `x/dlt645Read`/`x/dlt645Write`, `x/bacnetRead`/`x/bacnetWrite`, `x/snmpRead`/`x/snmpWrite`, `x/opcuaRead`/`x/opcuaWrite`; serial `x/serialIn`/`x/serialOut`/`x/serialRequest`/`x/serialControl`; TSDB writers `x/influxdbWrite`, `x/opengeminiWrite`, `x/promremoteWrite`, `x/tdengineWrite`, `x/timescaledbWrite`; plus `endpoint/opcua`
 
 ::: tip Read/Write cross-component reuse
-Read and Write components of the same protocol share the same connection type `T` (e.g. both EIP Read and Write use `*gologix.Client`; both S7 use `*gos7.TCPClientHandler`), so a **Read node can `ref://` a Write node** to share one connection to the device — a single connection serves both reads and writes, no need to open two. `net`/`ws` support both outbound connection reuse (`ref://` another `net`/`ws` node to share a dialed connection) and inbound session addressing (`ref://` an endpoint, see below).
+Read and Write components of the same protocol share the same connection type `T` (e.g. both EIP Read and Write use `*gologix.Client`; both S7 use `*gos7.TCPClientHandler`), so a **Read node can `ref://` a Write node** to share one connection to the device — a single connection serves both reads and writes, no need to open two. `net`/`ws` support both outbound connection reuse (`ref://` another `net`/`ws` node to share a dialed connection) and inbound session addressing (`ref://` an endpoint, see below). `endpoint/opcua` and `x/opcuaRead`/`x/opcuaWrite` share the same `*opcua.Client` type, so the subscribing endpoint's connection can also be `ref://`-reused by the read/write nodes — subscription, collection and commands share one OPC UA connection.
 :::
+
+<Badge text="v0.38.0+"/>**Endpoints can also be borrowers**: an endpoint's connection config (e.g. the `server` of `endpoint/kafka`) supports `ref://{ID}` as well, with the same resolution order as nodes (same-chain first → global NodePool fallback). Chain deployment is two-phase: all endpoint instances of the chain are created and registered into the chain resource registry first, then routers are attached and they start together, so same-chain endpoints can `ref://` each other during connection setup. Circular references (A borrows B while B borrows A) are detected and rejected at deploy time.
 
 **Example 1: two MQTT nodes share one connection**
 
@@ -406,6 +425,7 @@ func init() {
 ::: warning Integration key points
 - Use `InitWithClose` (not the legacy `Init`) to register the connection factory and close function, so the connection is properly released when the owner is destroyed; obtain the connection via `GetSafely()` in `OnMsg` (same-chain-first resolution — do not use the legacy `Get()`).
 - `BindChain(configuration)` is required to enable **chain-scoped connection reuse**: without it the component can only be reused via the global NodePool and cannot be `ref://`-referenced within a chain. Both `InitWithClose` and `BindChain` are indispensable.
+- For components with their own reconnect logic, call `x.SharedNode.Refresh(newClient)` after a successful reconnect: same-chain borrowers fetch the connection through the registry entry, and only `Refresh` updates that entry, so borrowers get the reconnected client instead of the dead one.
 - `T` must be the connection type itself (e.g. `*tcpConn` in this example, or `*mqtt.Client`); only **same-type** components can `ref://` each other (mismatched `T` fails the type assertion and returns an error).
 - When sharing a single connection, non-thread-safe operations on it (such as `conn.Write` here) must be serialized by the component itself with a lock, or use a client that is already concurrency-safe.
 :::

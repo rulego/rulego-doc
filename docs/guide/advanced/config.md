@@ -72,6 +72,20 @@ ruleEngine.OnMsg(msg,types.WithOnAllNodeCompleted(func() {
 
 js脚本执行超时时间，默认2000毫秒。
 
+## MsgMaxHops
+
+类型：`int64`
+
+单条消息在引擎内允许经过的最大节点跳数（含 `TellFlow` 子链），`0` 表示不限制。
+
+一条消息超过该跳数后会被终止：以 `Failure` 关系结束，错误包装 `types.ErrMsgHopBudgetExceeded`（可用 `errors.Is` 判断），引擎记录一条 Error 日志。用于兜底消息不终止的场景，例如 `while` 节点条件恒真、链成环、子链递归。
+
+跳数计数随消息对象传递：`Copy` 与值拷贝共享同一计数，扇出分支、子链计入同一条消息的预算；组件通过 `NewMsg` 新建的消息有独立的预算。
+
+```go
+config := rulego.NewConfig(types.WithMsgMaxHops(10000))
+```
+
 ## Pool
 
 
@@ -88,6 +102,8 @@ config := rulego.NewConfig(types.WithPool(pool))
 
 ::: tip
 内置的`pool.WorkerPool` 是参考了FastHttp的实现，比`ants`性能高和节省内存。
+
+给 `MaxWorkersCount` 配置一个有限值即可约束 goroutine 总量：池满后新任务在调用方协程同步执行，形成背压，不会死锁也不会丢失任务。
 :::
 
 ## ComponentsRegistry
@@ -407,3 +423,22 @@ config := rulego.NewConfig(types.WithCache(&myCacheImpl{}))
 // 如果使用默认内存的实现，则不需要显式配置，RuleGo会自动使用 cache.DefaultCache
 // config := rulego.NewConfig()
 ```
+
+## Locker <Badge text="v0.38.0+"/>
+
+类型：`types.Locker`
+
+分布式锁。多副本部署时注入，开启两类跨副本语义：
+
+- **消息级去重**（`OnceGuard`）：进程内触发源至多执行一次，例如[定时端点](/pages/endpoint-schedule/)同一计划槽位整个集群只执行一次
+- **单活选主**（`ActiveGuard`）：广播型端点只有主副本订阅消费，主副本失联后待命副本自动接管，内置支持 Redis Pub/Sub、RabbitMQ、MySQL CDC 端点
+
+为 nil 时不产生任何作用，行为与单机部署完全一致。实现不绑定后端，一般使用 Redis：[rulego-components/pkg/locker](https://github.com/rulego/rulego-components/blob/main/pkg/locker/redis_locker.go)。
+
+详见 [至多一次执行](/pages/locker/)。
+
+## Owner <Badge text="v0.38.0+"/>
+
+类型：`string`
+
+引擎实例的所属者标识。多租户部署下即租户分区名，用于隔离不能跨引擎共享的资源命名：锁键、缓存键、消息订阅组名。注意与某条消息的租户（随消息 metadata 传递）是两个概念。

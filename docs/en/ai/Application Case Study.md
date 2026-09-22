@@ -757,6 +757,12 @@ The smart assistant platform described in this document has been fully deployed 
 > - WeChat: `rulegoteam`
 > - Email: [rulego@outlook.com](mailto:rulego@outlook.com)
 
+## Approval Workflow Scenario: GFlow
+
+To apply agent capabilities to **approval workflows**, use [GFlow Approval Workflow](https://gflow.rulego.cc/) — an enterprise approval workflow platform built on RuleGo: **approve, then automate** — AI reviews first, humans sign next, and actions execute automatically once signed. Approvals and automation live in the same process DSL: the `aiAgent` node invokes agents for approval, and the `automation` node invokes rule chains for downstream actions.
+
+**Try it online**: [gflow.rulego.cc](https://gflow.rulego.cc/)
+
 ## Related Documentation
 
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
@@ -766,4 +772,4 @@ The smart assistant platform described in this document has been fully deployed 
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — AOP aspect interfaces and built-in aspects
 - [Session Management](/en/pages/ai-agent-session/) — Session storage and compression strategies
 - [Orchestration Examples](/en/pages/ai-agent-orchestration/) — Node orchestration patterns and examples
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent`
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent`

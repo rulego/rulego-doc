@@ -148,7 +148,7 @@ config.Properties.PutValue(luaEngine.LoadLuaLibs, "true")
 * [pprof](https://github.com/vadv/gopher-lua-libs/tree/master/pprof) pprof http-server for golang from lua
 * [prometheus](https://github.com/vadv/gopher-lua-libs/tree/master/prometheus/client) prometheus exporter
 * [regexp](https://github.com/vadv/gopher-lua-libs/tree/master/regexp) regexp port
-* [runtime](https://github.com/vadv/gopher-lua-libs/tree/master/runtime) runtime port
+* [runtime](https://www.lua.org/manual/5.4/manual.html#6) runtime port
 * [pb](https://github.com/vadv/gopher-lua-libs/tree/master/pb) [https://github.com/cheggaaa/pb](https://github.com/cheggaaa/pb) port (v3)
 * [shellescape](https://github.com/vadv/gopher-lua-libs/tree/master/shellescape) shellescape <https://github.com/alessio/shellescape> port
 * [stats](https://github.com/vadv/gopher-lua-libs/tree/master/stats) stats [https://github.com/montanaflynn/stats](https://github.com/montanaflynn/stats) port

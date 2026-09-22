@@ -519,5 +519,18 @@ export const rewrites: Record<string, string> = {
   "en/streamsql/analytic-functions.md": "en/pages/streamsql-analytic/index.md",
   "en/streamsql/join-community.md": "en/pages/streamsql-community/index.md",
   "en/community/index.md": "en/pages/community/index.md",
-  "community/index.md": "pages/community/index.md"
+  "community/index.md": "pages/community/index.md",
+  "components/extension/ai/components/15.Jev决策.md": "pages/ai-jev/index.md",
+  "components/extension/ai/components/16.Jev过滤.md": "pages/ai-jev-filter/index.md",
+  "guide/advanced/09.至多一次执行.md": "pages/locker/index.md",
+  "server/12.分布式部署.md": "pages/rulego-server-distributed/index.md",
+  "en/components/extension/ai/03.agent.md": "en/pages/ai-agent/index.md",
+  "en/components/extension/ai/04.intent.md": "en/pages/ai-intent/index.md",
+  "en/components/extension/ai/05.local-intent.md": "en/pages/ai-local-intent/index.md",
+  "en/components/extension/ai/06.mcp-client.md": "en/pages/ai-mcp-client/index.md",
+  "en/components/extension/ai/07.mcp-server.md": "en/pages/ai-mcp-server/index.md",
+  "en/components/extension/ai/08.jev.md": "en/pages/ai-jev/index.md",
+  "en/components/extension/ai/09.jev-filter.md": "en/pages/ai-jev-filter/index.md",
+  "en/guide/advanced/09.At-Most-Once Execution.md": "en/pages/locker/index.md",
+  "en/server/12.Distributed Deployment.md": "en/pages/rulego-server-distributed/index.md"
 }

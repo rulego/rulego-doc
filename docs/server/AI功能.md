@@ -51,7 +51,7 @@ llm_model = gpt-4o
 **端点：**
 
 ```http
-POST /api/v1/rules/assistant/v1/chat/completions
+POST /api/v1/rules/_assistant/v1/chat/completions
 ```
 
 **特性：**
@@ -82,44 +82,11 @@ Skill 是给 AI Agent 的知识片段，以 `SKILL.md` 文件形式存储，让 
 
 ## 自定义 AI Agent
 
-任何包含 `ai/agent` 节点的规则链都可以作为 AI Agent，自动获得 OpenAI 兼容端点。
+任何包含 `ai/agent` 节点的规则链都可以作为 AI Agent，自动获得 OpenAI 兼容端点 `POST /api/v1/rules/{规则链ID}/v1/chat/completions`。
 
-### 创建步骤
-
-1. 创建一个新规则链
-2. 添加 `ai/agent` 类型节点
-3. 配置节点参数：
-   - `systemPrompt`：系统提示词
-   - `url`/`key`/`model`：LLM 连接配置（可使用 `${global.xxx}` 引用全局变量，如 `${global.llm_url}`）
-   - `maxStep`：最大工具调用轮数
-   - `tools`：工具列表
-
-### 工具配置
-
-```json
-{
-  "tools": [
-    {
-      "type": "mcp",
-      "config": {
-        "server": "self",
-        "tools": ["list_rule_chains", "get_rule_chain", "save_rule_chain"]
-      }
-    },
-    {
-      "type": "builtin",
-      "name": "skill",
-      "config": {
-        "globalDirs": ["${global.skill_path}"],
-        "useChinese": true
-      }
-    }
-  ]
-}
-```
-
-- `server: "self"`：回调自身 MCP 服务
-- `type: "builtin", "name: "skill"`：加载技能文件
+- 图文创建步骤（建链、配置大模型、挂工具、连线、测试、API 调用）参见 [创建智能体教程](/pages/rulego-server-create-agent/)
+- `ai/agent` 节点的完整配置项参见 [智能体组件](/pages/ai-agent/)
+- 内置工具、MCP 工具、子智能体工具的配置格式参见 [工具系统](/pages/ai-agent-tools/)
 
 ### 输入参数定义
 

@@ -58,10 +58,10 @@ cron表达式表示一组时间，使用6个空格分隔的字段。例如：* *
 ## 示例
 
 ```go
-scheduleEndpoint := endpoint.New(schedule.Type, config, nil)
+scheduleEndpoint, err := endpoint.Registry.New(schedule.Type, config, nil)
 
 //每隔1秒执行
-router1 := endpoint.NewRouter().From("*/1 * * * * *").Process(func(router *endpoint.Router, exchange *endpoint.Exchange) bool {
+router1 := endpoint.NewRouter().From("*/1 * * * * *").Process(func(router endpoint.Router, exchange *endpoint.Exchange) bool {
   exchange.In.GetMsg().Type = "TEST_MSG_TYPE1"
   fmt.Println("router1 执行...", time.Now().UnixMilli())
   //业务逻辑，例如读取文件、定时去拉取一些数据交给规则链处理
@@ -83,3 +83,9 @@ err = scheduleEndpoint.Start()
 - [ScheduleEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/schedule/schedule_test.go)
 - [NetEndpoint](https://github.com/rulego/rulego/tree/main/endpoint/net/net_test.go)
 - [KafkaEndpoint](https://github.com/rulego/rulego-components/blob/main/endpoint/kafka/kafka_test.go) （扩展组件库）
+
+## 多副本部署
+
+cron 由进程内调度器驱动，多副本部署时每个副本都会触发同一任务。给规则链配置注入分布式锁（`types.WithLocker`）后，同一计划槽位在副本间自动去重，每个计划时刻整个集群只执行一次，DSL 无须任何修改。时钟依赖 NTP 同步。
+
+详见 [分布式锁与至多一次执行](/pages/locker/)。

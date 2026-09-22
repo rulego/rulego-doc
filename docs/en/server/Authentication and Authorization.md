@@ -12,18 +12,22 @@ Configure users in the `[users]` section of `config.conf`:
 [users]
 # Format: username = password[,apiKey]
 # apiKey is optional
-admin = admin,ak-2af255ea5618467d914c67a8beeca31d
+admin = admin,ak-your-api-key
 user01 = user01
-user02 = user02,ak-another-key
+user02 = user02,ak-another-user-key
 ```
 
 Each user has an independent workspace; rule chains, components, configurations, and other data are isolated per user.
+
+::: warning Never use the sample keys from docs or the default config
+Values like `ak-your-api-key` in this doc are placeholders. The factory default config ships with a sample key that is public in the source repository — **anyone who knows that string can call your API with it**. Generate your own random key (e.g. `openssl rand -hex 16`) when deploying. If an existing deployment still uses the default value, rotate it immediately.
+:::
 
 Besides the configuration file, users can also be managed at runtime via the User Management API (only available to the `admin` role). See [User Management API](#user-management-api) below.
 
 ## Role System
 
-Each user can be assigned one or more roles, which determine what the account can do:
+Each user can be assigned one or more roles (via the `roles` field of the User Management API), which determine what the account can do:
 
 | Role | Description |
 |------|------|
@@ -31,6 +35,7 @@ Each user can be assigned one or more roles, which determine what the account ca
 | `editor` | Full read/write within their own workspace, cannot manage users |
 | `viewer` | Read-only |
 
+> Roles are assigned through the User Management API; `POST /users` defaults to `editor` when `roles` is not specified. Built-in accounts from the `[users]` section of `config.conf` are always treated as `admin`.
 > Anonymous access (`require_auth = false` with no credentials) and users without assigned roles are treated as `admin` by the default authorizer to preserve the out-of-the-box experience. In production, it is recommended to enable authentication and assign explicit roles to users.
 
 ## Authentication Methods
@@ -87,22 +92,30 @@ GET /api/v1/rules
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
+> The `?token=<token>` query parameter is also supported, useful for WebSocket and other scenarios where custom headers cannot be set.
+
 ### API Key Authentication
 
-Once an apiKey is configured for a user, you can use the API Key directly instead of JWT:
+Once an apiKey is configured for a user, you can use the API Key directly instead of JWT. The following methods work for all REST endpoints and the MCP endpoint, in descending order of precedence:
 
 **Option 1: Authorization Header**
 
 ```http
 GET /api/v1/rules
-Authorization: Bearer ak-2af255ea5618467d914c67a8beeca31d
+Authorization: Bearer ak-your-api-key
 ```
 
 **Option 2: X-API-Key Header**
 
 ```http
 GET /api/v1/rules
-X-API-Key: ak-2af255ea5618467d914c67a8beeca31d
+X-API-Key: ak-your-api-key
+```
+
+**Option 3: URL Query Parameter**
+
+```http
+GET /api/v1/rules?token=ak-your-api-key
 ```
 
 API Key is commonly used for MCP client integration, third-party system integration, and other scenarios that do not require a login flow.

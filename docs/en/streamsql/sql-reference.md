@@ -188,7 +188,7 @@ SELECT temperature * 1.8 + 32 AS fahrenheit FROM stream
 SELECT temperature temp, humidity hum FROM stream
 ```
 
-> **Alias scope**: a column alias only names an **output column**; it cannot be referenced in a WHERE / GROUP BY / HAVING clause (consistent with eKuiper: `column_alias cannot be used in a WHERE, GROUP BY, or HAVING clause`). GROUP BY must use the original column name or expression.
+> **Alias scope**: a column alias only names an **output column**; it cannot be referenced in a WHERE / GROUP BY clause. GROUP BY must use the original column name or expression. **HAVING is the exception**: StreamSQL's HAVING must reference the alias from SELECT (restating the aggregate function is not parsed), see the [HAVING Clause](#having-clause).
 
 ```sql
 -- ❌ the alias `dev` cannot be used in GROUP BY

@@ -51,7 +51,7 @@ A multi-turn conversational AI assistant capable of creating, modifying, and dep
 **Endpoint:**
 
 ```http
-POST /api/v1/rules/assistant/v1/chat/completions
+POST /api/v1/rules/_assistant/v1/chat/completions
 ```
 
 **Features:**

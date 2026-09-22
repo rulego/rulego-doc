@@ -1,5 +1,5 @@
 ---
-title: MongoDB户端
+title: MongoDB客户端
 permalink: /pages/mongodb-client/
 ---
 `x/mongodbClient`组件：<Badge text="v0.26.0+"/> MongoDB客户端组件。用于对MongoDB数据库进行增删改查操作。

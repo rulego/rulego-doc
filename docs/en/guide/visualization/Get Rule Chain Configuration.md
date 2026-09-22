@@ -18,4 +18,4 @@ def = ruleEngine.DSL()
 fmt.Println(string(def))
 ```
 
-> The rule chain configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/rule-chain-overview/). Used for rule chain modification.
+> The rule chain configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/dynamic-refresh/). Used for rule chain modification.

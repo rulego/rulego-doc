@@ -20,4 +20,4 @@ def = ruleEngine.NodeDSL(types.EmptyRuleNodeId, types.RuleNodeId{Id: nodeId, Typ
 fmt.Println(string(def))
 ```
 
-> The rule chain node configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/rule-chain-overview/). Used for rule chain modification.
+> The rule chain node configuration supports dynamic updates, dynamic replacement of business logic and component configuration, [refer to the documentation](/en/pages/dynamic-refresh/). Used for rule chain modification.

@@ -114,7 +114,7 @@ You can also use the To method to call the component
 router := endpoint.NewRouter().From("/api/v1/msg/").Transform(func(exchange *endpoint.Exchange) bool {
     //Transformation logic
     return true
-}).To"component:log", types.Configuration{"jsScript": `
+}).To("component:log", types.Configuration{"jsScript": `
 		return 'log::Incoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);
 `})
 ```

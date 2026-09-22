@@ -99,6 +99,8 @@ The configuration file uses INI format and supports environment variable substit
 | `debug` | `true` | Whether to print node debug logs to the log file |
 | `max_node_log_size` | `40` | Maximum number of log entries per node |
 | `script_max_execution_time` | `5000` | Script execution timeout (milliseconds) |
+| `msg_max_hops` | `10000` | Maximum node hops a single message may traverse (sub chains included). A message past the limit terminates with `Failure` plus an Error log; bounds runaway messages such as a while node whose condition never turns false, cyclic chains and sub chain recursion. 0 or negative disables the limit |
+| `worker_pool_max_workers` | `5000` | Worker pool cap per user engine. When the pool is full new tasks run synchronously in the caller goroutine (backpressure), keeping the goroutine total bounded. 0 or negative disables the cap |
 | `run_log_mode` | `off` | Run log level: `off` (no logging) / `summary` (summary only) / `detail` (full per-node logs). Replaces the former `save_run_log`; per-chain `additionalInfo.runLogMode` can override this global setting |
 | `run_log_store_type` | `bbolt` | Execution log storage backend: `bbolt`, `file` (JSON Lines) |
 | `run_log_retention_count` | `500` | Keep the most recent N log entries per rule chain, 0 means no limit |
@@ -262,12 +264,29 @@ Available build tags:
 
 | Tag | Description |
 |------|------|
-| `with_all` | All optional components (equivalent to enabling all tags below simultaneously) |
+| `with_all` | All optional components (equivalent to enabling all tags below simultaneously, **excluding** `use_fasthttp`) |
 | `with_ai` | AI-related components (ai/agent nodes, LLM tools, etc.) |
 | `with_iot` | IoT-related components |
 | `with_etl` | ETL data processing components |
 | `with_ci` | CI/CD-related components |
 | `with_extend` | Extended components |
+| `use_fasthttp` | Replaces the HTTP endpoint and restApiCall components with fasthttp implementations (combine with `with_all` etc.) |
+
+> **`use_fasthttp` selection guide**: choose by workload characteristics; core count matters little (2-core machines also benefit, per benchmarks):
+>
+> - **Many short-lived connections, high concurrency, latency-sensitive** workloads benefit most: throughput improves by ~20%~30%, and p99 latency drops by ~35%~45% under high concurrency (same machine, same chain A/B tests)
+> - Regular keep-alive APIs: throughput improves by ~7%~10%
+> - Heavy chain processing (e.g. complex script nodes) dilutes the endpoint-layer gain
+>
+> Note: requires a rulego-components version that includes the fasthttp endpoint fix (otherwise rule chains with `"type": "http"` in the DSL fail to load due to lost registry aliases); static builds with `CGO_ENABLED=0` are recommended for production. Usage:
+>
+> ```bash
+> # Enable fasthttp endpoint
+> CGO_ENABLED=0 go build -tags "with_all,use_fasthttp" -o server ./cmd/server/
+>
+> # Default net/http
+> CGO_ENABLED=0 go build -tags "with_all" -o server ./cmd/server/
+> ```
 
 ## Complete Configuration File Example
 
@@ -352,6 +371,10 @@ run_log_mode = off
 #run_log_retention_days = 7
 # Script execution timeout (milliseconds)
 script_max_execution_time = 5000
+# Max node hops per message (sub chains included), 0 disables the limit
+msg_max_hops = 10000
+# Worker pool cap per user engine, 0 disables the cap
+worker_pool_max_workers = 5000
 # Component marketplace base URL
 #marketplace_base_url =
 # Inject the main HTTP server into each user's node pool as a shared node (use with caution in multi-tenant environments)

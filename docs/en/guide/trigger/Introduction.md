@@ -9,7 +9,7 @@ permalink: /pages/trigger-overview/
 - The automatic trigger is called: [Endpoint](/en/pages/endpoint-overview/) (Input Endpoint). You can add endpoint configurations to the rule chain DSL file, dynamically set input endpoints, and trigger the execution of the rule chain through external trigger sources.
   For example, set up access points such as accepting HTTP requests, MQTT\kafka subscriptions, scheduling, etc.
 
->At present, this version cannot set endpoint reuse in the rule chain DSL. For HTTP endpoints, if the port is occupied, they cannot be used again. Solution: Endpoint and rule chain run separately. [Endpoint DSL] (/en/pages/390ad7/)
+>At present, this version cannot set endpoint reuse in the rule chain DSL. For HTTP endpoints, if the port is occupied, they cannot be used again. Solution: Endpoint and rule chain run separately. [Endpoint DSL] (/en/pages/endpoint-dsl/)
 
 Example:
 

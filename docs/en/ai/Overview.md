@@ -77,7 +77,9 @@ Update the JSON via API or visual editor, and the agent **immediately uses the n
 | Multi-Agent Collaboration | `tools[type=agent]` | Sub-agents are tools; LLM decides when to call them |
 | Business Logic Integration | Other nodes (jsFilter, restApiCall, etc.) | Agents interact with business systems |
 
-> For complete field descriptions of the `ai/agent` node, see [Agent Component](/pages/ai-agent/).
+> For complete field descriptions of the `ai/agent` node, see [Agent Component](/en/pages/ai-agent/).
+>
+> A stdlib-only lightweight implementation of `ai/agent` (usable on 32-bit platforms) shares the same type name and chain DSL; the string `tools` shorthand is the portable form across both — see [Agent Component · Two Implementations](/en/pages/ai-agent/).
 
 ## Core Concepts
 
@@ -269,7 +271,7 @@ In short: **Eino is an LLM interaction library; RuleGo Agent Framework is an ent
 
 - [Architecture Design](/en/pages/ai-agent-architecture/) — Layered architecture, core modules, data flow
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node concepts and advanced features
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent`
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent`
 - [Tool System](/en/pages/ai-agent-tools/) — Tool types, builtin tools, MCP integration
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — AOP aspect system and custom extensions
 - [Session Management](/en/pages/ai-agent-session/) — Conversation state, message compression, storage extension

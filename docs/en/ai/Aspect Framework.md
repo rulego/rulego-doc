@@ -661,6 +661,6 @@ Aspects are sorted by `Order()` during registration and classified into correspo
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Architecture Design](/en/pages/ai-agent-architecture/) — Layered architecture details
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node concepts and advanced features
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent` component
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent` component
 - [Session Management](/en/pages/ai-agent-session/) — Underlying mechanism of the session aspect
 - [Development Guide](/en/pages/ai-agent-guide/) — Practical application of custom aspects

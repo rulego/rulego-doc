@@ -4,7 +4,7 @@ permalink: /pages/ai-agent-node/
 ---
 `ai/agent` is the AI agent node in the RuleGo rule chain, implemented based on the ReAct pattern. The agent autonomously completes user tasks through multi-turn reasoning and tool invocation loops.
 
-For complete configuration fields and parameter descriptions, see [Agent Component](/pages/ai-agent/).
+For complete configuration fields and parameter descriptions, see [Agent Component](/en/pages/ai-agent/).
 
 ## ReAct Loop
 
@@ -29,7 +29,7 @@ During each LLM call, the agent sends the current context (system prompt + histo
 - **Direct output answer**: Task complete, loop ends
 - **Call tool**: Get more information and continue reasoning
 
-`maxStep` limits the maximum number of loop iterations to prevent infinite loops. Default is 150 steps; for simple classification tasks it can be set to 1 (single inference, no tool call loop).
+`maxStep` limits the maximum number of loop iterations to prevent infinite loops. Default is 50 steps; for simple classification tasks it can be set to 1 (single inference, no tool call loop).
 
 ## System Prompt Template
 
@@ -148,7 +148,7 @@ Parameters: Initial wait 1s, doubles each time, max 30s, random jitter to avoid 
 
 ### Streaming Tool-call Detection
 
-During streaming the agent must decide whether the model is issuing tool calls (route to tool execution) or producing a plain-text answer (stream out directly). In the OpenAI-compatible protocol these two cases cannot be distinguished before they happen — no mid-stream marker announces upcoming `tool_calls`. Default auto mode: without tools, output streams in real time; with tools, the checker keeps watching for 500ms after the first text chunk — a tool call within the window triggers tool execution, sustained plain text is released for streaming. If a model's text preamble exceeds the window so tools never execute, set `streamToolCallCheck` to `drain` explicitly.
+During streaming the agent must decide whether the model is issuing tool calls (route to tool execution) or producing a plain-text answer (stream out directly). In the OpenAI-compatible protocol these two cases cannot be distinguished before they happen — no mid-stream marker announces upcoming `tool_calls`. Default auto mode: without tools, output streams in real time; with tools, the checker keeps watching for 500ms after the first text chunk — a tool call within the window triggers tool execution, sustained plain text is released for streaming. If a model's text preamble exceeds the window so tool calls get missed, the runtime auto-escalates to `drain` and re-runs the current turn once (log keyword `routed as plain text`) — no manual configuration needed; setting `drain` explicitly still works as a pre-emptive fallback.
 
 ### Unknown Tool Call Handling
 
@@ -170,7 +170,7 @@ First 50000 characters...(truncated, original: 120000 bytes)
 
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Architecture Design](/en/pages/ai-agent-architecture/) — Layered architecture and data flow details
-- [Agent Component](/pages/ai-agent/) — Complete configuration fields and examples
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration fields and examples
 - [Tool System](/en/pages/ai-agent-tools/) — Tool configuration and extension
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — Aspect lifecycle and customization
 - [Development Guide](/en/pages/ai-agent-guide/) — Complete agent application development workflow

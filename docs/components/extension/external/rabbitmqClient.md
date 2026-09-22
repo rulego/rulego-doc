@@ -41,3 +41,47 @@ permalink: /pages/rabbitmq-client/
 - msgType保持不变
 
 ## 配置示例
+
+```json
+{
+  "ruleChain": {
+    "id": "rabbitmq_producer_chain",
+    "name": "发布消息到RabbitMQ",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "jsTransform",
+        "name": "构造消息",
+        "configuration": {
+          "jsScript": "return {'msg':msg,'metadata':metadata,'msgType':msgType};"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "x/rabbitmqClient",
+        "name": "发布到RabbitMQ",
+        "configuration": {
+          "server": "amqp://guest:guest@127.0.0.1:5672/",
+          "exchange": "rulego.events",
+          "exchangeType": "topic",
+          "key": "${deviceType}",
+          "durable": true,
+          "autoDelete": false
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "Success"
+      }
+    ]
+  }
+}
+```
+
+路由键 `key` 支持组件配置变量：示例中的 `${deviceType}` 会被替换成消息元数据里的 `deviceType` 值，实现按业务字段路由到不同队列。

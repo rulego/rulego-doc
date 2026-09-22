@@ -22,7 +22,6 @@ The following example is a simple rule chain definition that includes a filter, 
 ```go
 import "github.com/rulego/rulego"
 var ruleFile=`{
-{
   "ruleChain": {
     "id":"chain_call_rest_api",
     "name": "Test Rule Chain",
@@ -74,7 +73,6 @@ var ruleFile=`{
     ]
   }
 }
-}
 `
 // Create a rule engine instance using the rule chain definition
 // TIPS: The first argument (ID) must match the `ruleChain.id` defined in the DSL file
@@ -110,22 +108,61 @@ ruleEngine.OnMsg(msg)
 ruleEngine, ok := rulego.Get("chain_call_rest_api")
 
 // Update the rule chain, which allows modifying existing node configurations, adding or removing nodes, and changing their connections.
+// ReloadSelf takes a complete rule chain DSL (not an incremental fragment); nodes and connections left out are removed.
 updateRuleChainFile := `{
-//... Other configurations remain unchanged
-// Modify node s2 to add 5 to the temperature
-{
-    "id": "s2",
-    "type": "jsTransform",
-    "name": "Transformation",
-    "debugMode": true,
-    "configuration": {
-        "jsScript": "msg.temperature = msg.temperature / 10 + 5; return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
-    }
-}
-//... Other configurations and connections remain unchanged
+  "ruleChain": {
+    "id": "chain_call_rest_api",
+    "name": "Test Rule Chain",
+    "root": true
+  },
+  "metadata": {
+    "nodes": [
+      {
+        "id": "s1",
+        "type": "jsFilter",
+        "name": "Filter",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msg.deviceId=='aa' || msg.deviceId=='bb';"
+        }
+      },
+      {
+        "id": "s2",
+        "type": "jsTransform",
+        "name": "Transformation",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "msg.temperature = msg.temperature / 10 + 5; return {'msg': msg, 'metadata': metadata, 'msgType': msgType};"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "restApiCall",
+        "name": "Push Data",
+        "debugMode": true,
+        "configuration": {
+          "restEndpointUrlPattern": "http://192.168.1.1:9099/api/msg",
+          "requestMethod": "POST",
+          "maxParallelRequestsCount": 200
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromId": "s1",
+        "toId": "s2",
+        "type": "True"
+      },
+      {
+        "fromId": "s2",
+        "toId": "s3",
+        "type": "Success"
+      }
+    ]
+  }
 }`
 
-// Hot update the rule engine instance.
+// Hot update the rule engine instance: node s2 now adds 5 to the temperature, taking effect immediately without restarting the application.
 _ = ruleEngine.ReloadSelf([]byte(updateRuleChainFile))
 ```
 

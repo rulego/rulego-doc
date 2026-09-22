@@ -238,7 +238,7 @@ sequenceDiagram
 
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node concepts and advanced features
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent`
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent`
 - [Tool System](/en/pages/ai-agent-tools/) — Tool types, builtin tools, MCP integration
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — AOP aspect system and custom extensions
 - [Session Management](/en/pages/ai-agent-session/) — Conversation state, message compression, storage extension

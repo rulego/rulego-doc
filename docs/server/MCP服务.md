@@ -22,8 +22,8 @@ enable = true
 
 ```ini
 [users]
-admin = admin,ak-2af255ea5618467d914c67a8beeca31d
-user01 = user01,ak-another-key
+admin = admin,ak-your-api-key
+user01 = user01,ak-another-user-key
 ```
 
 ## MCP 端点

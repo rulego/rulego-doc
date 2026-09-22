@@ -383,6 +383,14 @@ export const zhSidebar: DefaultTheme.Sidebar = [
           {
             "text": "MCP 服务端",
             "link": "/pages/ai-mcp-server/"
+          },
+          {
+            "text": "Jev 决策",
+            "link": "/pages/ai-jev/"
+          },
+          {
+            "text": "Jev 过滤",
+            "link": "/pages/ai-jev-filter/"
           }
         ]
       },
@@ -841,6 +849,10 @@ export const zhSidebar: DefaultTheme.Sidebar = [
       {
         "text": "性能",
         "link": "/pages/performance/"
+      },
+      {
+        "text": "至多一次执行",
+        "link": "/pages/locker/"
       }
     ]
   },
@@ -929,6 +941,10 @@ export const zhSidebar: DefaultTheme.Sidebar = [
       {
         "text": "二次开发",
         "link": "/pages/rulego-server-development/"
+      },
+      {
+        "text": "分布式部署",
+        "link": "/pages/rulego-server-distributed/"
       },
       {
         "text": "规则链部署与调用",
@@ -1644,6 +1660,14 @@ export const enSidebar: DefaultTheme.Sidebar = [
           {
             "text": "MCP Server",
             "link": "/en/pages/ai-mcp-server/"
+          },
+          {
+            "text": "Jev Decision",
+            "link": "/en/pages/ai-jev/"
+          },
+          {
+            "text": "Jev Filter",
+            "link": "/en/pages/ai-jev-filter/"
           }
         ]
       },
@@ -2106,6 +2130,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
       {
         "text": "Other",
         "link": "/en/pages/interrupt-recovery/"
+      },
+      {
+        "text": "At-Most-Once Execution",
+        "link": "/en/pages/locker/"
       }
     ]
   },
@@ -2194,6 +2222,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
       {
         "text": "Extension Development",
         "link": "/en/pages/rulego-server-development/"
+      },
+      {
+        "text": "Distributed Deployment",
+        "link": "/en/pages/rulego-server-distributed/"
       },
       {
         "text": "Deploying and Invoking Rule Chains",

@@ -137,7 +137,7 @@ Use the REST API to deploy rule chains without touching the file system. Changes
 ```bash
 curl -X POST http://localhost:9090/api/v1/rules/iot-router \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d" \
+  -H "X-API-Key: ak-your-api-key" \
   -d '{
   "ruleChain": {
     "id": "iot-router",
@@ -199,14 +199,14 @@ The rule chain is saved to the file system and loaded into the engine immediatel
 
 ```bash
 curl http://localhost:9090/api/v1/rules \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d"
+  -H "X-API-Key: ak-your-api-key"
 ```
 
 ### Get a Rule Chain
 
 ```bash
 curl http://localhost:9090/api/v1/rules/iot-router \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d"
+  -H "X-API-Key: ak-your-api-key"
 ```
 
 ### Deploy / Undeploy a Rule Chain
@@ -214,18 +214,18 @@ curl http://localhost:9090/api/v1/rules/iot-router \
 ```bash
 # Deploy (start)
 curl -X POST http://localhost:9090/api/v1/rules/iot-router/operate/start \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d"
+  -H "X-API-Key: ak-your-api-key"
 
 # Undeploy (stop)
 curl -X POST http://localhost:9090/api/v1/rules/iot-router/operate/stop \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d"
+  -H "X-API-Key: ak-your-api-key"
 ```
 
 ### Delete a Rule Chain
 
 ```bash
 curl -X DELETE http://localhost:9090/api/v1/rules/iot-router \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d"
+  -H "X-API-Key: ak-your-api-key"
 ```
 
 ## Executing Rule Chains
@@ -239,7 +239,7 @@ Waits for the rule chain to complete and returns the result:
 ```bash
 curl -X POST http://localhost:9090/api/v1/rules/iot-router/execute/msgData \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d" \
+  -H "X-API-Key: ak-your-api-key" \
   -d '{"deviceId":"sensor-001","temperature":265,"humidity":60}'
 ```
 
@@ -250,7 +250,7 @@ Fires and forgets — does not wait for the result. Suitable for high-throughput
 ```bash
 curl -X POST http://localhost:9090/api/v1/rules/iot-router/notify/msgData \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d" \
+  -H "X-API-Key: ak-your-api-key" \
   -d '{"deviceId":"sensor-001","temperature":265,"humidity":60}'
 ```
 
@@ -274,17 +274,17 @@ Configure an API key for the user in `config.conf`:
 
 ```ini
 [users]
-admin = admin,2af255ea5618467d914c67a8beeca31d
+admin = admin,your-api-key
 ```
 
 Then include it in requests:
 
 ```bash
 # Via X-API-Key header
-curl -H "X-API-Key: 2af255ea5618467d914c67a8beeca31d" ...
+curl -H "X-API-Key: ak-your-api-key" ...
 
 # Or via Authorization header
-curl -H "Authorization: Bearer 2af255ea5618467d914c67a8beeca31d" ...
+curl -H "Authorization: Bearer ak-your-api-key" ...
 ```
 
 ### JWT Token
@@ -313,7 +313,7 @@ Deploy rule chains via CI/CD pipeline:
 RULE_CHAIN_ID=$1
 JSON_FILE=$2
 SERVER_URL="http://localhost:9090"
-API_KEY="2af255ea5618467d914c67a8beeca31d"
+API_KEY="your-api-key"
 
 # Deploy rule chain via API (hot update, no restart needed)
 curl -X POST "${SERVER_URL}/api/v1/rules/${RULE_CHAIN_ID}" \

@@ -364,5 +364,5 @@ Output only JSON, no explanations, no markdown formatting.
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node configuration details
 - [Tool System](/en/pages/ai-agent-tools/) — Tool types and configuration
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent`
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent`
 - [Application Case Study](/en/pages/ai-agent-case-study/) — Complete smart assistant platform case study

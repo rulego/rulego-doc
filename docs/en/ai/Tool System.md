@@ -22,6 +22,18 @@ graph TD
 | Sub-agent | `agent` | Calls another agent as a tool (auto-fills name and description) |
 | MCP tool | `mcp` | Auto-discovers and loads tools from MCP Server |
 
+## String Shorthand <Badge text="v0.38.0+"/>
+
+Entries in `tools` can be plain tool names (strings) instead of full objects:
+
+```json
+"tools": ["bash", "read", {"type": "rulechain", "name": "send_email", "targetId": "email-sender"}]
+```
+
+A string entry is resolved by name through the same ladder as `builtin`: factory instance → RuleConfig UDF → global registry. String and object entries can be mixed; the string form is the simplest way to reference tools that need no custom configuration.
+
+The string shorthand is the **portable form shared by both `ai/agent` implementations** — the lite implementation accepts string entries only (as an allowlist over the tool provider, empty = no filter), while object descriptors are supported by the full implementation only.
+
 ## 4 Primitive Capabilities
 
 `read`, `write`, `edit`, and `bash` form the 4 primitive capabilities of the agent, analogous to human cognition and action systems — through these 4 tools, the agent perceives the world, creates content, iterates on itself, and interacts with the environment:
@@ -537,6 +549,6 @@ In the agent rule chain JSON, the `tools` array is located within the `configura
 
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node concepts and advanced features
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent`
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent`
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — Tool call aspect interception
 - [Development Guide](/en/pages/ai-agent-guide/) — Custom tool development in practice

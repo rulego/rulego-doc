@@ -375,7 +375,7 @@ Agents can also create new skills in the `skills/` directory using the `write` t
 - [Overview](/en/pages/ai-agent-overview/) — Framework positioning and core concepts
 - [Architecture Design](/en/pages/ai-agent-architecture/) — Layered architecture details
 - [Agent Node](/en/pages/ai-agent-node/) — ReAct node concepts and advanced features
-- [Agent Component](/pages/ai-agent/) — Complete configuration reference for `ai/agent` component
+- [Agent Component](/en/pages/ai-agent/) — Complete configuration reference for `ai/agent` component
 - [Tool System](/en/pages/ai-agent-tools/) — Tool configuration and extension
 - [Aspect Framework](/en/pages/ai-agent-aspect/) — Aspect interfaces and custom development
 - [Session Management](/en/pages/ai-agent-session/) — Session configuration and storage extension
