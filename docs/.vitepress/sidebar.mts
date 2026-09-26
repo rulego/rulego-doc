@@ -1157,6 +1157,10 @@ export const zhSidebar: DefaultTheme.Sidebar = [
         "link": "/pages/streamsql-cep/"
       },
       {
+        "text": "流-流 JOIN",
+        "link": "/pages/streamsql-stream-join/"
+      },
+      {
         "text": "函数",
         "collapsed": true,
         "items": [
@@ -1257,6 +1261,10 @@ export const zhSidebar: DefaultTheme.Sidebar = [
           {
             "text": "设备故障模式识别（MATCH_RECOGNIZE）",
             "link": "/pages/streamsql-case-cep/"
+          },
+          {
+            "text": "双流关联与缺席告警（流-流 JOIN）",
+            "link": "/pages/streamsql-case-stream-join/"
           }
         ]
       }
@@ -2434,6 +2442,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
         "link": "/en/pages/streamsql-cep/"
       },
       {
+        "text": "Stream-Stream JOIN",
+        "link": "/en/pages/streamsql-stream-join/"
+      },
+      {
         "text": "Functions",
         "collapsed": true,
         "items": [
@@ -2534,6 +2546,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
           {
             "text": "Device Fault Pattern Recognition (MATCH_RECOGNIZE)",
             "link": "/en/pages/streamsql-case-cep/"
+          },
+          {
+            "text": "Dual-Stream Correlation and Absence Alerting (Stream-Stream JOIN)",
+            "link": "/en/pages/streamsql-case-stream-join/"
           }
         ]
       }
