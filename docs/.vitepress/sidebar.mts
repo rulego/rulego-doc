@@ -785,6 +785,10 @@ export const zhSidebar: DefaultTheme.Sidebar = [
         "collapsed": true,
         "items": [
           {
+            "text": "业务日志切面",
+            "link": "/pages/business-log-aspect/"
+          },
+          {
             "text": "节点调试切面",
             "link": "/pages/debug-aspect/"
           },
@@ -2069,6 +2073,10 @@ export const enSidebar: DefaultTheme.Sidebar = [
         "text": "Builtin Aspects",
         "collapsed": true,
         "items": [
+          {
+            "text": "Business Log Aspect",
+            "link": "/en/pages/business-log-aspect/"
+          },
           {
             "text": "Debug Aspect",
             "link": "/en/pages/debug-aspect/"
