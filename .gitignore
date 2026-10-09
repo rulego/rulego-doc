@@ -28,3 +28,6 @@ urls.txt
 # vitepress
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# impeccable 审查产物
+.impeccable/
