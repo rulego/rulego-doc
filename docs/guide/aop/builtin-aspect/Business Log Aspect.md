@@ -26,6 +26,7 @@ Business Log Aspect：业务日志切面，是系统内置的切面，自动引�
 | metadata.relationType | out/end 事件的输出关系：Success、Failure、True、False 等 |
 | metadata.error | 失败时的错误内容（结束事件经包装，含链与节点前缀） |
 | metadata.chainId、msgId、ts | 事件来源链、触发执行的源消息 ID、纳秒时间戳 |
+| metadata.renderError | 模板渲染失败时携带错误说明，此时 Data 回退为原始模板文本 |
 
 ## 链结束事件的触发点
 
@@ -34,7 +35,7 @@ Business Log Aspect：业务日志切面，是系统内置的切面，自动引�
 - 链里有**结束节点**（end 组件）：只有结束节点触发，恰好一条
 - 没有结束节点：每个无下游的分支终点各触发一条，多分支链会推多条
 
-失败链路同样触发：`relationType=Failure` 且 `metadata.error` 携带错误；未处理失败即链以失败终止的场景已被它覆盖。
+失败链路同样触发，无论链里有没有结束节点：`relationType=Failure` 且 `metadata.error` 携带错误（默认配置下失败分支到达终点即触发，与成功路径到结束节点的那条并存）；未处理失败即链以失败终止的场景已被它覆盖。
 
 ## 配置方式
 
@@ -64,4 +65,4 @@ Business Log Aspect：业务日志切面，是系统内置的切面，自动引�
 
 ## 处理链
 
-处理链是普通规则链，事件含结构化字段，可用过滤器组件按 `metadata.scope`、`metadata.relationType` 等筛选。派发独立执行，处理链失败只记警告，不影响业务链。
+处理链是普通规则链，事件含结构化字段，可用过滤器组件按 `metadata.scope`、`metadata.relationType` 等筛选。派发独立执行：处理链不存在或派发异常只记日志告警，处理链自身的成败不影响业务链。事件消息带防环标记，处理链里的节点再配日志模板也不会产生二层事件。
