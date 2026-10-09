@@ -11,6 +11,7 @@ permalink: /pages/log/
 | 字段 | 类型     | 说明   | 默认值 |
 |----|--------|------|--------|
 | jsScript   | string | 日志格式化脚本 | 无|
+| outputTo   | string | 输出位置：`both`/`console`/`logger` | both |
 
 - `jsScript`：用于格式化日志内容的JavaScript脚本。该字段作为以下函数的函数体:
 
@@ -31,9 +32,14 @@ permalink: /pages/log/
   
   函数返回值必须是`string`类型，返回的字符串将作为日志内容记录。
 
+- `outputTo`：日志输出位置。
+  - `both`（默认）：同时输出到调试控制台（编辑器调试输出、节点日志）与服务端日志
+  - `console`：仅输出到调试控制台
+  - `logger`：仅输出到服务端日志，日志行带 `[chain=链ID node=节点ID]` 前缀，多条 log 输出可在日志文件里溯源
+  - 其他值节点初始化报错
+
 :::tip
 - 日志记录器可通过[config.Logger](/pages/config/#logger)配置
-- 默认输出到控制台
 - 支持配置日志级别、输出格式等
 - 支持多种数据类型的智能处理，包括JSON对象访问和二进制数据处理
 :::
@@ -102,6 +108,19 @@ permalink: /pages/log/
     "name": "智能日志格式化",
     "configuration": {
       "jsScript": "var prefix = '[' + msgType + '][' + dataType + '] '; switch(dataType) { case 'JSON': return prefix + 'JSON data: ' + JSON.stringify(msg); case 'BINARY': return prefix + 'Binary data: ' + msg.length + ' bytes'; default: return prefix + 'Text data: ' + msg; }"
+    }
+  }
+```
+
+### 指定输出位置示例
+```json
+  {
+    "id": "s5",
+    "type": "log",
+    "name": "仅记录到服务端日志",
+    "configuration": {
+      "jsScript": "return 'Temperature: ' + (dataType === 'JSON' && msg.temperature !== undefined ? msg.temperature : 'n/a');",
+      "outputTo": "logger"
     }
   }
 ```

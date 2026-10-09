@@ -11,6 +11,7 @@ permalink: /pages/log/
 | Field      | Type       | Description          | Default Value |
 |------------|------------|----------------------|---------------|
 | jsScript   | string     | Log formatting script| None          |
+| outputTo   | string     | Output destination: `both`/`console`/`logger` | both |
 
 - `jsScript`: The JavaScript script used to format log content. This field serves as the body of the following function:
 
@@ -31,9 +32,14 @@ permalink: /pages/log/
 
   The function return value must be of type `string`, and the returned string will be recorded as the log content.
 
+- `outputTo`: Log output destination.
+  - `both` (default): output to both the debug console (editor debug output, node logs) and the server log
+  - `console`: debug console only
+  - `logger`: server log only, with a `[chain={chainId} node={nodeId}]` prefix on each line for traceability
+  - Any other value fails node initialization
+
 :::tip
 - The logger can be configured via [config.Logger](/pages/config/#logger)
-- Default output is to the console
 - Supports configuring log level, output format, etc.
 - Supports intelligent processing of multiple data types, including JSON object access and binary data handling
 :::
@@ -102,6 +108,19 @@ This component does not modify the content of `msg.Data` and `msg.Metadata`.
     "name": "Intelligent Log Formatting",
     "configuration": {
       "jsScript": "var prefix = '[' + msgType + '][' + dataType + '] '; switch(dataType) { case 'JSON': return prefix + 'JSON data: ' + JSON.stringify(msg); case 'BINARY': return prefix + 'Binary data: ' + msg.length + ' bytes'; default: return prefix + 'Text data: ' + msg; }"
+    }
+  }
+```
+
+### Output Destination Example
+```json
+  {
+    "id": "s5",
+    "type": "log",
+    "name": "Server Log Only",
+    "configuration": {
+      "jsScript": "return 'Temperature: ' + (dataType === 'JSON' && msg.temperature !== undefined ? msg.temperature : 'n/a');",
+      "outputTo": "logger"
     }
   }
 ```
