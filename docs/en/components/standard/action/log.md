@@ -38,6 +38,8 @@ permalink: /pages/log/
   - `logger`: server log only, with a `[chain={chainId} node={nodeId}]` prefix on each line for traceability
   - Any other value fails node initialization
 
+In the editor debug console, `log` component output and business log events (`type=log` messages) appear under the same LOG category. To log automatically on node entry/exit without inserting a log node, see [Business Log Aspect](/en/pages/business-log-aspect/).
+
 :::tip
 - The logger can be configured via [config.Logger](/pages/config/#logger)
 - Supports configuring log level, output format, etc.

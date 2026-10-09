@@ -39,7 +39,15 @@ Failures trigger as well, with or without an end node: `relationType=Failure` wi
 
 ## Configuration
 
-Node log templates: right-click a node and choose "Log". Chain end reporting: right-click blank canvas and choose "Log Report Settings", or write the DSL directly:
+Node log templates: right-click a node and choose "Log", then configure before/after templates.
+
+![Node log dialog](/img/business-log/node-log-dialog.png)
+
+Chain end reporting: right-click blank canvas and choose "Log Report Settings", pick a handler chain and check "Report on chain end".
+
+![Log report settings](/img/business-log/log-report-dialog.png)
+
+Or write the DSL directly:
 
 ```json
 {
