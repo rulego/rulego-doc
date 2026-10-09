@@ -38,14 +38,12 @@ ruleEngine.OnMsg(msg, types.WithOnEnd(
 
 const points = isEn
   ? [
-      'Chains hot-reload: change configuration without restarting the process',
       'Sub-chains nest — flows compose like building blocks',
-      'Embed into your project, or deploy standalone with RuleGo-Server',
+      'Or deploy standalone with RuleGo-Server: REST API and visual editor included',
     ]
   : [
-      '规则链支持动态热更新：改配置不重启进程',
       '子规则链嵌套，流程像积木一样复用',
-      '嵌入现有项目，或用 RuleGo-Server 独立部署',
+      '或用 RuleGo-Server 独立部署，自带 REST API 与可视化编辑器',
     ]
 </script>
 
@@ -53,7 +51,6 @@ const points = isEn
   <section class="home-section paper-section">
     <div class="home-inner">
       <SectionHead
-        eyebrow="Quick Start"
         :title="isEn ? 'Three steps to your first rule chain' : '三步，跑通第一条规则链'"
         :desc="
           isEn

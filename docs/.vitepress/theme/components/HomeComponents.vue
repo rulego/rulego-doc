@@ -44,20 +44,20 @@ const families = [
     icon: '🏭',
     name: t('IoT 工业协议', 'Industrial Protocols'),
     count: '26',
-    desc: 'modbus / s7 / opcua / eip / mc / fins / dlt645 / bacnet / snmp / iec104',
+    desc: t('10 协议族：modbus / s7 / opcua / snmp / iec104…', '10 protocol families: modbus / s7 / opcua / snmp / iec104…'),
     link: p('/pages/iot-overview/'),
   },
   {
     icon: '🔌',
     name: t('Endpoint 接入', 'Endpoints'),
     count: '20',
-    desc: t('30+ 协议端点：HTTP/MQTT/WebSocket/TCP/UDP/Kafka…', '30+ protocol endpoints: HTTP/MQTT/WebSocket/TCP/UDP/Kafka…'),
+    desc: t('20 类端点组件，覆盖 HTTP/MQTT/WebSocket/TCP/Kafka 等多协议', '20 endpoint component types covering HTTP/MQTT/WebSocket/TCP/Kafka and more'),
     link: p('/pages/endpoint-overview/'),
   },
   {
     icon: '🌊',
     name: 'StreamSQL',
-    count: 'SQL',
+    count: '',
     desc: t(
       '用 SQL 处理无界流：窗口聚合、CEP 模式识别、流表 JOIN',
       'Query unbounded streams with SQL: windowed aggregation, CEP pattern matching, stream-table joins'
@@ -92,7 +92,7 @@ const families = [
     <div class="home-inner">
       <SectionHead
         eyebrow="Components"
-        :title="isEn ? '100+ components covering every step of data handling' : '100+ 组件，覆盖数据处理的每个环节'"
+        :title="isEn ? 'Components as building blocks, for every step of data handling' : '组件即积木，覆盖数据处理的每个环节'"
         :desc="
           isEn
             ? 'From message filtering and format conversion to industrial protocol collection and LLM calls — components are building blocks you compose into chains. Need more? Extend via the custom-component API.'
@@ -169,7 +169,7 @@ const families = [
 
 .comp-count {
   font-family: var(--rg-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #8fe3c2;
   background: rgba(0, 168, 107, 0.13);

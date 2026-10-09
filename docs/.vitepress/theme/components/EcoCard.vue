@@ -21,7 +21,8 @@ const label = (key: keyof typeof text) => text[key][isEn ? 1 : 0]
 <template>
   <div class="eco-card">
     <div class="eco-card-head">
-      <span class="eco-emoji">{{ props.item.emoji }}</span>
+      <img v-if="props.item.logo" class="eco-logo" :src="props.item.logo" alt="" loading="lazy" />
+      <span v-else class="eco-emoji">{{ props.item.emoji }}</span>
       <span class="eco-name">{{ (isEn ? props.item.nameEn : undefined) || props.item.name }}</span>
     </div>
     <p class="eco-tagline">{{ (isEn ? props.item.taglineEn : undefined) || props.item.tagline }}</p>

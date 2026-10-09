@@ -10,6 +10,7 @@ export interface EcoItem {
   name: string
   nameEn?: string
   emoji: string
+  logo?: string // 有独立品牌logo的产品给 /img/eco/ 下的路径，无则回退 emoji
   tagline: string
   taglineEn?: string
   layer: EcoLayer
@@ -102,6 +103,7 @@ export const ecoItems: EcoItem[] = [
     id: 'gflow-engine',
     name: 'gflow-engine',
     emoji: '🀄',
+    logo: '/img/eco/gflow.svg',
     tagline: '中国式审批工作流引擎，复用规则链 DSL，7 张表管全部运行状态',
     taglineEn: 'Approval workflow engine reusing rule-chain DSL; all runtime state lives in 7 tables',
     layer: 'engine',
@@ -121,6 +123,7 @@ export const ecoItems: EcoItem[] = [
     id: 'tpclaw',
     name: 'TPCLAW',
     emoji: '🐾',
+    logo: '/img/eco/tpclaw.png',
     tagline: '自托管 AI 智能体平台：IM 多通道接入、自我进化',
     taglineEn: 'Self-hosted AI agent platform: multi-channel IM access, self-evolution',
     layer: 'apps',
@@ -131,8 +134,9 @@ export const ecoItems: EcoItem[] = [
     id: 'rulego-edge',
     name: 'rulego-edge',
     emoji: '🛰️',
-    tagline: '工业边缘网关：单二进制交付，设备采集、告警值守、AI 值班员开箱即用',
-    taglineEn: 'Industrial edge gateway: single binary with device collection, alarm watch and AI operator out of the box',
+    logo: '/img/eco/edge.svg',
+    tagline: '装着 AI 员工的网关：单二进制交付，设备采集、告警值守、AI 值班员开箱即用',
+    taglineEn: 'The gateway with AI employees: single binary with device collection, alarm watch and AI operator out of the box',
     layer: 'apps',
     site: 'https://edge.rulego.cc',
   },
@@ -140,16 +144,17 @@ export const ecoItems: EcoItem[] = [
     id: 'rulego-editor',
     name: 'rulego-editor',
     emoji: '🎨',
+    logo: '/img/eco/editor.png',
     tagline: '规则链可视化编辑器（Vue3，npm 包 @rulego/editor 授权交付）',
     taglineEn: 'Visual editor for rule chains (Vue3, delivered as the licensed npm package @rulego/editor)',
     layer: 'apps',
-    site: 'https://editor.rulego.cc',
-    demo: 'https://app.rulego.cc',
+    site: 'https://app.rulego.cc',
   },
   {
     id: 'gflow-platform',
     name: 'GFlow Platform',
     emoji: '📄',
+    logo: '/img/eco/gflow.svg',
     tagline: '极风工作流：开箱即用的审批平台',
     taglineEn: 'GFlow workflow: a ready-to-run approval platform',
     layer: 'apps',

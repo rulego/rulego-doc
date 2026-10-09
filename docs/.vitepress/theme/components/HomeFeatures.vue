@@ -5,61 +5,32 @@ import SectionHead from './SectionHead.vue'
 const { lang } = useData()
 const isEn = lang.value.startsWith('en')
 const t = (zh: string, en: string) => (isEn ? en : zh)
+// 站内链接在 en 下补前缀
+const p = (path: string) => (isEn ? '/en' + path : path)
 
-const features = [
+// 双形态对照：交付方式的事实清单，命令行均为可验证的真实入口
+const modes = [
   {
-    icon: '🪶',
-    title: t('轻量级', 'Lightweight'),
+    key: 'embed',
+    title: t('嵌入式', 'Embedded'),
     desc: t(
-      '无外部中间件依赖，可下沉到边缘服务器实现物联网边缘计算，也可部署在云端作为规则引擎服务。',
-      'No external middleware dependencies. Sink it onto edge servers for edge computing, or deploy it in the cloud as a rule-engine service.'
+      '作为库嵌入现有 Go 应用：进程内执行、零中间件依赖，边缘盒子到云端服务器跑的是同一套引擎。',
+      'Embed as a library into your Go app: in-process execution, zero middleware — the same engine runs on an edge box and in the cloud.'
     ),
-    tags: [t('边缘计算', 'Edge computing'), t('资源占用低', 'Low footprint')],
+    cmd: 'go get github.com/rulego/rulego',
+    link: p('/pages/config/'),
+    linkText: t('嵌入指南 →', 'Embedding guide →'),
   },
   {
-    icon: '⚡',
-    title: t('高性能', 'High Performance'),
+    key: 'server',
+    title: t('独立部署', 'Standalone'),
     desc: t(
-      '得益于 Go 的高性能特性，采用协程池、对象池等技术；可靠的上下文隔离机制，高并发下无数据串流。',
-      "Leans on Go's strengths: goroutine pools, object pools, and reliable context isolation — high concurrency never crosses message streams."
+      '用 RuleGo-Server 独立部署：引擎之上自带 RESTful API、多租户、可视化编辑器与组件市场。',
+      'Deploy standalone with RuleGo-Server: RESTful API, multi-tenancy, a visual editor and a component marketplace on top of the engine.'
     ),
-    tags: [t('协程池', 'Goroutine pool'), t('对象池', 'Object pool')],
-  },
-  {
-    icon: '🎯',
-    title: t('双模式', 'Dual Mode'),
-    desc: t(
-      '嵌入式：作为内部组件嵌入现有应用；独立部署：作为中间件提供规则引擎与编排服务。',
-      'Embedded: ship it inside your existing application. Standalone: run it as middleware exposing rule-engine and orchestration services.'
-    ),
-    tags: ['embed', 'standalone'],
-  },
-  {
-    icon: '🧩',
-    title: t('组件化', 'Componentized'),
-    desc: t(
-      '所有业务逻辑都是组件，灵活配置与复用；自定义组件接口把业务封装成积木，应对高度变化的业务需求。',
-      'All business logic is a component you configure and reuse; wrap bespoke business into building blocks behind a small custom-component API.'
-    ),
-    tags: [t('100+ 内置', '100+ built-in'), t('自定义扩展', 'Custom extensions')],
-  },
-  {
-    icon: '☘️',
-    title: t('热更新', 'Hot Updates'),
-    desc: t(
-      '规则链支持动态编排：不重启应用，实时替换或新增业务逻辑；支持 Go plugin 动态加载组件。',
-      'Chains re-orchestrate dynamically: swap or add business logic without restarting the app; load components at runtime via Go plugin.'
-    ),
-    tags: [t('动态编排', 'Dynamic orchestration'), 'plugin'],
-  },
-  {
-    icon: '🔗',
-    title: t('嵌套与 AOP', 'Nesting & AOP'),
-    desc: t(
-      '子规则链嵌套实现流程复用；AOP 机制在不修改原逻辑的前提下为规则链执行添加行为或整体替换。',
-      'Sub-chains reuse whole flows; AOP adds behavior around chain execution — or replaces it wholesale — without touching the original logic.'
-    ),
-    tags: [t('子规则链', 'Sub-chains'), t('AOP 切面', 'AOP aspects')],
+    cmd: './rulego-server',
+    link: p('/pages/rulego-server/'),
+    linkText: t('RuleGo-Server →', 'RuleGo-Server →'),
   },
 ]
 </script>
@@ -68,23 +39,49 @@ const features = [
   <section class="home-section paper-section">
     <div class="home-inner">
       <SectionHead
-        eyebrow="Features"
         :title="isEn ? 'A rule engine built for change' : '为变化而生的规则引擎'"
         :desc="
           isEn
-            ? 'Define chains in JSON — no dedicated rule language to learn. Component orchestration, hot updates and AOP decouple highly bespoke business logic from your code.'
-            : 'JSON 定义规则链，无需学习专门规则语言。组件编排、热更新、AOP——把高度定制的业务逻辑从代码里解耦出来。'
+            ? 'Define chains in JSON — no dedicated rule language to learn. Component orchestration, live re-orchestration and AOP decouple highly bespoke business logic from your code.'
+            : 'JSON 定义规则链，无需学习专门规则语言。组件编排、动态改链、AOP——把高度定制的业务逻辑从代码里解耦出来。'
         "
       />
 
-      <div class="feat-grid">
-        <div v-for="f in features" :key="f.title" class="feat-card">
-          <div class="feat-icon">{{ f.icon }}</div>
-          <h3 class="feat-title">{{ f.title }}</h3>
-          <p class="feat-desc">{{ f.desc }}</p>
-          <div class="feat-tags">
-            <span v-for="t in f.tags" :key="t" class="feat-tag">{{ t }}</span>
+      <!-- 双形态对照 -->
+      <div class="mode-duo">
+        <div v-for="m in modes" :key="m.key" class="mode-card">
+          <h3 class="mode-title">{{ m.title }}</h3>
+          <p class="mode-desc">{{ m.desc }}</p>
+          <code class="mode-cmd">{{ m.cmd }}</code>
+          <a class="mode-link" :href="m.link">{{ m.linkText }}</a>
+        </div>
+      </div>
+
+      <!-- 证据卡：直接给可验证的 API/DSL，不给形容词 -->
+      <div class="evi-grid">
+        <div class="evi-card">
+          <div class="evi-head">
+            <h3 class="evi-title">{{ t('热更新', 'Hot Updates') }}</h3>
+            <span class="evi-tag">ReloadSelf</span>
           </div>
+          <pre class="evi-code"><code>engine.ReloadSelf([]byte(newRule))</code></pre>
+          <p class="evi-desc">
+            {{ t('改链不重启：新逻辑即时生效，在途消息沿旧链跑完无缝切换。', 'Swap chains without restarting: the new logic takes effect immediately while in-flight messages finish on the old chain.') }}
+          </p>
+        </div>
+        <div class="evi-card">
+          <div class="evi-head">
+            <h3 class="evi-title">{{ t('嵌套与 AOP', 'Nesting & AOP') }}</h3>
+            <span class="evi-tag">ref · targetId</span>
+          </div>
+          <pre class="evi-code"><code>{
+  "id": "s2",
+  "type": "ref",
+  "targetId": "sub_chain_01"
+}</code></pre>
+          <p class="evi-desc">
+            {{ t('子链像函数一样被复用（支持 ${} 动态寻址）；AOP 在不改原链的前提下织入或整体替换逻辑。', 'Sub-chains are reused like functions (with ${} dynamic addressing); AOP weaves in — or wholesale replaces — logic without touching the original chain.') }}
+          </p>
         </div>
       </div>
     </div>
@@ -92,99 +89,164 @@ const features = [
 </template>
 
 <style scoped>
-.feat-grid {
+.mode-duo {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-@media (max-width: 960px) {
-  .feat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .feat-grid {
+@media (max-width: 860px) {
+  .mode-duo {
     grid-template-columns: 1fr;
   }
 }
 
-.feat-card {
+.mode-card {
+  position: relative;
   border: 1px solid var(--rg-line);
   background: #fffdf9;
-  border-radius: 10px;
-  padding: 22px 22px 20px;
-  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  border-radius: 12px;
+  padding: 24px 24px 20px;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
-.feat-card:hover {
+.mode-card:hover {
   border-color: rgba(0, 168, 107, 0.55);
-  transform: translateY(-3px);
   box-shadow: 0 12px 32px -18px rgba(11, 21, 18, 0.35);
 }
 
-.dark .feat-card {
+.dark .mode-card {
   border-color: var(--rg-line-dark);
   background: rgba(255, 255, 255, 0.025);
 }
 
-.dark .feat-card:hover {
+.dark .mode-card:hover {
   border-color: rgba(45, 212, 160, 0.5);
   box-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.7);
 }
 
-.feat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.mode-title {
   font-size: 19px;
-  margin-bottom: 14px;
-  background: rgba(0, 168, 107, 0.1);
-  border: 1px solid rgba(0, 168, 107, 0.25);
+  font-weight: 800;
+  margin: 0 0 10px;
 }
 
-.dark .feat-icon {
-  background: rgba(45, 212, 160, 0.09);
-  border-color: rgba(45, 212, 160, 0.28);
-}
-
-.feat-title {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 0 8px;
-}
-
-.feat-desc {
+.mode-desc {
   font-size: 13.5px;
   line-height: 1.75;
-  opacity: 0.68;
-  margin: 0 0 6px;
+  opacity: 0.75;
+  margin: 0 0 14px;
 }
 
-.feat-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.feat-tag {
+.mode-cmd {
+  display: block;
   font-family: var(--rg-mono);
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  background: rgba(0, 168, 107, 0.08);
+  font-size: 12.5px;
   color: #04784f;
-  border: 1px solid rgba(0, 168, 107, 0.18);
+  background: rgba(0, 168, 107, 0.07);
+  border: 1px solid rgba(0, 168, 107, 0.22);
+  border-radius: 8px;
+  padding: 9px 12px;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.dark .feat-tag {
-  background: rgba(45, 212, 160, 0.08);
+.dark .mode-cmd {
   color: #8fe3c2;
-  border-color: rgba(45, 212, 160, 0.2);
+  background: rgba(45, 212, 160, 0.07);
+  border-color: rgba(45, 212, 160, 0.25);
+}
+
+.mode-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #04784f !important;
+  text-decoration: none !important;
+}
+
+.mode-link:hover {
+  text-decoration: underline !important;
+}
+
+.dark .mode-link {
+  color: var(--rg-green-bright) !important;
+}
+
+/* 证据卡 */
+.evi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 860px) {
+  .evi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.evi-card {
+  border: 1px dashed rgba(28, 36, 32, 0.22);
+  border-radius: 12px;
+  padding: 20px 22px 18px;
+  background: rgba(28, 36, 32, 0.02);
+}
+
+.dark .evi-card {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.evi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.evi-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.evi-tag {
+  font-family: var(--rg-mono);
+  font-size: 12px;
+  color: #04784f;
+}
+
+.dark .evi-tag {
+  color: #8fe3c2;
+}
+
+.evi-code {
+  margin: 0 0 12px;
+  font-family: var(--rg-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #2d3a33;
+  background: #f4f2ea;
+  border: 1px solid rgba(28, 36, 32, 0.12);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+
+.dark .evi-code {
+  color: #cfe3d6;
+  background: rgba(6, 13, 10, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.evi-desc {
+  font-size: 13px;
+  line-height: 1.75;
+  opacity: 0.75;
+  margin: 0;
 }
 </style>

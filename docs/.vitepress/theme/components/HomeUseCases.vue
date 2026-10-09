@@ -264,8 +264,8 @@ html.dark .uc-flow {
 
 .uc-lane-label {
   font-family: var(--rg-mono);
-  font-size: 11px;
-  color: #8a8577;
+  font-size: 12px;
+  color: #6d6859;
   margin-right: 2px;
 }
 
@@ -353,9 +353,14 @@ html.dark .uc-link {
   color: var(--rg-green-bright) !important;
 }
 
-/* 架构图 */
+/* 架构图：窄屏横向滚动而不是缩成壁纸 */
 .uc-arch {
   margin-top: 34px;
+  overflow-x: auto;
+}
+
+.uc-arch > :first-child {
+  min-width: 720px;
 }
 
 .uc-arch-caption {

@@ -27,7 +27,7 @@ import EcoMatrix from '../../.vitepress/theme/components/EcoMatrix.vue'
     <h2>Notes</h2>
     <ul>
       <li>Documentation for the base engine lives on this site: guide, components, Endpoint, StreamSQL, agents and IoT sections.</li>
-      <li>Applications are independently evolving products with their own sites and docs (edge.rulego.cc, gflow.rulego.cc, editor.rulego.cc); this page only links to them.</li>
+      <li>Applications are independently evolving products with their own sites and docs (edge.rulego.cc, gflow.rulego.cc, app.rulego.cc); this page only links to them.</li>
       <li>Want to build your own scenario on the base? Start with the <a href="/en/pages/introduction/">engine docs</a>. Want a ready-made product? Visit each product's site.</li>
     </ul>
   </section>

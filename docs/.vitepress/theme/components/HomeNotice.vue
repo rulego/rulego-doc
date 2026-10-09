@@ -62,7 +62,6 @@ function mute() {
       <div class="notice-card">
         <button class="notice-close" aria-label="关闭" @click="close">×</button>
         <div class="notice-header">
-          <span class="notice-badge">NEW</span>
           <h3 class="notice-title">{{ notice.title }}</h3>
         </div>
         <span v-if="dateText" class="notice-date">{{ dateText }}</span>
@@ -138,17 +137,6 @@ function mute() {
   align-items: center;
   gap: 10px;
   padding-right: 24px;
-}
-
-.notice-badge {
-  flex-shrink: 0;
-  padding: 2px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--vp-c-bg);
-  background: var(--vp-c-brand-1);
-  border-radius: 20px;
 }
 
 .notice-title {

@@ -9,14 +9,16 @@ const p = (path: string) => (isEn ? '/en' + path : path)
 
 const t = (zh: string, en: string) => (isEn ? en : zh)
 
+// 数字与 /pages/performance/ 基准一致（800 并发 8621/s，2核2GiB，10万请求 0 错误）
 const stats = [
   { num: '100', unit: '+', label: t('内置组件，搭积木式复用', 'built-in components, reusable as blocks') },
   { num: '30', unit: '+', label: t('Endpoint 接入协议', 'endpoint access protocols') },
   { num: '0', unit: '', label: t('外部中间件依赖', 'external middleware dependencies') },
   {
-    num: '5',
-    unit: '+',
-    label: t('长在同一底座上的场景应用', 'scenario applications on one base'),
+    num: '8600',
+    unit: '+/s',
+    label: t('单机实测吞吐 · 2核2GiB', 'single-node throughput on 2 vCPU / 2GiB'),
+    link: p('/pages/performance/'),
   },
 ]
 </script>
@@ -29,8 +31,8 @@ const stats = [
           <span class="dot"></span>
           {{
             isEn
-              ? 'v0.37.0 released · 10 new industrial protocol collection families & AI agent framework upgrades'
-              : 'v0.37.0 发布 · 新增 10 个工业协议采集族与 AI Agent 框架增强'
+              ? 'v0.37.0 (Aug 2) · 10 industrial protocol families & AI agent framework upgrades'
+              : 'v0.37.0（08-02）· 10 个工业协议采集族 + AI Agent 框架增强'
           }}
           <span aria-hidden="true">→</span>
         </a>
@@ -59,9 +61,6 @@ const stats = [
           <a class="rg-btn rg-btn-ghost" href="https://github.com/rulego/rulego" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
-          <a class="rg-btn rg-btn-ghost" href="https://gitee.com/rulego/rulego" target="_blank" rel="noopener noreferrer">
-            Gitee
-          </a>
           <a class="rg-btn rg-btn-ghost" href="https://app.rulego.cc/" target="_blank" rel="noopener noreferrer">
             {{ isEn ? 'Live Demo' : '在线演示' }}
           </a>
@@ -70,8 +69,10 @@ const stats = [
         <div class="hero-meta">
           <span class="hero-chip">Apache-2.0</span>
           <span class="hero-chip">{{ t('规则链 JSON DSL', 'Rule chains · JSON DSL') }}</span>
-          <span class="hero-chip">{{ t('子规则链嵌套', 'Sub-chain nesting') }}</span>
-          <span class="hero-chip">AOP</span>
+          <span class="hero-chip">{{ t('子规则链 · AOP', 'Sub-chains · AOP') }}</span>
+          <a class="hero-chip hero-chip-link" href="https://gitee.com/rulego/rulego" target="_blank" rel="noopener noreferrer">
+            {{ t('Gitee 镜像', 'Gitee mirror') }}
+          </a>
         </div>
       </div>
 
@@ -82,10 +83,17 @@ const stats = [
     <!-- 数据条 -->
     <div class="stats-bar">
       <div class="stats-inner">
-        <div v-for="s in stats" :key="s.label" class="stat-cell">
+        <component
+          v-for="s in stats"
+          :key="s.label"
+          :is="s.link ? 'a' : 'div'"
+          :href="s.link"
+          class="stat-cell"
+          :class="{ 'stat-cell-link': s.link }"
+        >
           <div class="stat-num">{{ s.num }}<em>{{ s.unit }}</em></div>
-          <div class="stat-label">{{ s.label }}</div>
-        </div>
+          <div class="stat-label">{{ s.label }}<span v-if="s.link" class="stat-more" aria-hidden="true"> →</span></div>
+        </component>
       </div>
     </div>
   </header>

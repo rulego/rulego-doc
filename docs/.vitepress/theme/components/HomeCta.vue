@@ -20,7 +20,6 @@ const actions = [
   <section class="home-section dark-section" style="padding-bottom: 72px">
     <div class="home-inner">
       <SectionHead
-        eyebrow="Community"
         :title="isEn ? 'Open Source, Built Together' : '开源，欢迎一起搭建'"
         :desc="
           isEn
@@ -43,12 +42,12 @@ const actions = [
           </a>
         </div>
         <p v-if="!isEn" class="cta-note">
-          生态里的每个产品——智能体框架、StreamSQL、gflow-engine、TPCLAW——都在
+          生态里的每个产品——AI 智能体、装着 AI 员工的网关、中国式审批工作流——都在
           <a href="/ecosystem/">生态总览</a>
           里等你。
         </p>
         <p v-else class="cta-note">
-          Every product in the family — agent framework, StreamSQL, gflow-engine, TPCLAW — lives in the
+          Every product in the family — AI agents, the gateway with AI employees, approval workflows — lives in the
           <a href="/en/ecosystem/">ecosystem overview</a>.
         </p>
       </div>
@@ -75,5 +74,15 @@ const actions = [
   color: var(--rg-green-bright);
   text-decoration: none;
   border-bottom: 1px dashed rgba(45, 212, 160, 0.4);
+}
+
+/* 浅色外观下 dark-section 反转为纸白，备注色同步加深保对比度 */
+html:not(.dark) .cta-note {
+  color: #57675c;
+}
+
+html:not(.dark) .cta-note a {
+  color: #04784f;
+  border-bottom-color: rgba(0, 137, 90, 0.4);
 }
 </style>

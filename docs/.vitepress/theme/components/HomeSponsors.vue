@@ -6,7 +6,7 @@ const { lang } = useData()
 const isEn = lang.value.startsWith('en')
 const t = (zh: string, en: string) => (isEn ? en : zh)
 
-// 数据源自旧站首页 cardList（迁移保留）。expired 为续费提醒用字段，仅存于数据、不做任何展示逻辑。
+// 数据源自旧站首页 cardList（迁移保留）。expired 为赞助续费提醒字段，仅存档，不做展示逻辑。
 const sponsors = [
   {
     name: 'Sagoo IOT',
@@ -16,8 +16,6 @@ const sponsors = [
     ),
     avatar: '/img/sponsors/shaguo.png',
     link: 'https://iotdoc.sagoo.cn/?from=rulego',
-    bgColor: '#f8c567',
-    textColor: '#1f2328',
     expired: '2026-11-07',
   },
   {
@@ -28,8 +26,6 @@ const sponsors = [
     ),
     avatar: '/img/sponsors/hummingbird.jpg',
     link: 'https://doc.hummingbird.winc-link.com/?from=rulego',
-    bgColor: '#2196F3',
-    textColor: '#1f2328',
     expired: '2025-07-11',
   },
   {
@@ -40,8 +36,6 @@ const sponsors = [
     ),
     avatar: 'https://doc.unitedrhino.com/logo/logo.png',
     link: 'https://doc.unitedrhino.com/',
-    bgColor: '#A6A1F3',
-    textColor: '#1f2328',
     expired: '2026-04-05',
   },
 ]
@@ -50,7 +44,6 @@ const sponsors = [
 <template>
   <div>
     <SectionHead
-      eyebrow="Special Users"
       :title="isEn ? 'Teams Running RuleGo' : '特别用户'"
       :desc="
         isEn
@@ -59,74 +52,105 @@ const sponsors = [
       "
     />
 
-    <div class="sp-grid">
+    <div class="sp-row">
       <a
         v-for="s in sponsors"
         :key="s.name"
-        class="sp-card"
+        class="sp-item"
         :href="s.link"
         target="_blank"
         rel="noopener noreferrer"
-        :style="{ background: s.bgColor, color: s.textColor }"
       >
-        <img class="sp-avatar" :src="s.avatar" :alt="s.name" />
-        <div class="sp-body">
-          <div class="sp-name">{{ s.name }}</div>
-          <div class="sp-desc">{{ s.desc }}</div>
-        </div>
+        <img class="sp-logo" :src="s.avatar" :alt="s.name" loading="lazy" />
+        <span class="sp-body">
+          <span class="sp-name">{{ s.name }}</span>
+          <span class="sp-desc">{{ s.desc }}</span>
+        </span>
       </a>
     </div>
   </div>
 </template>
 
 <style scoped>
-.sp-grid {
+.sp-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 14px;
+  padding-top: 6px;
 }
 
-@media (max-width: 960px) {
-  .sp-grid {
+@media (max-width: 860px) {
+  .sp-row {
     grid-template-columns: 1fr;
   }
 }
 
-.sp-card {
+.sp-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  border-radius: 12px;
-  padding: 20px 22px;
+  gap: 13px;
+  border: 1px solid var(--rg-line);
+  border-radius: 10px;
+  background: #fffdf9;
+  padding: 14px 16px;
   text-decoration: none !important;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 8px 24px -14px rgba(11, 21, 18, 0.3);
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
-.sp-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 36px -16px rgba(11, 21, 18, 0.4);
+.sp-item:hover {
+  border-color: rgba(0, 168, 107, 0.55);
+  box-shadow: 0 10px 26px -16px rgba(11, 21, 18, 0.35);
 }
 
-.sp-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  object-fit: cover;
-  background: rgba(255, 255, 255, 0.75);
-  padding: 4px;
+.sp-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
   flex-shrink: 0;
+  /* 透明底 logo 垫白，两种外观下都可读 */
+  background: #fff;
+  padding: 2px;
+}
+
+.sp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .sp-name {
-  font-size: 16.5px;
-  font-weight: 800;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #22302a;
 }
 
 .sp-desc {
-  font-size: 13px;
-  line-height: 1.65;
-  opacity: 0.82;
-  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #5b6b62;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dark .sp-item {
+  border-color: var(--rg-line-dark);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.dark .sp-item:hover {
+  border-color: rgba(45, 212, 160, 0.5);
+  box-shadow: 0 10px 26px -16px rgba(0, 0, 0, 0.7);
+}
+
+.dark .sp-name {
+  color: #e9efe9;
+}
+
+.dark .sp-desc {
+  color: #a9bfb2;
 }
 </style>

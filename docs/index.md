@@ -5,7 +5,7 @@ aside: false
 notice:
   version: v0.37.0
   date: 2026-08-02
-  title: 📢 RuleGo v0.37.0 发布！
+  title: RuleGo v0.37.0 发布
   items:
     - '🏭 IoT 端到端数据管道：新增 S7、EtherNet/IP、SNMP、MC、FINS、DL/T645、HJ212、IEC104 等 8 个工业协议采集族（共 10 个协议族）；新增 openGemini、InfluxDB、TDengine、TimescaleDB、Prometheus Remote Write 等 5 个时序库驱动'
     - '⚙️ 软 PLC 控制：新增 x/control/timer（TON/TOF 延时）与 x/control/watchdog（心跳看门狗）控制节点'
@@ -39,7 +39,7 @@ import HomeNotice from './.vitepress/theme/components/HomeNotice.vue'
 <HomeEcoStrip />
 <HomeQuickstart />
 
-<section class="home-section paper-section" style="padding-top: 0">
+<section class="home-section paper-section sponsors-section">
   <div class="home-inner">
     <HomeSponsors />
   </div>

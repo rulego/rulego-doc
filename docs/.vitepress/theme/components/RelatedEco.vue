@@ -22,7 +22,8 @@ const isInternal = (link: string) => link.startsWith('/')
         :rel="isInternal(hrefOf(item)) ? undefined : 'noopener noreferrer'"
       >
         <span class="related-eco-name">
-          <span class="eco-emoji">{{ item.emoji }}</span>
+          <img v-if="item.logo" class="eco-logo" :src="item.logo" alt="" loading="lazy" />
+          <span v-else class="eco-emoji">{{ item.emoji }}</span>
           {{ item.name }}
         </span>
         <span class="related-eco-tagline">{{ item.tagline }}</span>

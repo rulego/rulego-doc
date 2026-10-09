@@ -25,7 +25,7 @@ import EcoMatrix from '../.vitepress/theme/components/EcoMatrix.vue'
     <h2>说明</h2>
     <ul>
       <li>底座引擎的文档就在本站：指南、组件、Endpoint、StreamSQL、智能体、IoT 各区。</li>
-      <li>场景应用是独立演进的产品，各有自己的站点与文档（如 edge.rulego.cc、gflow.rulego.cc、editor.rulego.cc），本站只做导航。</li>
+      <li>场景应用是独立演进的产品，各有自己的站点与文档（如 edge.rulego.cc、gflow.rulego.cc、app.rulego.cc），本站只做导航。</li>
       <li>想用底座做自己的场景？从 <a href="/pages/introduction/">引擎文档</a> 开始；想直接拿到成品？进各产品站点了解。</li>
     </ul>
   </section>

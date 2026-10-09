@@ -77,12 +77,16 @@ const zhNav = [
   { text: '编辑器', link: 'https://app.rulego.cc/' },
   {
     text: '生态',
-    activeMatch: '^/(ecosystem/|pages/(streamsql-overview|ai-agent-overview)/)',
+    activeMatch: '^/(ecosystem/|pages/(streamsql-overview|ai-agent-overview|rulego-server)/)',
     items: [
       { text: '生态总览', link: '/ecosystem/' },
+      { text: '🧱 RuleGo-Server', link: '/pages/rulego-server/' },
       { text: '🌊 StreamSQL', link: '/pages/streamsql-overview/' },
       { text: '🤖 智能体框架', link: '/pages/ai-agent-overview/' },
-      // 商业产品（TPCLAW/GFlow/编辑器）不做全局导航直链，出口收敛到 /ecosystem/
+      { text: '🎨 rulego-editor', link: 'https://app.rulego.cc/' },
+      { text: '🛰️ rulego-edge', link: 'https://edge.rulego.cc' },
+      { text: '📄 GFlow Platform', link: 'https://gflow.rulego.cc' },
+      { text: '🐾 TPCLAW', link: 'https://tpclaw.teambuf.com' },
       { text: '更新日志', link: 'https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md' },
     ],
   },
@@ -144,12 +148,16 @@ const enNav = [
   { text: 'Editor', link: 'https://app.rulego.cc/en' },
   {
     text: 'Ecosystem',
-    activeMatch: '^/(en/ecosystem/|en/pages/(streamsql-overview|ai-agent-overview)/)',
+    activeMatch: '^/(en/ecosystem/|en/pages/(streamsql-overview|ai-agent-overview|rulego-server)/)',
     items: [
       { text: 'Ecosystem Overview', link: '/en/ecosystem/' },
+      { text: 'RuleGo-Server', link: '/en/pages/rulego-server/' },
       { text: 'StreamSQL', link: '/en/pages/streamsql-overview/' },
       { text: 'AI Agent Framework', link: '/en/pages/ai-agent-overview/' },
-      // 商业产品（TPCLAW/GFlow/编辑器）不做全局导航直链，出口收敛到 /en/ecosystem/（同中文导航策略）
+      { text: 'rulego-editor', link: 'https://app.rulego.cc/' },
+      { text: 'rulego-edge', link: 'https://edge.rulego.cc' },
+      { text: 'GFlow Platform', link: 'https://gflow.rulego.cc' },
+      { text: 'TPCLAW', link: 'https://tpclaw.teambuf.com' },
       { text: 'Changelog', link: 'https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md' },
     ],
   },
