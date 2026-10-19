@@ -25,9 +25,9 @@ features: # 可选的
 postList: none
 hideRightBar: true
 notices: # 可选的
-- id: RuleGo-0.37.0
-  title: 📢 RuleGo v0.37.0发布！
-  content: '<div><p>2026/08/02</p><ul> <li>🏭 IoT端到端数据管道：新增S7、EtherNet/IP、SNMP、MC、FINS、DL/T645、HJ212、IEC104等8个工业协议采集族（共10个协议族）；新增openGemini、InfluxDB、TDengine、TimescaleDB、Prometheus Remote Write等5个时序库存储驱动；通用节点仅需driver字段即可切换协议/数据库</li><li>⚙️ 软PLC控制：新增x/control/timer（TON/TOF延时）和x/control/watchdog（心跳看门狗）控制节点</li><li>🧭 Nacos服务发现：新增组件库rulego-components-discovery，支持服务调用、配置读写、配置变更订阅和服务注册</li><li>🌊 流计算：streamsql支持CEP（MATCH_RECOGNIZE）模式识别和流-表JOIN富化</li><li>🔗 引擎：同链连接池（ref://节点ID复用连接）、endpoint会话寻址推送、组件别名机制</li><li>🎨 编辑器：命令面板、右键菜单、快捷键、链路诊断、组件文档浏览器、点位表Excel导入</li><li>🤖 AI Agent框架：AG-UI流式模式、思考过程流式透传、doom-loop循环防护、新增grep/glob工具</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
+- id: RuleGo-1.0.0
+  title: 📢 RuleGo v1.0.0发布！
+  content: '<div><p>2026/10/19</p><ul> <li>🎯 首个1.0稳定版：公开API冻结承诺（v1.x遵循语义化版本），历史废弃API已全部移除</li><li>🖥️ 多副本部署：分布式Locker、定时任务跨副本去重、消息端点选主单活，接入Redis即用</li><li>🔄 版本管理：规则链保存记版本快照、一键回滚、草稿不占版本额度、全局变量热更新</li><li>🛡️ 引擎加固：消息hop预算防失控循环、join语义修正、业务日志事件、跨链调用溯源</li><li>🤖 AI走向边缘：轻量ReAct组件ai/agent（纯标准库、32位可编译）、ai/jev决策节点、远程MCP工具</li><li>🏭 IoT：新增BACnet/IP（共11个工业协议族）、批量合并读一次往返、全协议工程量换算</li><li>🌊 流计算：StreamSQL v1.3.0流-流JOIN（WITHIN窗口）进规则链</li><li>🎨 编辑器：运行耗时瀑布图、运行记录对比、循环分组守卫、保存双轨与版本回滚</li></ul><p style="text-align: center;"><a href="https://github.com/rulego/rulego/blob/main/doc/CHANGELOG.md" target="_blank">查看详情</a></p></div>'
   isHtmlContent: true
 ---
 
